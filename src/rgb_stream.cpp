@@ -1,0 +1,207 @@
+#include <ros/ros.h>
+
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+#include <pthread.h>
+
+#include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/Image.h>
+
+#include "libL3Cam.h"
+#include "beamagine.h"
+#include "beamErrors.h"
+
+#include "l3cam_ros/GetSensorsAvaliable.h"
+
+pthread_t rgb_thread;
+
+ros::Publisher rgb_pub;
+
+bool g_listening = false;
+
+ros::ServiceClient clientGetSensors;
+l3cam_ros::GetSensorsAvaliable srvGetSensors;
+
+void *ImageThread(void *functionData)
+{
+    struct sockaddr_in m_socket;
+    int m_socket_descriptor;           // Socket descriptor
+    std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
+    int m_udp_port = 6020;             // For RGB it's 6020
+
+    socklen_t socket_len = sizeof(m_socket);
+    char *buffer;
+    buffer = (char *)malloc(64000);
+
+    uint16_t m_image_height;
+    uint16_t m_image_width;
+    uint8_t m_image_channels;
+    uint32_t m_timestamp;
+    int m_image_data_size;
+    bool m_is_reading_image;
+    bool m_image_ready;
+    char *m_image_buffer;
+    int bytes_count = 0;
+
+    if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+    {
+        perror("Opening socket");
+        return 0;
+    }
+    // else ROS_INFO("Socket RGB created");
+    memset((char *)&m_socket, 0, sizeof(struct sockaddr_in));
+    m_socket.sin_addr.s_addr = inet_addr((char *)m_address.c_str());
+    m_socket.sin_family = AF_INET;
+    m_socket.sin_port = htons(m_udp_port);
+
+    if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
+    {
+        perror("inet_aton() failed");
+        return 0;
+    }
+
+    if (bind(m_socket_descriptor, (struct sockaddr *)&m_socket, sizeof(struct sockaddr_in)) == -1)
+    {
+        perror("Could not bind name to socket");
+        close(m_socket_descriptor);
+        return 0;
+    }
+
+    int rcvbufsize = 134217728;
+    if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
+    {
+        perror("Error setting size to socket");
+        return 0;
+    }
+
+    g_listening = true;
+    ROS_INFO("RGB streaming");
+    m_image_buffer = (char *)malloc(1920 * 1080 * 3);
+    uint8_t *image_pointer = (uint8_t *)malloc(1920 * 1080 * 3);
+
+    while (g_listening)
+    {
+        int size_read = recvfrom(m_socket_descriptor, buffer, 64004, 0, (struct sockaddr *)&m_socket, &socket_len);
+        if (size_read == 11)
+        {
+            memcpy(&m_image_height, &buffer[1], 2);
+            memcpy(&m_image_width, &buffer[3], 2);
+            memcpy(&m_image_channels, &buffer[5], 1);
+            memcpy(&m_timestamp, &buffer[6], sizeof(uint32_t));
+            m_image_data_size = m_image_height * m_image_width * m_image_channels;
+            m_is_reading_image = true;
+            m_image_ready = false;
+            bytes_count = 0;
+        }
+        else if (size_read == 1)
+        {
+            m_is_reading_image = false;
+            m_image_ready = true;
+            bytes_count = 0;
+            memcpy(image_pointer, m_image_buffer, m_image_data_size);
+
+            cv::Mat img_data(m_image_height, m_image_width, CV_8UC3, image_pointer);
+
+            cv_bridge::CvImage img_bridge;
+            sensor_msgs::Image img_msg; // message to be sent
+
+            std_msgs::Header header;         // empty header
+            header.stamp = ros::Time::now(); // time
+            header.frame_id = "lidar";
+            img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_data);
+            img_bridge.toImageMsg(img_msg); // from cv_bridge to sensor_msgs::Image
+            rgb_pub.publish(img_msg);
+        }
+        else if (size_read > 0)
+        {
+            if (m_is_reading_image)
+            {
+                memcpy(&m_image_buffer[bytes_count], buffer, size_read);
+                bytes_count += size_read;
+
+                // check if under size
+                if (bytes_count >= m_image_data_size)
+                    m_is_reading_image = false;
+            }
+        }
+    }
+
+    free(buffer);
+    free(m_image_buffer);
+
+    shutdown(m_socket_descriptor, SHUT_RDWR);
+    close(m_socket_descriptor);
+
+    pthread_exit(0);
+}
+
+bool isRgbAvaliable()
+{
+    int error = L3CAM_OK;
+
+    if (clientGetSensors.call(srvGetSensors))
+    {
+        error = srvGetSensors.response.error;
+
+        if (!error)
+            for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
+            {
+                if (srvGetSensors.response.sensors[i].sensor_type == sensor_econ_rgb)
+                    return true;
+            }
+        else
+        {
+            ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
+            return false;
+        }
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        return false;
+    }
+
+    return false;
+}
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "rgb_stream");
+    ros::NodeHandle nh;
+
+    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
+    int error = L3CAM_OK;
+
+    if (isRgbAvaliable())
+        ROS_INFO("RGB camera avaliable");
+    else
+        return 0;
+
+    pthread_create(&rgb_thread, NULL, &ImageThread, NULL);
+
+    rgb_pub = nh.advertise<sensor_msgs::Image>("/img_rgb", 2);
+
+    ros::Rate loop_rate(1);
+    while (ros::ok() && isRgbAvaliable())
+    {
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+
+    g_listening = false;
+    rgb_pub.shutdown();
+
+    return 0;
+}

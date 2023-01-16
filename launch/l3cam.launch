@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find l3cam_ros)/launch/stream_l3cam.launch" />
+    <include file="$(find l3cam_ros)/launch/configure_l3cam.launch" />
+</launch>
