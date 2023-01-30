@@ -45,7 +45,7 @@ float change_polarimetric_camera_auto_gain_range_maximum = 48.0;
 float change_polarimetric_camera_gain = 24.0;
 bool enable_polarimetric_camera_auto_exposure_time = true;
 float change_polarimetric_camera_auto_exposure_time_range_minimum = 33.456;
-float change_polarimetric_camera_auto_exposure_time_range_maximum = 1000000;
+float change_polarimetric_camera_auto_exposure_time_range_maximum = 1000000.0;
 float change_polarimetric_camera_exposure_time = 500000.0;
 
 void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)

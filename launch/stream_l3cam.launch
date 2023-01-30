@@ -1,5 +1,4 @@
 <launch>
-    <node pkg="l3cam_ros" type="l3cam_ros_node" name="l3cam_ros_node" output="screen" />
     <node pkg="l3cam_ros" type="pointcloud_stream" name="pointcloud_stream" output="screen" />
     <node pkg="l3cam_ros" type="polarimetric_stream" name="polarimetric_stream" output="screen" />
     <node pkg="l3cam_ros" type="rgb_stream" name="rgb_stream" output="screen" />
