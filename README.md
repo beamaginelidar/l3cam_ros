@@ -14,7 +14,7 @@ This package is an ROS driver for the L3Cam camera manufactured by [Beamagine](h
 ## ROS Nodes
 
 ### l3cam_ros_node
-The l3cam_ros_node is the main driver that connects to the camera and configures it according to ROS parameters/services. See the service files (`srv/`) for documentation regarding the various parameters that can be used to configure the L3Cam.
+The l3cam_ros_node is the main driver that connects to the camera and configures it according to ROS parameters/services. See the service files (`srv/`) for documentation regarding the various parameters that can be used to configure the L3Cam. 
 
 ### pointcloud_stream
 The pointcloud_stream is the node that publishes pointcloud frames if the LiDAR sensor is avaliable.
@@ -42,3 +42,6 @@ The rgb_camera_configuration is a node that configures the RGB camera parameters
 
 ### thermal_camera_configuration
 The thermal_camera_configuration is a node that configures the thermal camera parameters (if a thermal sensor is avaliable) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file (`cfg/ThermalCamera.cfg`) for documentation regarding the various parameters that can be used to configure the thermal camera parameters of the L3Cam.
+
+## Launch
+See the launch file (`launch/l3cam.launch`) for documentation regarding how to operate this package.

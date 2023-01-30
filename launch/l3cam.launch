@@ -1,4 +1,9 @@
 <launch>
+    <!-- Start streaming the avaliable sensors. -->
     <include file="$(find l3cam_ros)/launch/stream_l3cam.launch" />
+
+    <!-- Start dyanmic reconfigure -->
     <include file="$(find l3cam_ros)/launch/configure_l3cam.launch" />
+    
+    <!-- The nodes that don't have their sensor avaliable will automatically shut down -->
 </launch>
