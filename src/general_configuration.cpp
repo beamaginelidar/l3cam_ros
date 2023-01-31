@@ -13,10 +13,10 @@
 ros::ServiceClient client;
 l3cam_ros::ChangeNetworkConfiguration srv;
 
-std::string change_network_configuration_ip_address = "192.168.5.15";
-std::string change_network_configuration_netmask = "255.255.255.0";
-std::string change_network_configuration_gateway = "0.0.0.0";
-bool enable_network_configuration_dhcp = false;
+std::string change_network_configuration_ip_address;
+std::string change_network_configuration_netmask;
+std::string change_network_configuration_gateway;
+bool enable_network_configuration_dhcp;
 
 void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
 {
@@ -111,6 +111,12 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "general_configuration");
     ros::NodeHandle nh;
+
+    // Params
+    nh.param("ip_address", change_network_configuration_ip_address, "192.168.5.15");
+    nh.param("netmask", change_network_configuration_netmask, "255.255.255.0");
+    nh.param("gateway", change_network_configuration_gateway, "0.0.0.0");
+    nh.param("dhcp", enable_network_configuration_dhcp, false);
 
     dynamic_reconfigure::Server<l3cam_ros::GeneralConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::GeneralConfig>::CallbackType f;

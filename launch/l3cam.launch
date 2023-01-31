@@ -88,7 +88,45 @@
     <include file="$(find l3cam_ros)/launch/stream_l3cam.launch" />
 
     <!-- Start dyanmic reconfigure -->
-    <include file="$(find l3cam_ros)/launch/configure_l3cam.launch" />
+    <include file="$(find l3cam_ros)/launch/configure_l3cam.launch">
+        <arg name="ip_address" value="$(arg ip_address)" />
+        <arg name="netmask" value="$(arg netmask)" />
+        <arg name="gateway" value="$(arg gateway)" />
+        <arg name="dhcp" value="$(arg dhcp)" />
+
+        <arg name="pointcloud_color" value="$(arg pointcloud_color)" />
+        <arg name="pointcloud_color_range_minimum" value="$(arg pointcloud_color_range_minimum)" />
+        <arg name="pointcloud_color_range_maximum" value="$(arg pointcloud_color_range_maximum)" />
+        <arg name="distance_range_minimum" value="$(arg distance_range_minimum)" />
+        <arg name="distance_range_maximum" value="$(arg distance_range_maximum)" />
+
+        <arg name="polarimetric_camera_brightness" value="$(arg polarimetric_camera_brightness)" />
+        <arg name="polarimetric_camera_black_level" value="$(arg polarimetric_camera_black_level)" />
+        <arg name="polarimetric_camera_auto_gain" value="$(arg polarimetric_camera_auto_gain)" />
+        <arg name="polarimetric_camera_auto_gain_range_minimum" value="$(arg polarimetric_camera_auto_gain_range_minimum)" />
+        <arg name="polarimetric_camera_auto_gain_range_maximum" value="$(arg polarimetric_camera_auto_gain_range_maximum)" />
+        <arg name="polarimetric_camera_gain" value="$(arg polarimetric_camera_gain)" />
+        <arg name="polarimetric_camera_auto_exposure_time" value="$(arg polarimetric_camera_auto_exposure_time)" />
+        <arg name="polarimetric_camera_auto_exposure_time_range_minimum" value="$(arg polarimetric_camera_auto_exposure_time_range_minimum)" />
+        <arg name="polarimetric_camera_auto_exposure_time_range_maximum" value="$(arg polarimetric_camera_auto_exposure_time_range_maximum)" />
+        <arg name="polarimetric_camera_exposure_time" value="$(arg polarimetric_camera_exposure_time)" />
+
+        <arg name="rgb_camera_brightness" value="$(arg rgb_camera_brightness)" />
+        <arg name="rgb_camera_contrast" value="$(arg rgb_camera_contrast)" />
+        <arg name="rgb_camera_saturation" value="$(arg rgb_camera_saturation)" />
+        <arg name="rgb_camera_sharpness" value="$(arg rgb_camera_sharpness)" />
+        <arg name="rgb_camera_gamma" value="$(arg rgb_camera_gamma)" />
+        <arg name="rgb_camera_gain" value="$(arg rgb_camera_gain)" />
+        <arg name="rgb_camera_auto_white_balance" value="$(arg rgb_camera_auto_white_balance)" />
+        <arg name="rgb_camera_white_balance" value="$(arg rgb_camera_white_balance)" />
+        <arg name="rgb_camera_auto_exposure_time" value="$(arg rgb_camera_auto_exposure_time)" />
+        <arg name="rgb_camera_exposure_time" value="$(arg rgb_camera_exposure_time)" />
+
+        <arg name="thermal_camera_colormap" value="$(arg thermal_camera_colormap)" />
+        <arg name="thermal_camera_temperature_filter" value="$(arg thermal_camera_temperature_filter)" />
+        <arg name="thermal_camera_temperature_filter_min" value="$(arg thermal_camera_temperature_filter_min)" />
+        <arg name="thermal_camera_temperature_filter_max" value="$(arg thermal_camera_temperature_filter_max)" />
+    </include>
 
     <!-- The nodes that don't have their sensor avaliable will automatically shut down -->
 </launch>
