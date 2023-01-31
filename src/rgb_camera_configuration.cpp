@@ -70,16 +70,16 @@ l3cam_ros::EnableRgbCameraAutoExposureTime srvEnableAutoExposureTime;
 ros::ServiceClient clientExposureTime;
 l3cam_ros::ChangeRgbCameraExposureTime srvExposureTime;
 
-int change_rgb_camera_brightness;
-int change_rgb_camera_contrast;
-int change_rgb_camera_saturation;
-int change_rgb_camera_sharpness;
-int change_rgb_camera_gamma;
-int change_rgb_camera_gain;
-bool enable_rgb_camera_auto_white_balance;
-int change_rgb_camera_white_balance;
-bool enable_rgb_camera_auto_exposure_time;
-int change_rgb_camera_exposure_time;
+int change_rgb_camera_brightness = 0;
+int change_rgb_camera_contrast = 10;
+int change_rgb_camera_saturation = 16;
+int change_rgb_camera_sharpness = 16;
+int change_rgb_camera_gamma = 220;
+int change_rgb_camera_gain = 0;
+bool enable_rgb_camera_auto_white_balance = true;
+int change_rgb_camera_white_balance = 5000;
+bool enable_rgb_camera_auto_exposure_time = true;
+int change_rgb_camera_exposure_time = 156;
 
 void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
 {
@@ -280,18 +280,6 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "rgb_camera_configuration");
     ros::NodeHandle nh;
-
-    // Params
-    nh.param<int>("rgb_camera_brightness", change_rgb_camera_brightness, 0);
-    nh.param<int>("rgb_camera_contrast", change_rgb_camera_contrast, 10);
-    nh.param<int>("rgb_camera_saturation", change_rgb_camera_saturation, 16);
-    nh.param<int>("rgb_camera_sharpness", change_rgb_camera_sharpness, 16);
-    nh.param<int>("rgb_camera_gamma", change_rgb_camera_gamma, 220);
-    nh.param<int>("rgb_camera_gain", change_rgb_camera_gain, 0);
-    nh.param<bool>("rgb_camera_auto_white_balance", enable_rgb_camera_auto_white_balance, true);
-    nh.param<int>("rgb_camera_white_balance", change_rgb_camera_white_balance, 5000);
-    nh.param<bool>("rgb_camera_auto_exposure_time", enable_rgb_camera_auto_exposure_time, true);
-    nh.param<int>("rgb_camera_exposure_time", change_rgb_camera_exposure_time, 156);
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
     int error = L3CAM_OK;
