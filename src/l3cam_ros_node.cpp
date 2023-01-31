@@ -1,3 +1,30 @@
+/*  Copyright (c) 2023, Beamagine
+    
+    All rights reserved.
+    
+    Redistribution and use in source and binary forms, with or without modification, 
+    are permitted provided that the following conditions are met:
+    
+        - Redistributions of source code must retain the above copyright notice, 
+          this list of conditions and the following disclaimer.
+        - Redistributions in binary form must reproduce the above copyright notice, 
+          this list of conditions and the following disclaimer in the documentation and/or 
+          other materials provided with the distribution.
+        - Neither the name of copyright holders nor the names of its contributors may be 
+          used to endorse or promote products derived from this software without specific 
+          prior written permission.
+    
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY 
+    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+    MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+    COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+    TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include <iostream>
 #include <ros/ros.h>
 
@@ -363,6 +390,51 @@ bool enableThermalCameraTemperatureFilter(l3cam_ros::EnableThermalCameraTemperat
     return true;
 }
 
+void configureDefaultParameters()
+{
+    CHANGE_NETWORK_CONFIGURATION(devices[0], (char *)ip_address, (char *)netmask, (char *)gateway, dhcp);
+
+    for(int i = 0; i < num_sensors; ++i)
+    {
+        if(av_sensors[i].sensor_type == sensor_lidar)
+        {
+            CHANGE_POINT_CLOUD_COLOR(devices[0], pointcloud_color);
+            CHANGE_POINT_CLOUD_COLOR_RANGE(devices[0], pointcloud_color_range_minimum, pointcloud_color_range_maximum);
+            CHANGE_DISTANCE_RANGE(devices[0], distance_range_minimum, distance_range_maximum);
+        }
+        else if(av_sensors[i].sensor_type == sensor_pol)
+        {
+            CHANGE_POLARIMETRIC_CAMERA_BRIGHTNESS(devices[0], polarimetric_camera_brightness);
+            CHANGE_POLARIMETRIC_CAMERA_BLACK_LEVEL(devices[0], polarimetric_camera_black_level);
+            ENABLE_POLARIMETRIC_CAMERA_AUTO_GAIN(devices[0], polarimetric_camera_auto_gain);
+            CHANGE_POLARIMETRIC_CAMERA_AUTO_GAIN_RANGE(devices[0], polarimetric_camera_auto_gain_range_minimum, polarimetric_camera_auto_gain_range_maximum);
+            CHANGE_POLARIMETRIC_CAMERA_GAIN(devices[0], polarimetric_camera_gain);
+            ENABLE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME(devices[0], polarimetric_camera_auto_exposure_time);
+            CHANGE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME_RANGE(devices[0], polarimetric_camera_auto_exposure_time_range_minimum, polarimetric_camera_auto_exposure_time_range_maximum);
+            CHANGE_POLARIMETRIC_CAMERA_EXPOSURE_TIME(devices[0], polarimetric_camera_exposure_time);
+        }
+        else if(av_sensors[i].sensor_type == sensor_econ_rgb)
+        {
+            CHANGE_RGB_CAMERA_BRIGHTNESS(devices[0], rgb_camera_brightness);
+            CHANGE_RGB_CAMERA_CONTRAST(devices[0], rgb_camera_contrast);
+            CHANGE_RGB_CAMERA_SATURATION(devices[0], rgb_camera_saturation);
+            CHANGE_RGB_CAMERA_SHARPNESS(devices[0], rgb_camera_sharpness);
+            CHANGE_RGB_CAMERA_GAMMA(devices[0], rgb_camera_gamma);
+            CHANGE_RGB_CAMERA_GAIN(devices[0], rgb_camera_gain);
+            ENABLE_RGB_CAMERA_AUTO_WHITE_BALANCE(devices[0], rgb_camera_auto_white_balance);
+            CHANGE_RGB_CAMERA_WHITE_BALANCE(devices[0], rgb_camera_white_balance);
+            ENABLE_RGB_CAMERA_AUTO_EXPOSURE_TIME(devices[0], rgb_camera_auto_exposure_time);
+            CHANGE_RGB_CAMERA_EXPOSURE_TIME(devices[0], rgb_camera_exposure_time);
+        }
+        else if(av_sensors[i].sensor_type == sensor_thermal)
+        {
+            CHANGE_THERMAL_CAMERA_COLORMAP(devices[0], (thermalTypes)thermal_camera_colormap);
+            CHANGE_THERMAL_CAMERA_TEMPERATURE_FILTER(devices[0], thermal_camera_temperature_filter_min, thermal_camera_temperature_filter_max);
+            ENABLE_THERMAL_CAMERA_TEMPERATURE_FILTER(devices[0], thermal_camera_temperature_filter);
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     std::cout << "L3Cam version " << GET_VERSION() << std::endl;
@@ -511,48 +583,7 @@ int main(int argc, char **argv)
     }
     ROS_INFO("Device started");
 
-    // Configure default parameters
-    CHANGE_NETWORK_CONFIGURATION(devices[0], (char *)ip_address, (char *)netmask, (char *)gateway, dhcp);
-
-    for(int i = 0; i < num_sensors; ++i)
-    {
-        if(av_sensors[i].sensor_type == sensor_lidar)
-        {
-            CHANGE_POINT_CLOUD_COLOR(devices[0], pointcloud_color);
-            CHANGE_POINT_CLOUD_COLOR_RANGE(devices[0], pointcloud_color_range_minimum, pointcloud_color_range_maximum);
-            CHANGE_DISTANCE_RANGE(devices[0], distance_range_minimum, distance_range_maximum);
-        }
-        else if(av_sensors[i].sensor_type == sensor_pol)
-        {
-            CHANGE_POLARIMETRIC_CAMERA_BRIGHTNESS(devices[0], polarimetric_camera_brightness);
-            CHANGE_POLARIMETRIC_CAMERA_BLACK_LEVEL(devices[0], polarimetric_camera_black_level);
-            ENABLE_POLARIMETRIC_CAMERA_AUTO_GAIN(devices[0], polarimetric_camera_auto_gain);
-            CHANGE_POLARIMETRIC_CAMERA_AUTO_GAIN_RANGE(devices[0], polarimetric_camera_auto_gain_range_minimum, polarimetric_camera_auto_gain_range_maximum);
-            CHANGE_POLARIMETRIC_CAMERA_GAIN(devices[0], polarimetric_camera_gain);
-            ENABLE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME(devices[0], polarimetric_camera_auto_exposure_time);
-            CHANGE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME_RANGE(devices[0], polarimetric_camera_auto_exposure_time_range_minimum, polarimetric_camera_auto_exposure_time_range_maximum);
-            CHANGE_POLARIMETRIC_CAMERA_EXPOSURE_TIME(devices[0], polarimetric_camera_exposure_time);
-        }
-        else if(av_sensors[i].sensor_type == sensor_econ_rgb)
-        {
-            CHANGE_RGB_CAMERA_BRIGHTNESS(devices[0], rgb_camera_brightness);
-            CHANGE_RGB_CAMERA_CONTRAST(devices[0], rgb_camera_contrast);
-            CHANGE_RGB_CAMERA_SATURATION(devices[0], rgb_camera_saturation);
-            CHANGE_RGB_CAMERA_SHARPNESS(devices[0], rgb_camera_sharpness);
-            CHANGE_RGB_CAMERA_GAMMA(devices[0], rgb_camera_gamma);
-            CHANGE_RGB_CAMERA_GAIN(devices[0], rgb_camera_gain);
-            ENABLE_RGB_CAMERA_AUTO_WHITE_BALANCE(devices[0], rgb_camera_auto_white_balance);
-            CHANGE_RGB_CAMERA_WHITE_BALANCE(devices[0], rgb_camera_white_balance);
-            ENABLE_RGB_CAMERA_AUTO_EXPOSURE_TIME(devices[0], rgb_camera_auto_exposure_time);
-            CHANGE_RGB_CAMERA_EXPOSURE_TIME(devices[0], rgb_camera_exposure_time);
-        }
-        else if(av_sensors[i].sensor_type == sensor_thermal)
-        {
-            CHANGE_THERMAL_CAMERA_COLORMAP(devices[0], (thermalTypes)thermal_camera_colormap);
-            CHANGE_THERMAL_CAMERA_TEMPERATURE_FILTER(devices[0], thermal_camera_temperature_filter_min, thermal_camera_temperature_filter_max);
-            ENABLE_THERMAL_CAMERA_TEMPERATURE_FILTER(devices[0], thermal_camera_temperature_filter);
-        }
-    }
+    configureDefaultParameters();
 
     error = START_STREAM(devices[0]);
     if (error)
