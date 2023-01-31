@@ -255,16 +255,16 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     // Params
-    nh.param("rgb_camera_brightness", change_rgb_camera_brightness, 0);
-    nh.param("rgb_camera_contrast", change_rgb_camera_contrast, 10);
-    nh.param("rgb_camera_saturation", change_rgb_camera_saturation, 16);
-    nh.param("rgb_camera_sharpness", change_rgb_camera_sharpness, 16);
-    nh.param("rgb_camera_gamma", change_rgb_camera_gamma, 220);
-    nh.param("rgb_camera_gain", change_rgb_camera_gain, 0);
-    nh.param("rgb_camera_auto_white_balance", enable_rgb_camera_auto_white_balance, true);
-    nh.param("rgb_camera_white_balance", change_rgb_camera_white_balance, 5000);
-    nh.param("rgb_camera_auto_exposure_time", enable_rgb_camera_auto_exposure_time, true);
-    nh.param("rgb_camera_exposure_time", change_rgb_camera_exposure_time, 156);
+    nh.param<int>("rgb_camera_brightness", change_rgb_camera_brightness, 0);
+    nh.param<int>("rgb_camera_contrast", change_rgb_camera_contrast, 10);
+    nh.param<int>("rgb_camera_saturation", change_rgb_camera_saturation, 16);
+    nh.param<int>("rgb_camera_sharpness", change_rgb_camera_sharpness, 16);
+    nh.param<int>("rgb_camera_gamma", change_rgb_camera_gamma, 220);
+    nh.param<int>("rgb_camera_gain", change_rgb_camera_gain, 0);
+    nh.param<bool>("rgb_camera_auto_white_balance", enable_rgb_camera_auto_white_balance, true);
+    nh.param<int>("rgb_camera_white_balance", change_rgb_camera_white_balance, 5000);
+    nh.param<bool>("rgb_camera_auto_exposure_time", enable_rgb_camera_auto_exposure_time, true);
+    nh.param<int>("rgb_camera_exposure_time", change_rgb_camera_exposure_time, 156);
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
     int error = L3CAM_OK;

@@ -111,10 +111,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "rgb_camera_configuration");
     ros::NodeHandle nh;
 
-    nh.param("thermal_camera_colormap", change_thermal_camera_colormap, 1);
-    nh.param("thermal_camera_temperature_filter", enable_thermal_camera_temperature_filter, false);
-    nh.param("thermal_camera_temperature_filter_min", change_thermal_camera_temperature_filter_min, 0);
-    nh.param("thermal_camera_temperature_filter_max", change_thermal_camera_temperature_filter_max, 50);
+    nh.param<int>("thermal_camera_colormap", change_thermal_camera_colormap, 1);
+    nh.param<bool>("thermal_camera_temperature_filter", enable_thermal_camera_temperature_filter, false);
+    nh.param<int>("thermal_camera_temperature_filter_min", change_thermal_camera_temperature_filter_min, 0);
+    nh.param<int>("thermal_camera_temperature_filter_max", change_thermal_camera_temperature_filter_max, 50);
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
     int error = L3CAM_OK;

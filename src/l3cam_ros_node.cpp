@@ -371,45 +371,43 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     // Params
-    nh.param("ip_address", ip_address, "192.168.5.15");
-    nh.param("netmask", netmask, "255.255.255.0");
-    nh.param("gateway", gateway, "0.0.0.0");
-    nh.param("dhcp", dhcp, false);
+    nh.param<strd::string>("ip_address", ip_address, "192.168.5.15");
+    nh.param<strd::string>("netmask", netmask, "255.255.255.0");
+    nh.param<strd::string>("gateway", gateway, "0.0.0.0");
+    nh.param<bool>("dhcp", dhcp, false);
 
-    nh.param("pointcloud_color", pointcloud_color, 0);
-    nh.param("pointcloud_color_range_minimum", pointcloud_color_range_minimum, 0);
-    nh.param("pointcloud_color_range_maximum", pointcloud_color_range_maximum, 400000);
-    nh.param("distance_range_minimum", distance_range_minimum, 0);
-    nh.param("distance_range_maximum", distance_range_maximum, 400000);
+    nh.param<int>("pointcloud_color", pointcloud_color, 0);
+    nh.param<int>("pointcloud_color_range_minimum", pointcloud_color_range_minimum, 0);
+    nh.param<int>("pointcloud_color_range_maximum", pointcloud_color_range_maximum, 400000);
+    nh.param<int>("distance_range_minimum", distance_range_minimum, 0);
+    nh.param<int>("distance_range_maximum", distance_range_maximum, 400000);
 
-    nh.param("polarimetric_camera_brightness", polarimetric_camera_brightness, 127);
-    nh.param("polarimetric_camera_black_level", polarimetric_camera_black_level, 6.0);
-    nh.param("polarimetric_camera_auto_gain", polarimetric_camera_auto_gain, true);
-    nh.param("polarimetric_camera_auto_gain_range_minimum", polarimetric_camera_auto_gain_range_minimum, 0.0);
-    nh.param("polarimetric_camera_auto_gain_range_maximum", polarimetric_camera_auto_gain_range_maximum, 48.0);
-    nh.param("polarimetric_camera_gain", polarimetric_camera_gain, 24.0);
-    nh.param("polarimetric_camera_auto_exposure_time", polarimetric_camera_auto_exposure_time, true);
-    nh.param("polarimetric_camera_auto_exposure_time_range_minimum", polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
-    nh.param("polarimetric_camera_auto_exposure_time_range_maximum", polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
-    nh.param("polarimetric_camera_exposure_time", polarimetric_camera_exposure_time, 500000.0);
+    nh.param<int>("polarimetric_camera_brightness", polarimetric_camera_brightness, 127);
+    nh.param<double>("polarimetric_camera_black_level", polarimetric_camera_black_level, 6.0);
+    nh.param<bool>("polarimetric_camera_auto_gain", polarimetric_camera_auto_gain, true);
+    nh.param<double>("polarimetric_camera_auto_gain_range_minimum", polarimetric_camera_auto_gain_range_minimum, 0.0);
+    nh.param<double>("polarimetric_camera_auto_gain_range_maximum", polarimetric_camera_auto_gain_range_maximum, 48.0);
+    nh.param<double>("polarimetric_camera_gain", polarimetric_camera_gain, 24.0);
+    nh.param<bool>("polarimetric_camera_auto_exposure_time", polarimetric_camera_auto_exposure_time, true);
+    nh.param<double>("polarimetric_camera_auto_exposure_time_range_minimum", polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
+    nh.param<double>("polarimetric_camera_auto_exposure_time_range_maximum", polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
+    nh.param<double>("polarimetric_camera_exposure_time", polarimetric_camera_exposure_time, 500000.0);
 
-    nh.param("rgb_camera_brightness", rgb_camera_brightness, 0);
-    nh.param("rgb_camera_contrast", rgb_camera_contrast, 10);
-    nh.param("rgb_camera_saturation", rgb_camera_saturation, 16);
-    nh.param("rgb_camera_sharpness", rgb_camera_sharpness, 16);
-    nh.param("rgb_camera_gamma", rgb_camera_gamma, 220);
-    nh.param("rgb_camera_gain", rgb_camera_gain, 0);
-    nh.param("rgb_camera_auto_white_balance", rgb_camera_auto_white_balance, true);
-    nh.param("rgb_camera_white_balance", rgb_camera_white_balance, 5000);
-    nh.param("rgb_camera_auto_exposure_time", rgb_camera_auto_exposure_time, true);
-    nh.param("rgb_camera_exposure_time", rgb_camera_exposure_time, 156);
+    nh.param<int>("rgb_camera_brightness", rgb_camera_brightness, 0);
+    nh.param<int>("rgb_camera_contrast", rgb_camera_contrast, 10);
+    nh.param<int>("rgb_camera_saturation", rgb_camera_saturation, 16);
+    nh.param<int>("rgb_camera_sharpness", rgb_camera_sharpness, 16);
+    nh.param<int>("rgb_camera_gamma", rgb_camera_gamma, 220);
+    nh.param<int>("rgb_camera_gain", rgb_camera_gain, 0);
+    nh.param<bool>("rgb_camera_auto_white_balance", rgb_camera_auto_white_balance, true);
+    nh.param<int>("rgb_camera_white_balance", rgb_camera_white_balance, 5000);
+    nh.param<bool>("rgb_camera_auto_exposure_time", rgb_camera_auto_exposure_time, true);
+    nh.param<int>("rgb_camera_exposure_time", rgb_camera_exposure_time, 156);
 
-    nh.param("thermal_camera_colormap", thermal_camera_colormap, 1);
-    nh.param("thermal_camera_temperature_filter", thermal_camera_temperature_filter, false);
-    nh.param("thermal_camera_temperature_filter_min", thermal_camera_temperature_filter_min, 0);
-    nh.param("thermal_camera_temperature_filter_max", thermal_camera_temperature_filter_max, 50);
-
-    // TODO: implement default params
+    nh.param<int>("thermal_camera_colormap", thermal_camera_colormap, 1);
+    nh.param<bool>("thermal_camera_temperature_filter", thermal_camera_temperature_filter, false);
+    nh.param<int>("thermal_camera_temperature_filter_min", thermal_camera_temperature_filter_min, 0);
+    nh.param<int>("thermal_camera_temperature_filter_max", thermal_camera_temperature_filter_max, 50);
 
 
     // Initialize services
@@ -512,6 +510,49 @@ int main(int argc, char **argv)
         return 1;
     }
     ROS_INFO("Device started");
+
+    // Configure default parameters
+    CHANGE_NETWORK_CONFIGURATION(devices[0], (char *)ip_address, (char *)netmask, (char *)gateway, dhcp);
+
+    for(int i = 0; i < num_sensors; ++i)
+    {
+        if(av_sensors[i].sensor_type == sensor_lidar)
+        {
+            CHANGE_POINT_CLOUD_COLOR(devices[0], pointcloud_color);
+            CHANGE_POINT_CLOUD_COLOR_RANGE(devices[0], pointcloud_color_range_minimum, pointcloud_color_range_maximum);
+            CHANGE_DISTANCE_RANGE(devices[0], distance_range_minimum, distance_range_maximum);
+        }
+        else if(av_sensors[i].sensor_type == sensor_pol)
+        {
+            CHANGE_POLARIMETRIC_CAMERA_BRIGHTNESS(devices[0], polarimetric_camera_brightness);
+            CHANGE_POLARIMETRIC_CAMERA_BLACK_LEVEL(devices[0], polarimetric_camera_black_level);
+            ENABLE_POLARIMETRIC_CAMERA_AUTO_GAIN(devices[0], polarimetric_camera_auto_gain);
+            CHANGE_POLARIMETRIC_CAMERA_AUTO_GAIN_RANGE(devices[0], polarimetric_camera_auto_gain_range_minimum, polarimetric_camera_auto_gain_range_maximum);
+            CHANGE_POLARIMETRIC_CAMERA_GAIN(devices[0], polarimetric_camera_gain);
+            ENABLE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME(devices[0], polarimetric_camera_auto_exposure_time);
+            CHANGE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME_RANGE(devices[0], polarimetric_camera_auto_exposure_time_range_minimum, polarimetric_camera_auto_exposure_time_range_maximum);
+            CHANGE_POLARIMETRIC_CAMERA_EXPOSURE_TIME(devices[0], polarimetric_camera_exposure_time);
+        }
+        else if(av_sensors[i].sensor_type == sensor_econ_rgb)
+        {
+            CHANGE_RGB_CAMERA_BRIGHTNESS(devices[0], rgb_camera_brightness);
+            CHANGE_RGB_CAMERA_CONTRAST(devices[0], rgb_camera_contrast);
+            CHANGE_RGB_CAMERA_SATURATION(devices[0], rgb_camera_saturation);
+            CHANGE_RGB_CAMERA_SHARPNESS(devices[0], rgb_camera_sharpness);
+            CHANGE_RGB_CAMERA_GAMMA(devices[0], rgb_camera_gamma);
+            CHANGE_RGB_CAMERA_GAIN(devices[0], rgb_camera_gain);
+            ENABLE_RGB_CAMERA_AUTO_WHITE_BALANCE(devices[0], rgb_camera_auto_white_balance);
+            CHANGE_RGB_CAMERA_WHITE_BALANCE(devices[0], rgb_camera_white_balance);
+            ENABLE_RGB_CAMERA_AUTO_EXPOSURE_TIME(devices[0], rgb_camera_auto_exposure_time);
+            CHANGE_RGB_CAMERA_EXPOSURE_TIME(devices[0], rgb_camera_exposure_time);
+        }
+        else if(av_sensors[i].sensor_type == sensor_thermal)
+        {
+            CHANGE_THERMAL_CAMERA_COLORMAP(devices[0], (thermalTypes)thermal_camera_colormap);
+            CHANGE_THERMAL_CAMERA_TEMPERATURE_FILTER(devices[0], thermal_camera_temperature_filter_min, thermal_camera_temperature_filter_max);
+            ENABLE_THERMAL_CAMERA_TEMPERATURE_FILTER(devices[0], thermal_camera_temperature_filter);
+        }
+    }
 
     error = START_STREAM(devices[0]);
     if (error)

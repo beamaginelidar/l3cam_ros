@@ -285,16 +285,16 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     // Params
-    nh.param("polarimetric_camera_brightness", change_polarimetric_camera_brightness, 127);
-    nh.param("polarimetric_camera_black_level", change_polarimetric_camera_black_level, 6.0);
-    nh.param("polarimetric_camera_auto_gain", enable_polarimetric_camera_auto_gain, true);
-    nh.param("polarimetric_camera_auto_gain_range_minimum", change_polarimetric_camera_auto_gain_range_minimum, 0.0);
-    nh.param("polarimetric_camera_auto_gain_range_maximum", change_polarimetric_camera_auto_gain_range_maximum, 48.0);
-    nh.param("polarimetric_camera_gain", change_polarimetric_camera_gain, 24.0);
-    nh.param("polarimetric_camera_auto_exposure_time", enable_polarimetric_camera_auto_exposure_time, true);
-    nh.param("polarimetric_camera_auto_exposure_time_range_minimum", change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
-    nh.param("polarimetric_camera_auto_exposure_time_range_maximum", change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
-    nh.param("polarimetric_camera_exposure_time", change_polarimetric_camera_exposure_time, 500000.0);
+    nh.param<int>("polarimetric_camera_brightness", change_polarimetric_camera_brightness, 127);
+    nh.param<double>("polarimetric_camera_black_level", change_polarimetric_camera_black_level, 6.0);
+    nh.param<bool>("polarimetric_camera_auto_gain", enable_polarimetric_camera_auto_gain, true);
+    nh.param<double>("polarimetric_camera_auto_gain_range_minimum", change_polarimetric_camera_auto_gain_range_minimum, 0.0);
+    nh.param<double>("polarimetric_camera_auto_gain_range_maximum", change_polarimetric_camera_auto_gain_range_maximum, 48.0);
+    nh.param<double>("polarimetric_camera_gain", change_polarimetric_camera_gain, 24.0);
+    nh.param<bool>("polarimetric_camera_auto_exposure_time", enable_polarimetric_camera_auto_exposure_time, true);
+    nh.param<double>("polarimetric_camera_auto_exposure_time_range_minimum", change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
+    nh.param<double>("polarimetric_camera_auto_exposure_time_range_maximum", change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
+    nh.param<double>("polarimetric_camera_exposure_time", change_polarimetric_camera_exposure_time, 500000.0);
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
     int error = L3CAM_OK;

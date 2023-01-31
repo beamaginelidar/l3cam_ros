@@ -132,11 +132,11 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     // Params
-    nh.param("pointcloud_color", change_pointcloud_color, 0);
-    nh.param("pointcloud_color_range_minimum", change_pointcloud_color_range_minimum, 0);
-    nh.param("pointcloud_color_range_maximum", change_pointcloud_color_range_maximum, 400000);
-    nh.param("distance_range_minimum", change_distance_range_minimum, 0);
-    nh.param("distance_range_maximum", change_distance_range_maximum, 400000);
+    nh.param<int>("pointcloud_color", change_pointcloud_color, 0);
+    nh.param<int>("pointcloud_color_range_minimum", change_pointcloud_color_range_minimum, 0);
+    nh.param<int>("pointcloud_color_range_maximum", change_pointcloud_color_range_maximum, 400000);
+    nh.param<int>("distance_range_minimum", change_distance_range_minimum, 0);
+    nh.param<int>("distance_range_maximum", change_distance_range_maximum, 400000);
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
     int error = L3CAM_OK;
