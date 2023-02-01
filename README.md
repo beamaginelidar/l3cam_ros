@@ -6,12 +6,18 @@ This package is supported only on Linux systems and has only been tested with RO
 
 ## Installation
 
-[//]: # (### Dependencies)
+### Dependencies
+First, you will need to install the L3Cam SDK. 
 
-[//]: # (### ROS Driver)
-ROS driver install:
+Download the required package from [this](https://github.com/beamaginelidar/libl3cam.git) Beamagine repository depending on your hardware architecture and install using:
 ```
-sudo apt install ros-noetic-l3cam-ros
+sudo dpkg -i <PACKAGE>
+```
+
+### ROS Driver
+Once the SDK is succesfully installed, you can continue with the ROS driver install:
+```
+sudo apt install ros-<ROS_DISTRO>-l3cam-ros
 ```
 
 ## Operational Advice
@@ -26,7 +32,7 @@ ip a | grep mtu
 
 You should increase the mtu to `9000` to allow jumbo frames. If you use Network Manager, this can be done by opening the network interface settings and editing the "MTU" box under the "Identity" tab.
 
-See the "Linux host configuration" section of the [L3Cam User Manual]() for full details.
+See the "Linux host configuration" section of the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf) for full details.
 
 ### Receive Buffer Size
 It is also recommended to increase your network default and maximum receive buffer size.

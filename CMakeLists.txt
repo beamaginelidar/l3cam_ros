@@ -164,7 +164,8 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include/${PROJECT_NAME}
-  include/libL3cam
+  /usr/local/lib/libl3cam
+  /usr/local/include/libl3cam
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -209,7 +210,7 @@ add_dependencies(polarimetric_stream ${PROJECT_NAME}_gencpp)
 
 
 ## Specify libraries to link a library or executable target against
-FIND_LIBRARY(l3cam_LIBRARIES libL3Cam.a include/libL3cam/)
+FIND_LIBRARY(l3cam_LIBRARIES libL3Cam.a /usr/local/lib/libl3cam/)
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(general_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(pointcloud_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
