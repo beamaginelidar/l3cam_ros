@@ -9,7 +9,7 @@ This package is supported only on Linux systems and has only been tested with RO
 ### Dependencies
 First, you will need to install the L3Cam SDK. 
 
-Download the required package from [this](https://github.com/beamaginelidar/libl3cam.git) Beamagine repository depending on your hardware architecture and install:
+Download the required package from Beamagine's [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git) repository depending on your hardware architecture and install:
 ```
 sudo dpkg -i <PACKAGE>
 ```
