@@ -1,27 +1,27 @@
 /*  Copyright (c) 2023, Beamagine
-    
+
     All rights reserved.
-    
-    Redistribution and use in source and binary forms, with or without modification, 
+
+    Redistribution and use in source and binary forms, with or without modification,
     are permitted provided that the following conditions are met:
-    
-        - Redistributions of source code must retain the above copyright notice, 
+
+        - Redistributions of source code must retain the above copyright notice,
           this list of conditions and the following disclaimer.
-        - Redistributions in binary form must reproduce the above copyright notice, 
-          this list of conditions and the following disclaimer in the documentation and/or 
+        - Redistributions in binary form must reproduce the above copyright notice,
+          this list of conditions and the following disclaimer in the documentation and/or
           other materials provided with the distribution.
-        - Neither the name of copyright holders nor the names of its contributors may be 
-          used to endorse or promote products derived from this software without specific 
+        - Neither the name of copyright holders nor the names of its contributors may be
+          used to endorse or promote products derived from this software without specific
           prior written permission.
-    
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY 
-    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
-    MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
-    COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
-    TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY
+    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+    COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+    TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -40,12 +40,12 @@
 
 #include <pthread.h>
 
-#include <sensor_msgs/point_cloud_conversion.h> // RELEASE PROBLEMO
-#include "sensor_msgs/PointCloud.h" // RELEASE PROBLEMO
+#include <sensor_msgs/point_cloud_conversion.h>
+#include "sensor_msgs/PointCloud.h"
 
-#include "libL3Cam.h"
-#include "beamagine.h"
-#include "beamErrors.h"
+#include <libL3Cam.h>
+#include <beamagine.h>
+#include <beamErrors.h>
 
 #include "l3cam_ros/GetSensorsAvaliable.h"
 
@@ -81,7 +81,7 @@ void *PointCloudThread(void *functionData)
         perror("Opening socket");
         return 0;
     }
-    //else ROS_INFO("Socket Pointcloud created");
+    // else ROS_INFO("Socket Pointcloud created");
     memset((char *)&m_socket, 0, sizeof(struct sockaddr_in));
     m_socket.sin_addr.s_addr = inet_addr((char *)m_address.c_str());
     m_socket.sin_family = AF_INET;
@@ -150,8 +150,8 @@ void *PointCloudThread(void *functionData)
             }
 
             sensor_msgs::PointCloud2 PC2_msg;
-            //PC2_msg.header.frame_id = "lidar";
-            //PC2_msg.header.stamp = ros::Time(0);
+            // PC2_msg.header.frame_id = "lidar";
+            // PC2_msg.header.stamp = ros::Time(0);
 
             sensor_msgs::convertPointCloudToPointCloud2(cloud_, PC2_msg);
             PC2_pub.publish(PC2_msg);
@@ -167,13 +167,13 @@ void *PointCloudThread(void *functionData)
                 int32_t points = 0;
                 memcpy(&points, &buffer[0], 4);
                 memcpy(&m_pointcloud_data[pointcloud_index], &buffer[4], (sizeof(int32_t) * (points * 5)));
-                
-                pointcloud_index += (points*5);
+
+                pointcloud_index += (points * 5);
 
                 points_received += points;
 
                 // check if under size
-                if(points_received >= m_pointcloud_size)
+                if (points_received >= m_pointcloud_size)
                     m_is_reading_pointcloud = false;
             }
         }
