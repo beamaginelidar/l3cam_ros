@@ -46,9 +46,9 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
 
-#include "libL3Cam.h"
-#include "beamagine.h"
-#include "beamErrors.h"
+#include <libL3Cam.h>
+#include <beamagine.h>
+#include <beamErrors.h>
 
 #include "l3cam_ros/GetSensorsAvaliable.h"
 

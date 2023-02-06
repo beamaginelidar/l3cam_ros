@@ -43,9 +43,9 @@
 #include <sensor_msgs/point_cloud_conversion.h>
 #include "sensor_msgs/PointCloud.h"
 
-#include "libL3Cam.h"
-#include "beamagine.h"
-#include "beamErrors.h"
+#include <libL3Cam.h>
+#include <beamagine.h>
+#include <beamErrors.h>
 
 #include "l3cam_ros/GetSensorsAvaliable.h"
 

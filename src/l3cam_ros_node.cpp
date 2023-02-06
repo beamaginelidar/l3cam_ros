@@ -28,9 +28,9 @@
 #include <iostream>
 #include <ros/ros.h>
 
-#include "libL3Cam.h"
-#include "beamagine.h"
-#include "beamErrors.h"
+#include <libL3Cam.h>
+#include <beamagine.h>
+#include <beamErrors.h>
 
 #include "l3cam_ros/Sensor.h"
 

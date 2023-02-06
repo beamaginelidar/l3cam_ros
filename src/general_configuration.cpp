@@ -31,9 +31,9 @@
 #include <dynamic_reconfigure/server.h>
 #include "l3cam_ros/GeneralConfig.h"
 
-#include "libL3Cam.h"
-#include "beamagine.h"
-#include "beamErrors.h"
+#include <libL3Cam.h>
+#include <beamagine.h>
+#include <beamErrors.h>
 
 #include "l3cam_ros/ChangeNetworkConfiguration.h"
 
