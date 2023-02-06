@@ -1,12 +1,22 @@
 <launch>
+    <!-- roslaunch l3cam_ros l3cam.launch stream:=true configure:=true rviz:=false rqt_reconfigure:=false -->
+    <arg name="stream" default="true" />
+    <arg name="rviz" default="false" />
+    <arg name="configure" default="true" />
+    <arg name="rqt_reconfigure" default="false" />
+
     <!-- Start the driver -->
     <node pkg="l3cam_ros" type="l3cam_ros_node" name="l3cam_ros_node" output="screen" />
 
     <!-- Start streaming the avaliable sensors. -->
-    <include file="$(find l3cam_ros)/launch/stream_l3cam.launch" />
+    <include file="$(find l3cam_ros)/launch/stream_l3cam.launch" if="$(eval arg('stream'))">
+        <arg name="rviz" value="$(arg rviz)" />
+    </include>
 
     <!-- Start dyanmic reconfigure -->
-    <include file="$(find l3cam_ros)/launch/configure_l3cam.launch" />
+    <include file="$(find l3cam_ros)/launch/configure_l3cam.launch" if="$(eval arg('configure'))">
+        <arg name="rqt_reconfigure" value="$(arg rqt_reconfigure)" />
+    </include>
 
     <!-- The nodes that don't have their sensor avaliable will automatically shut down -->
 </launch>

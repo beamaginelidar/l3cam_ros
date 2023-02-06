@@ -1,9 +1,11 @@
 <launch>
+    <arg name="rviz" default="false" />
+
     <!-- Stream -->
     <node pkg="l3cam_ros" type="pointcloud_stream" name="pointcloud_stream" output="screen" />
     <node pkg="l3cam_ros" type="polarimetric_stream" name="polarimetric_stream" output="screen" />
     <node pkg="l3cam_ros" type="rgb_stream" name="rgb_stream" output="screen" />
     <node pkg="l3cam_ros" type="thermal_stream" name="thermal_stream" output="screen" />
     
-    <!-- <node pkg="rviz" type="rviz" name="rviz" output="screen" /> -->
+    <node pkg="rviz" type="rviz" name="rviz" output="screen" if="$(eval arg('rviz'))" />
 </launch>

@@ -1,4 +1,6 @@
 <launch>
+    <arg name="rqt_reconfigure" default="false" />
+
     <!-- Dynamic reconfigure -->
     <node pkg="l3cam_ros" type="general_configuration" name="general_configuration" output="screen" />
     <node pkg="l3cam_ros" type="pointcloud_configuration" name="pointcloud_configuration" output="screen" />
@@ -6,5 +8,5 @@
     <node pkg="l3cam_ros" type="rgb_camera_configuration" name="rgb_camera_configuration" output="screen" />
     <node pkg="l3cam_ros" type="thermal_camera_configuration" name="thermal_camera_configuration" output="screen" />
     
-    <!-- <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" /> -->
+    <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" if="$(eval arg('rqt_reconfigure'))" />
 </launch>
