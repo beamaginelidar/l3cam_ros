@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>l3cam_ros</name>
-  <version>1.0.2</version>
+  <version>0.0.2</version>
   <description>Camera driver for Beamagine's L3Cam, based on the libL3Cam library</description>
   <license>BSD</license>
 
