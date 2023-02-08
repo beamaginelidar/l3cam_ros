@@ -13,9 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
 )
 
-################################################
-## Declare ROS messages, services and actions ##
-################################################
+#######################################
+## Declare ROS messages and services ##
+#######################################
 
 ## Generate messages in the 'msg' folder
 add_message_files(
@@ -115,6 +115,8 @@ add_executable(rgb_camera_configuration src/rgb_camera_configuration.cpp)
 add_executable(thermal_camera_configuration src/thermal_camera_configuration.cpp)
 add_executable(pointcloud_stream src/pointcloud_stream.cpp)
 add_executable(polarimetric_stream src/polarimetric_stream.cpp)
+add_executable(rgb_stream src/rgb_stream.cpp)
+add_executable(thermal_stream src/thermal_stream.cpp)
 
 ## Add cmake target dependencies of the executable
 add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_gencpp)
@@ -125,7 +127,8 @@ add_dependencies(rgb_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}
 add_dependencies(thermal_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(pointcloud_stream ${PROJECT_NAME}_gencpp) 
 add_dependencies(polarimetric_stream ${PROJECT_NAME}_gencpp) 
-
+add_dependencies(rgb_stream ${PROJECT_NAME}_gencpp) 
+add_dependencies(thermal_stream ${PROJECT_NAME}_gencpp) 
 
 ## Specify libraries to link a library or executable target against
 FIND_LIBRARY(l3cam_LIBRARIES libL3Cam.a /usr/local/lib/libl3cam/)
@@ -137,3 +140,5 @@ target_link_libraries(rgb_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRA
 target_link_libraries(thermal_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(pointcloud_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(polarimetric_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(rgb_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(thermal_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
