@@ -79,7 +79,7 @@ void *ImageThread(void *functionData)
     int m_image_data_size;
     bool m_is_reading_image;
     bool m_image_ready;
-    char *m_image_buffer;
+    char *m_image_buffer = NULL;
     int bytes_count = 0;
 
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -115,8 +115,7 @@ void *ImageThread(void *functionData)
 
     g_listening = true;
     ROS_INFO("Polarimetric streaming");
-    m_image_buffer = (char *)malloc(1920 * 1080 * 3);
-    uint8_t *image_pointer = (uint8_t *)malloc(1920 * 1080 * 3);
+    uint8_t *image_pointer = NULL;
 
     while (g_listening)
     {
@@ -126,6 +125,21 @@ void *ImageThread(void *functionData)
             memcpy(&m_image_height, &buffer[1], 2);
             memcpy(&m_image_width, &buffer[3], 2);
             memcpy(&m_image_channels, &buffer[5], 1);
+
+            if(image_pointer != NULL)
+            {
+                free(image_pointer);
+                image_pointer = NULL;
+            }
+            if(m_image_buffer != NULL)
+            {
+                free(m_image_buffer);
+                m_image_buffer = NULL;
+            }
+
+            m_image_buffer = (char *)malloc(m_image_height * m_image_width * m_image_channels);
+            image_pointer = (uint8_t *)malloc(m_image_height * m_image_width * m_image_channels);
+
             memcpy(&m_timestamp, &buffer[6], sizeof(uint32_t));
             m_image_data_size = m_image_height * m_image_width * m_image_channels;
             m_is_reading_image = true;
