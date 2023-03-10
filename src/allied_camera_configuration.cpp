@@ -155,7 +155,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_black_level = change_allied_camera_black_level;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -175,7 +174,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_exposure_time = change_allied_camera_exposure_time;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -195,7 +193,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.enable_allied_camera_auto_exposure_time = enable_allied_camera_auto_exposure_time;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -216,7 +213,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_auto_exposure_time_range_min = change_allied_camera_auto_exposure_time_range_min;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -237,7 +233,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_auto_exposure_time_range_max = change_allied_camera_auto_exposure_time_range_max;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -259,7 +254,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_gain = change_allied_camera_gain;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -279,7 +273,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.enable_allied_camera_auto_gain = enable_allied_camera_auto_gain;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -300,7 +293,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_auto_gain_range_min = change_allied_camera_auto_gain_range_min;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -321,7 +313,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_auto_gain_range_max = change_allied_camera_auto_gain_range_max;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -341,7 +332,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_gamma = change_allied_camera_gamma;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -361,7 +351,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_saturation = change_allied_camera_saturation;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -381,7 +370,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_sharpness = change_allied_camera_sharpness;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -401,7 +389,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_hue = change_allied_camera_hue;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -421,7 +408,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_intensity_auto_precedence = change_allied_camera_intensity_auto_precedence;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -441,7 +427,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_intensity_auto_precedence = change_allied_camera_intensity_auto_precedence;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -461,7 +446,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_white_balance_ratio_selector = change_allied_camera_balance_ratio_selector;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -481,7 +465,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_balance_ratio = change_allied_camera_balance_ratio;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -501,7 +484,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_white_balance_auto_rate = change_allied_camera_balance_white_auto_rate;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -521,7 +503,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_white_balance_auto_tolerance = change_allied_camera_balance_white_auto_tolerance;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -542,7 +523,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_auto_mode_region_height = change_allied_camera_auto_mode_region_height;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -563,7 +543,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_auto_mode_region_width = change_allied_camera_auto_mode_region_width;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -583,7 +562,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_intensity_controller_region = change_allied_camera_intensity_controller_region;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -603,7 +581,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_intensity_controller_target = change_allied_camera_intensity_controller_target;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -623,7 +600,6 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
             else
             {
                 config.change_allied_camera_max_driver_buffers_count = change_allied_camera_max_driver_buffers_count;
-                ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
             }
         }
         else
@@ -633,6 +609,9 @@ void callback(l3cam_ros::AlliedCameraConfig &config, uint32_t level)
         }
         break;
     }
+
+    if (error)
+        ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
 }
 
 int main(int argc, char **argv)

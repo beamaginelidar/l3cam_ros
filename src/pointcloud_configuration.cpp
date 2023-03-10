@@ -59,8 +59,9 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
-    if (config.change_pointcloud_color != change_pointcloud_color)
+    switch(level)
     {
+    case 1:
         srvColor.request.visualization_color = config.change_pointcloud_color;
         if (clientColor.call(srvColor))
         {
@@ -75,9 +76,8 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_pointcloud_color");
             config.change_pointcloud_color = change_pointcloud_color;
         }
-    }
-    else if (config.change_pointcloud_color_range_minimum != change_pointcloud_color_range_minimum)
-    {
+        break;
+    case 2:
         srvColorRange.request.min_value = config.change_pointcloud_color_range_minimum;
         srvColorRange.request.max_value = change_pointcloud_color_range_maximum;
         if (clientColorRange.call(srvColorRange))
@@ -93,9 +93,8 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_pointcloud_color_range");
             config.change_pointcloud_color_range_minimum = change_pointcloud_color_range_minimum;
         }
-    }
-    else if (config.change_pointcloud_color_range_maximum != change_pointcloud_color_range_maximum)
-    {
+        break;
+    case 3:
         srvColorRange.request.max_value = config.change_pointcloud_color_range_maximum;
         srvColorRange.request.min_value = change_pointcloud_color_range_minimum;
         if (clientColorRange.call(srvColorRange))
@@ -111,9 +110,8 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_pointcloud_color_range");
             config.change_pointcloud_color_range_maximum = change_pointcloud_color_range_maximum;
         }
-    }
-    else if (config.change_distance_range_minimum != change_distance_range_minimum)
-    {
+        break;
+    case 4:
         srvDistanceRange.request.min_value = config.change_distance_range_minimum;
         srvDistanceRange.request.max_value = change_distance_range_maximum;
         if (clientDistanceRange.call(srvDistanceRange))
@@ -129,9 +127,8 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_distance_range");
             config.change_distance_range_minimum = change_distance_range_minimum;
         }
-    }
-    else if (config.change_distance_range_maximum != change_distance_range_maximum)
-    {
+        break;
+    case 5:
         srvDistanceRange.request.max_value = config.change_distance_range_maximum;
         srvDistanceRange.request.min_value = change_distance_range_minimum;
         if (clientDistanceRange.call(srvDistanceRange))
@@ -147,8 +144,9 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_distance_range");
             config.change_distance_range_maximum = change_distance_range_maximum;
         }
+        break;
     }
-
+    
     if (error)
         ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
 }

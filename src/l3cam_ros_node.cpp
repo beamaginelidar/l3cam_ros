@@ -1001,8 +1001,7 @@ int main(int argc, char **argv)
         TERMINATE(devices[0]);
         return 1;
     }
-    // ROS_INFO("Streaming...");
-
+    
     while (ros::ok() && num_devices != 0)
     {
         error = FIND_DEVICES(devices, &num_devices);
@@ -1015,14 +1014,6 @@ int main(int argc, char **argv)
         ros::spinOnce();
         loop_rate.sleep();
     }
-
-    ROS_INFO("exit");
-    std::cout << "exit2\n";
-    // STOP_STREAM(devices[0]);
-    // STOP_DEVICE(devices[0]);
-    // TERMINATE(devices[0]);
-    ROS_INFO("exit3");
-    std::cout << "exit4\n";
 
     return 0;
 }
