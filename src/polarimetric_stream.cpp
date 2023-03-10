@@ -52,21 +52,23 @@
 
 #include "l3cam_ros/GetSensorsAvaliable.h"
 
-pthread_t polarimetric_thread;
+pthread_t stream_thread;
 
-ros::Publisher polarimetric_pub;
+ros::Publisher pub;
 
 bool g_listening = false;
 
 ros::ServiceClient clientGetSensors;
 l3cam_ros::GetSensorsAvaliable srvGetSensors;
 
+bool pol = false; // true if polarimetric avaliable, false if wide avaliable
+
 void *ImageThread(void *functionData)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
     std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
-    int m_udp_port = 6060;             // For Polarimetric it's 6060
+    int m_udp_port = 6060;             // For Polarimetric and Allied Wide it's 6060
 
     socklen_t socket_len = sizeof(m_socket);
     char *buffer;
@@ -114,7 +116,11 @@ void *ImageThread(void *functionData)
     }
 
     g_listening = true;
-    ROS_INFO("Polarimetric streaming");
+    if(pol)
+        ROS_INFO("Polarimetric streaming");
+    else
+        ROS_INFO("Allied Wide streaming");
+        
     uint8_t *image_pointer = NULL;
 
     while (g_listening)
@@ -126,12 +132,12 @@ void *ImageThread(void *functionData)
             memcpy(&m_image_width, &buffer[3], 2);
             memcpy(&m_image_channels, &buffer[5], 1);
 
-            if(image_pointer != NULL)
+            if (image_pointer != NULL)
             {
                 free(image_pointer);
                 image_pointer = NULL;
             }
-            if(m_image_buffer != NULL)
+            if (m_image_buffer != NULL)
             {
                 free(m_image_buffer);
                 m_image_buffer = NULL;
@@ -163,7 +169,7 @@ void *ImageThread(void *functionData)
             header.frame_id = "lidar";
             img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_data);
             img_bridge.toImageMsg(img_msg); // from cv_bridge to sensor_msgs::Image
-            polarimetric_pub.publish(img_msg);
+            pub.publish(img_msg);
         }
         else if (size_read > 0)
         {
@@ -217,6 +223,33 @@ bool isPolarimetricAvaliable()
     return false;
 }
 
+bool isWideAvaliable()
+{
+    int error = L3CAM_OK;
+    if (clientGetSensors.call(srvGetSensors))
+    {
+        error = srvGetSensors.response.error;
+
+        if (!error)
+            for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
+            {
+                if (srvGetSensors.response.sensors[i].sensor_type == sensor_allied_wide)
+                    return true;
+            }
+        else
+        {
+            ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
+        }
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        return false;
+    }
+
+    return false;
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "polarimetric_stream");
@@ -226,23 +259,41 @@ int main(int argc, char **argv)
     int error = L3CAM_OK;
 
     if (isPolarimetricAvaliable())
+    {
         ROS_INFO("Polarimetric camera avaliable");
+        pol = true;
+    }
+    if (isWideAvaliable())
+        ROS_INFO("Allied Wide camera avaliable");
     else
         return 0;
 
-    pthread_create(&polarimetric_thread, NULL, &ImageThread, NULL);
-
-    polarimetric_pub = nh.advertise<sensor_msgs::Image>("/img_polarimetric", 2);
+    pthread_create(&stream_thread, NULL, &ImageThread, NULL);
 
     ros::Rate loop_rate(1);
-    while (ros::ok() && isPolarimetricAvaliable())
+    if (pol)
     {
-        ros::spinOnce();
-        loop_rate.sleep();
+        pub = nh.advertise<sensor_msgs::Image>("/img_polarimetric", 2);
+
+        while (ros::ok() && isPolarimetricAvaliable())
+        {
+            ros::spinOnce();
+            loop_rate.sleep();
+        }
+    }
+    else
+    {
+        pub = nh.advertise<sensor_msgs::Image>("/img_wide", 2);
+
+        while (ros::ok() && isWideAvaliable())
+        {
+            ros::spinOnce();
+            loop_rate.sleep();
+        }
     }
 
     g_listening = false;
-    polarimetric_pub.shutdown();
+    pub.shutdown();
 
     return 0;
 }

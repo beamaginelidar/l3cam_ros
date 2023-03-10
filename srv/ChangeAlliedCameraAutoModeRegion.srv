@@ -1,0 +1,5 @@
+int32 allied_type
+float32 auto_mode_region_height
+float32 auto_mode_region_width
+---
+int32 error

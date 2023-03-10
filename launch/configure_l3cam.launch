@@ -7,6 +7,7 @@
     <node pkg="l3cam_ros" type="polarimetric_camera_configuration" name="polarimetric_camera_configuration" output="screen" />
     <node pkg="l3cam_ros" type="rgb_camera_configuration" name="rgb_camera_configuration" output="screen" />
     <node pkg="l3cam_ros" type="thermal_camera_configuration" name="thermal_camera_configuration" output="screen" />
+    <node pkg="l3cam_ros" type="allied_camera_configuration" name="allied_camera_configuration" output="screen" />
     
     <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" if="$(eval arg('rqt_reconfigure'))" />
 </launch>

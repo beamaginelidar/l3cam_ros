@@ -25,6 +25,8 @@
     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <signal.h>
+
 #include <iostream>
 #include <ros/ros.h>
 
@@ -79,9 +81,110 @@
 #include "l3cam_ros/ChangeThermalCameraTemperatureFilter.h"
 #include "l3cam_ros/EnableThermalCameraTemperatureFilter.h"
 
+#include "l3cam_ros/ChangeAlliedCameraBlackLevel.h"
+#include "l3cam_ros/ChangeAlliedCameraExposureTime.h"
+#include "l3cam_ros/EnableAlliedCameraAutoExposureTime.h"
+#include "l3cam_ros/ChangeAlliedCameraAutoExposureTimeRange.h"
+#include "l3cam_ros/ChangeAlliedCameraGain.h"
+#include "l3cam_ros/EnableAlliedCameraAutoGain.h"
+#include "l3cam_ros/ChangeAlliedCameraAutoGainRange.h"
+#include "l3cam_ros/ChangeAlliedCameraGamma.h"
+#include "l3cam_ros/ChangeAlliedCameraSaturation.h"
+#include "l3cam_ros/ChangeAlliedCameraSharpness.h"
+#include "l3cam_ros/ChangeAlliedCameraHue.h"
+#include "l3cam_ros/ChangeAlliedCameraIntensityAutoPrecedence.h"
+#include "l3cam_ros/EnableAlliedCameraAutoWhiteBalance.h"
+#include "l3cam_ros/ChangeAlliedCameraBalanceRatioSelector.h"
+#include "l3cam_ros/ChangeAlliedCameraBalanceRatio.h"
+#include "l3cam_ros/ChangeAlliedCameraBalanceWhiteAutoRate.h"
+#include "l3cam_ros/ChangeAlliedCameraBalanceWhiteAutoTolerance.h"
+#include "l3cam_ros/ChangeAlliedCameraAutoModeRegion.h"
+#include "l3cam_ros/ChangeAlliedCameraIntensityControllerRegion.h"
+#include "l3cam_ros/ChangeAlliedCameraIntensityControllerTarget.h"
+#include "l3cam_ros/ChangeAlliedCameraMaxDriverBuffersCount.h"
+
 l3cam devices[1];
 sensor av_sensors[6];
 
+sensor *m_lidar_sensor = NULL;
+sensor *m_rgb_sensor = NULL;
+sensor *m_thermal_sensor = NULL;
+sensor *m_polarimetric_sensor = NULL;
+sensor *m_allied_wide_sensor = NULL;
+sensor *m_allied_narrow_sensor = NULL;
+
+//! SIGNALS
+std::string getSignalDescription(int signal)
+{
+    std::string description = "";
+    switch (signal)
+    {
+    case SIGQUIT:
+        description = "SIGQUIT";
+        break;
+    case SIGINT:
+        description = "SIGINT";
+        break;
+    case SIGTERM:
+        description = "SIGTERM";
+        break;
+    case SIGSEGV:
+        description = "SIGSEGV";
+        break;
+    case SIGHUP:
+        description = "SIGHUP";
+        break;
+    case SIGILL:
+        description = "SIGILL";
+        break;
+    case SIGABRT:
+        description = "SIGABRT";
+        break;
+    case SIGFPE:
+        description = "SIGFPE";
+        break;
+    }
+    return description;
+}
+
+void handleSignalCaptured(int signal)
+{
+    // std::cout<<"handleSignalCaputred exiting for captured signal "<<signal<<"--"<<getSignalDescription(signal)<<std::endl;
+    //! TODO(ebernal) gestionar aqui el cierre controlado
+    if (signal == SIGINT)
+    {
+        ROS_INFO("Terminating...");
+        STOP_STREAM(devices[0]);
+        STOP_DEVICE(devices[0]);
+        TERMINATE(devices[0]);
+    }
+    exit(0);
+}
+
+void setCapturedSignal(int signal)
+{
+    struct sigaction sig_action;
+    sig_action.sa_flags = 0;
+    sigemptyset(&sig_action.sa_mask);
+    sig_action.sa_handler = handleSignalCaptured;
+
+    if (sigaction(signal, &sig_action, NULL) == 1)
+    {
+        std::cout << "setCaputredSignal Error setting signal\n";
+    }
+}
+
+void registerSystemSignals()
+{
+    setCapturedSignal(SIGQUIT);
+    setCapturedSignal(SIGINT);
+    setCapturedSignal(SIGTERM);
+    setCapturedSignal(SIGSEGV);
+    setCapturedSignal(SIGHUP);
+    setCapturedSignal(SIGILL);
+    setCapturedSignal(SIGABRT);
+    setCapturedSignal(SIGFPE);
+}
 
 bool getVersion(l3cam_ros::GetVersion::Request &req, l3cam_ros::GetVersion::Response &res)
 {
@@ -351,6 +454,388 @@ bool enableThermalCameraTemperatureFilter(l3cam_ros::EnableThermalCameraTemperat
     return true;
 }
 
+// Allied
+bool changeAlliedCameraBlackLevel(l3cam_ros::ChangeAlliedCameraBlackLevel::Request &req, l3cam_ros::ChangeAlliedCameraBlackLevel::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_BLACK_LEVEL(devices[0], *m_allied_wide_sensor, req.black_level);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_BLACK_LEVEL(devices[0], *m_allied_narrow_sensor, req.black_level);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraExposureTime(l3cam_ros::ChangeAlliedCameraExposureTime::Request &req, l3cam_ros::ChangeAlliedCameraExposureTime::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_EXPOSURE_TIME_US(devices[0], *m_allied_wide_sensor, req.exposure_time);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_EXPOSURE_TIME_US(devices[0], *m_allied_narrow_sensor, req.exposure_time);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool enableAlliedCameraAutoExposureTime(l3cam_ros::EnableAlliedCameraAutoExposureTime::Request &req, l3cam_ros::EnableAlliedCameraAutoExposureTime::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = ENABLE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(devices[0], *m_allied_wide_sensor, req.enabled);
+        break;
+    case 2:
+        res.error = ENABLE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(devices[0], *m_allied_narrow_sensor, req.enabled);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraAutoExposureTimeRange(l3cam_ros::ChangeAlliedCameraAutoExposureTimeRange::Request &req, l3cam_ros::ChangeAlliedCameraAutoExposureTimeRange::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(devices[0], *m_allied_wide_sensor, req.auto_exposure_time_range_min, req.auto_exposure_time_range_max);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(devices[0], *m_allied_narrow_sensor, req.auto_exposure_time_range_min, req.auto_exposure_time_range_max);
+        break;
+    default:
+        res.error = 1000; //! Can't put max and min
+    }
+    return true;
+}
+
+bool changeAlliedCameraGain(l3cam_ros::ChangeAlliedCameraGain::Request &req, l3cam_ros::ChangeAlliedCameraGain::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_GAIN(devices[0], *m_allied_wide_sensor, req.gain);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_GAIN(devices[0], *m_allied_narrow_sensor, req.gain);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool enableAlliedCameraAutoGain(l3cam_ros::EnableAlliedCameraAutoGain::Request &req, l3cam_ros::EnableAlliedCameraAutoGain::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = ENABLE_ALLIED_CAMERA_AUTO_GAIN(devices[0], *m_allied_wide_sensor, req.enabled);
+        break;
+    case 2:
+        res.error = ENABLE_ALLIED_CAMERA_AUTO_GAIN(devices[0], *m_allied_narrow_sensor, req.enabled);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraAutoGainRange(l3cam_ros::ChangeAlliedCameraAutoGainRange::Request &req, l3cam_ros::ChangeAlliedCameraAutoGainRange::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(devices[0], *m_allied_wide_sensor, req.auto_gain_range_min, req.auto_gain_range_max);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(devices[0], *m_allied_narrow_sensor, req.auto_gain_range_min, req.auto_gain_range_max);
+        break;
+    default:
+        res.error = 1000; //! Can't put max and min
+    }
+    return true;
+}
+
+bool changeAlliedCameraGamma(l3cam_ros::ChangeAlliedCameraGamma::Request &req, l3cam_ros::ChangeAlliedCameraGamma::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_GAMMA(devices[0], *m_allied_wide_sensor, req.gamma);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_GAMMA(devices[0], *m_allied_narrow_sensor, req.gamma);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraSaturation(l3cam_ros::ChangeAlliedCameraSaturation::Request &req, l3cam_ros::ChangeAlliedCameraSaturation::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_SATURATION(devices[0], *m_allied_wide_sensor, req.saturation);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_SATURATION(devices[0], *m_allied_narrow_sensor, req.saturation);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraSharpness(l3cam_ros::ChangeAlliedCameraSharpness::Request &req, l3cam_ros::ChangeAlliedCameraSharpness::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_SHARPNESS(devices[0], *m_allied_wide_sensor, req.sharpness);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_SHARPNESS(devices[0], *m_allied_narrow_sensor, req.sharpness);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraHue(l3cam_ros::ChangeAlliedCameraHue::Request &req, l3cam_ros::ChangeAlliedCameraHue::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_HUE(devices[0], *m_allied_wide_sensor, req.hue);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_HUE(devices[0], *m_allied_narrow_sensor, req.hue);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraIntensityAutoPrecedence(l3cam_ros::ChangeAlliedCameraIntensityAutoPrecedence::Request &req, l3cam_ros::ChangeAlliedCameraIntensityAutoPrecedence::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        switch (req.intensity_auto_precedence)
+        {
+        case 1:
+            res.error = CHANGE_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(devices[0], *m_allied_wide_sensor, allied_auto_precedence_minimize_noise);
+            break;
+        case 2:
+            res.error = CHANGE_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(devices[0], *m_allied_wide_sensor, allied_auto_precedence_minimize_blur);
+            break;
+        }
+        break;
+    case 2:
+        switch (req.intensity_auto_precedence)
+        {
+        case 1:
+            res.error = CHANGE_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(devices[0], *m_allied_narrow_sensor, allied_auto_precedence_minimize_noise);
+            break;
+        case 2:
+            res.error = CHANGE_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(devices[0], *m_allied_narrow_sensor, allied_auto_precedence_minimize_blur);
+            break;
+        }
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool enableAlliedCameraAutoWhiteBalance(l3cam_ros::EnableAlliedCameraAutoWhiteBalance::Request &req, l3cam_ros::EnableAlliedCameraAutoWhiteBalance::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = ENABLE_ALLIED_CAMERA_AUTO_WHITE_BALANCE(devices[0], *m_allied_wide_sensor, req.enabled);
+        break;
+    case 2:
+        res.error = ENABLE_ALLIED_CAMERA_AUTO_WHITE_BALANCE(devices[0], *m_allied_narrow_sensor, req.enabled);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraBalanceRatioSelector(l3cam_ros::ChangeAlliedCameraBalanceRatioSelector::Request &req, l3cam_ros::ChangeAlliedCameraBalanceRatioSelector::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        switch(req.white_balance_ratio_selector){
+        case 1:
+            res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(devices[0], *m_allied_wide_sensor, allied_balance_ratio_selector_red);
+            break;
+        case 2:
+            res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(devices[0], *m_allied_wide_sensor, allied_balance_ratio_selector_blue);
+            break;
+        }
+        break;
+    case 2:
+        switch(req.white_balance_ratio_selector){
+        case 1:
+            res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(devices[0], *m_allied_narrow_sensor, allied_balance_ratio_selector_red);
+            break;
+        case 2:
+            res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(devices[0], *m_allied_narrow_sensor, allied_balance_ratio_selector_blue);
+            break;
+        }
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraBalanceRatio(l3cam_ros::ChangeAlliedCameraBalanceRatio::Request &req, l3cam_ros::ChangeAlliedCameraBalanceRatio::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO(devices[0], *m_allied_wide_sensor, req.balance_ratio);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO(devices[0], *m_allied_narrow_sensor, req.balance_ratio);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraBalanceWhiteAutoRate(l3cam_ros::ChangeAlliedCameraBalanceWhiteAutoRate::Request &req, l3cam_ros::ChangeAlliedCameraBalanceWhiteAutoRate::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(devices[0], *m_allied_wide_sensor, req.white_balance_auto_rate);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(devices[0], *m_allied_narrow_sensor, req.white_balance_auto_rate);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraBalanceWhiteAutoTolerance(l3cam_ros::ChangeAlliedCameraBalanceWhiteAutoTolerance::Request &req, l3cam_ros::ChangeAlliedCameraBalanceWhiteAutoTolerance::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(devices[0], *m_allied_wide_sensor, req.white_balance_auto_tolerance);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(devices[0], *m_allied_narrow_sensor, req.white_balance_auto_tolerance);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraAutoModeRegion(l3cam_ros::ChangeAlliedCameraAutoModeRegion::Request &req, l3cam_ros::ChangeAlliedCameraAutoModeRegion::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_AUTO_MODE_REGION(devices[0], *m_allied_wide_sensor, req.auto_mode_region_height, req.auto_mode_region_width);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_AUTO_MODE_REGION(devices[0], *m_allied_narrow_sensor, req.auto_mode_region_height, req.auto_mode_region_width);
+        break;
+    default:
+        res.error = 1000; //! Can't put height and width
+    }
+    return true;
+}
+
+bool changeAlliedCameraIntensityControllerRegion(l3cam_ros::ChangeAlliedCameraIntensityControllerRegion::Request &req, l3cam_ros::ChangeAlliedCameraIntensityControllerRegion::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        switch(req.intensity_controller_region)
+        {
+        case 1:
+            res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(devices[0], *m_allied_wide_sensor, allied_controller_region_auto_mode_region);
+            break;
+        case 2:
+            res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(devices[0], *m_allied_wide_sensor, allied_controller_region_full_image);
+            break;
+        }
+        break;
+    case 2:
+        switch(req.intensity_controller_region)
+        {
+        case 1:
+            res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(devices[0], *m_allied_narrow_sensor, allied_controller_region_auto_mode_region);
+            break;
+        case 2:
+            res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(devices[0], *m_allied_narrow_sensor, allied_controller_region_full_image);
+            break;
+        }
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraIntensityControllerTarget(l3cam_ros::ChangeAlliedCameraIntensityControllerTarget::Request &req, l3cam_ros::ChangeAlliedCameraIntensityControllerTarget::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(devices[0], *m_allied_wide_sensor, req.intensity_controller_target);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(devices[0], *m_allied_narrow_sensor, req.intensity_controller_target);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
+
+bool changeAlliedCameraMaxDriverBuffersCount(l3cam_ros::ChangeAlliedCameraMaxDriverBuffersCount::Request &req, l3cam_ros::ChangeAlliedCameraMaxDriverBuffersCount::Response &res)
+{
+    switch (req.allied_type)
+    {
+    case 1:
+        res.error = CHANGE_ALLIED_CAMERA_MAX_DRIVER_BUFFERS_COUNT(devices[0], *m_allied_wide_sensor, req.max_driver_buffers_count);
+        break;
+    case 2:
+        res.error = CHANGE_ALLIED_CAMERA_MAX_DRIVER_BUFFERS_COUNT(devices[0], *m_allied_narrow_sensor, req.max_driver_buffers_count);
+        break;
+    default:
+        res.error = 1000;
+    }
+    return true;
+}
 
 int main(int argc, char **argv)
 {
@@ -405,8 +890,32 @@ int main(int argc, char **argv)
     ros::ServiceServer srvChangeThermalCameraTemperatureFilter = nh.advertiseService("change_thermal_camera_temperature_filter", changeThermalCameraTemperatureFilter);
     ros::ServiceServer srvEnableThermalCameraTemperatureFilter = nh.advertiseService("enable_thermal_camera_temperature_filter", enableThermalCameraTemperatureFilter);
 
+    ros::ServiceServer srvChangeAlliedCameraBlackLevel = nh.advertiseService("change_allied_camera_black_level", changeAlliedCameraBlackLevel);
+    ros::ServiceServer srvChangeAlliedCameraExposureTime = nh.advertiseService("change_allied_camera_exposure_time", changeAlliedCameraExposureTime);
+    ros::ServiceServer srvEnableAlliedCameraAutoExposureTime = nh.advertiseService("enable_allied_camera_auto_exposure_time", enableAlliedCameraAutoExposureTime);
+    ros::ServiceServer srvChangeAlliedCameraAutoExposureTimeRange = nh.advertiseService("change_allied_camera_auto_exposure_time_range", changeAlliedCameraAutoExposureTimeRange);
+    ros::ServiceServer srvChangeAlliedCameraGain = nh.advertiseService("change_allied_camera_gain", changeAlliedCameraGain);
+    ros::ServiceServer srvEnableAlliedCameraAutoGain = nh.advertiseService("enable_allied_camera_auto_gain", enableAlliedCameraAutoGain);
+    ros::ServiceServer srvChangeAlliedCameraAutoGainRange = nh.advertiseService("change_allied_camera_auto_gain_range", changeAlliedCameraAutoGainRange);
+    ros::ServiceServer srvChangeAlliedCameraGamma = nh.advertiseService("change_allied_camera_gamma", changeAlliedCameraGamma);
+    ros::ServiceServer srvChangeAlliedCameraSaturation = nh.advertiseService("change_allied_camera_saturation", changeAlliedCameraSaturation);
+    ros::ServiceServer srvChangeAlliedCameraSharpness = nh.advertiseService("change_allied_camera_sharpness", changeAlliedCameraSharpness);
+    ros::ServiceServer srvChangeAlliedCameraHue = nh.advertiseService("change_allied_camera_hue", changeAlliedCameraHue);
+    ros::ServiceServer srvChangeAlliedCameraIntensityAutoPrecedence = nh.advertiseService("change_allied_camera_intensity_auto_precedence", changeAlliedCameraIntensityAutoPrecedence);
+    ros::ServiceServer srvEnableAlliedCameraAutoWhiteBalance = nh.advertiseService("enable_allied_camera_auto_white_balance", enableAlliedCameraAutoWhiteBalance);
+    ros::ServiceServer srvChangeAlliedCameraBalanceRatioSelector = nh.advertiseService("change_allied_camera_balance_ratio_selector", changeAlliedCameraBalanceRatioSelector);
+    ros::ServiceServer srvChangeAlliedCameraBalanceRatio = nh.advertiseService("change_allied_camera_balance_ratio", changeAlliedCameraBalanceRatio);
+    ros::ServiceServer srvChangeAlliedCameraBalanceWhiteAutoRate = nh.advertiseService("change_allied_camera_balance_white_auto_rate", changeAlliedCameraBalanceWhiteAutoRate);
+    ros::ServiceServer srvChangeAlliedCameraBalanceWhiteAutoTolerance = nh.advertiseService("change_allied_camera_balance_white_auto_tolerance", changeAlliedCameraBalanceWhiteAutoTolerance);
+    ros::ServiceServer srvChangeAlliedCameraAutoModeRegion = nh.advertiseService("change_allied_camera_auto_mode_region", changeAlliedCameraAutoModeRegion);
+    ros::ServiceServer srvChangeAlliedCameraIntensityControllerRegion = nh.advertiseService("change_allied_camera_intensity_controller_region", changeAlliedCameraIntensityControllerRegion);
+    ros::ServiceServer srvChangeAlliedCameraIntensityControllerTarget = nh.advertiseService("change_allied_camera_intensity_controller_target", changeAlliedCameraIntensityControllerTarget);
+    ros::ServiceServer srvChangeAlliedCameraMaxDriverBuffersCount = nh.advertiseService("change_allied_camera_max_driver_buffers_count", changeAlliedCameraMaxDriverBuffersCount);
+
     // Initialize L3Cam
     int error = L3CAM_OK;
+
+    registerSystemSignals();
 
     error = INITIALIZE();
     if (error)
@@ -449,6 +958,30 @@ int main(int argc, char **argv)
         TERMINATE(devices[0]);
         return 1;
     }
+    for (int i = 0; i < num_sensors; ++i)
+    {
+        switch (av_sensors[i].sensor_type)
+        {
+        case sensor_lidar:
+            m_lidar_sensor = &av_sensors[i];
+            break;
+        case sensor_econ_rgb:
+            m_rgb_sensor = &av_sensors[i];
+            break;
+        case sensor_thermal:
+            m_thermal_sensor = &av_sensors[i];
+            break;
+        case sensor_pol:
+            m_polarimetric_sensor = &av_sensors[i];
+            break;
+        case sensor_allied_wide:
+            m_allied_wide_sensor = &av_sensors[i];
+            break;
+        case sensor_allied_narrow:
+            m_allied_narrow_sensor = &av_sensors[i];
+            break;
+        }
+    }
     ROS_INFO_STREAM(num_sensors << " sensors avaliable");
 
     error = START_DEVICE(devices[0]);
@@ -483,9 +1016,13 @@ int main(int argc, char **argv)
         loop_rate.sleep();
     }
 
-    STOP_STREAM(devices[0]);
-    STOP_DEVICE(devices[0]);
-    TERMINATE(devices[0]);
+    ROS_INFO("exit");
+    std::cout << "exit2\n";
+    // STOP_STREAM(devices[0]);
+    // STOP_DEVICE(devices[0]);
+    // TERMINATE(devices[0]);
+    ROS_INFO("exit3");
+    std::cout << "exit4\n";
 
     return 0;
 }

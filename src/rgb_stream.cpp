@@ -52,21 +52,23 @@
 
 #include "l3cam_ros/GetSensorsAvaliable.h"
 
-pthread_t rgb_thread;
+pthread_t stream_thread;
 
-ros::Publisher rgb_pub;
+ros::Publisher pub;
 
 bool g_listening = false;
 
 ros::ServiceClient clientGetSensors;
 l3cam_ros::GetSensorsAvaliable srvGetSensors;
 
+bool rgb = false; // true if rgb avaliable, false if narrow avaliable
+
 void *ImageThread(void *functionData)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
     std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
-    int m_udp_port = 6020;             // For RGB it's 6020
+    int m_udp_port = 6020;             // For RGB and Allied Narrow it's 6020
 
     socklen_t socket_len = sizeof(m_socket);
     char *buffer;
@@ -114,7 +116,11 @@ void *ImageThread(void *functionData)
     }
 
     g_listening = true;
-    ROS_INFO("RGB streaming");
+    if(rgb)
+        ROS_INFO("RGB streaming");
+    else
+        ROS_INFO("Allied Narrow streaming");
+
     uint8_t *image_pointer = NULL;
 
     while (g_listening)
@@ -126,17 +132,17 @@ void *ImageThread(void *functionData)
             memcpy(&m_image_width, &buffer[3], 2);
             memcpy(&m_image_channels, &buffer[5], 1);
 
-            if(image_pointer != NULL)
+            if (image_pointer != NULL)
             {
                 free(image_pointer);
                 image_pointer = NULL;
             }
-            if(m_image_buffer != NULL)
+            if (m_image_buffer != NULL)
             {
                 free(m_image_buffer);
                 m_image_buffer = NULL;
             }
-            
+
             m_image_buffer = (char *)malloc(m_image_height * m_image_width * m_image_channels);
             image_pointer = (uint8_t *)malloc(m_image_height * m_image_width * m_image_channels);
 
@@ -163,7 +169,7 @@ void *ImageThread(void *functionData)
             header.frame_id = "lidar";
             img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_data);
             img_bridge.toImageMsg(img_msg); // from cv_bridge to sensor_msgs::Image
-            rgb_pub.publish(img_msg);
+            pub.publish(img_msg);
         }
         else if (size_read > 0)
         {
@@ -216,6 +222,33 @@ bool isRgbAvaliable()
     return false;
 }
 
+bool isNarrowAvaliable()
+{
+    int error = L3CAM_OK;
+    if (clientGetSensors.call(srvGetSensors))
+    {
+        error = srvGetSensors.response.error;
+
+        if (!error)
+            for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
+            {
+                if (srvGetSensors.response.sensors[i].sensor_type == sensor_allied_narrow)
+                    return true;
+            }
+        else
+        {
+            ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
+        }
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        return false;
+    }
+
+    return false;
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "rgb_stream");
@@ -225,23 +258,41 @@ int main(int argc, char **argv)
     int error = L3CAM_OK;
 
     if (isRgbAvaliable())
+    {
         ROS_INFO("RGB camera avaliable");
+        rgb = true;
+    }
+    else if (isNarrowAvaliable())
+        ROS_INFO("Allied Narrow camera avaliable");
     else
         return 0;
 
-    pthread_create(&rgb_thread, NULL, &ImageThread, NULL);
-
-    rgb_pub = nh.advertise<sensor_msgs::Image>("/img_rgb", 2);
+    pthread_create(&stream_thread, NULL, &ImageThread, NULL);
 
     ros::Rate loop_rate(1);
-    while (ros::ok() && isRgbAvaliable())
+    if (rgb)
     {
-        ros::spinOnce();
-        loop_rate.sleep();
+        pub = nh.advertise<sensor_msgs::Image>("/img_rgb", 2);
+
+        while (ros::ok() && isRgbAvaliable())
+        {
+            ros::spinOnce();
+            loop_rate.sleep();
+        }
+    }
+    else
+    {
+        pub = nh.advertise<sensor_msgs::Image>("/img_narrow", 2);
+
+        while (ros::ok() && isNarrowAvaliable())
+        {
+            ros::spinOnce();
+            loop_rate.sleep();
+        }
     }
 
     g_listening = false;
-    rgb_pub.shutdown();
+    pub.shutdown();
 
     return 0;
 }
