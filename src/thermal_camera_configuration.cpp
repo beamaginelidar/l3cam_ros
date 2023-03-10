@@ -58,8 +58,9 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
-    if (config.change_thermal_camera_colormap != change_thermal_camera_colormap)
+    switch (level)
     {
+    case 1:
         srvColormap.request.colormap = config.change_thermal_camera_colormap;
         if (clientColormap.call(srvColormap))
         {
@@ -74,9 +75,8 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_thermal_camera_colormap");
             config.change_thermal_camera_colormap = change_thermal_camera_colormap;
         }
-    }
-    if (config.enable_thermal_camera_temperature_filter != enable_thermal_camera_temperature_filter)
-    {
+        break;
+    case 2:
         srvEnableTemperatureFilter.request.enabled = config.enable_thermal_camera_temperature_filter;
         if (clientEnableTemperatureFilter.call(srvEnableTemperatureFilter))
         {
@@ -91,9 +91,8 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service enable_thermal_camera_temperature_filter");
             config.enable_thermal_camera_temperature_filter = enable_thermal_camera_temperature_filter;
         }
-    }
-    if (config.change_thermal_camera_temperature_filter_min != change_thermal_camera_temperature_filter_min)
-    {
+        break;
+    case 3:
         srvTemperatureFilter.request.min_temperature = config.change_thermal_camera_temperature_filter_min;
         srvTemperatureFilter.request.max_temperature = change_thermal_camera_temperature_filter_max;
         if (clientTemperatureFilter.call(srvTemperatureFilter))
@@ -109,9 +108,8 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_thermal_camera_temperature_filter_min");
             config.change_thermal_camera_temperature_filter_min = change_thermal_camera_temperature_filter_min;
         }
-    }
-    if (config.change_thermal_camera_temperature_filter_max != change_thermal_camera_temperature_filter_max)
-    {
+        break;
+    case 4:
         srvTemperatureFilter.request.max_temperature = config.change_thermal_camera_temperature_filter_max;
         srvTemperatureFilter.request.min_temperature = change_thermal_camera_temperature_filter_min;
         if (clientTemperatureFilter.call(srvTemperatureFilter))
@@ -127,6 +125,7 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_thermal_camera_temperature_filter_max");
             config.change_thermal_camera_temperature_filter_max = change_thermal_camera_temperature_filter_max;
         }
+        break;
     }
 
     if (error)

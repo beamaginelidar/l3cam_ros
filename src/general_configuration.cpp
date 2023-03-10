@@ -49,8 +49,9 @@ void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
-    if (config.enable_network_configuration_dhcp != enable_network_configuration_dhcp)
+    switch(level)
     {
+    case 1:
         srv.request.ip_address = change_network_configuration_ip_address;
         srv.request.netmask = change_network_configuration_netmask;
         srv.request.gateway = change_network_configuration_gateway;
@@ -68,9 +69,8 @@ void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_network_configuration");
             config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
         }
-    }
-    else if (config.change_network_configuration_ip_address != change_network_configuration_ip_address)
-    {
+        break;
+    case 2:
         srv.request.ip_address = config.change_network_configuration_ip_address;
         srv.request.netmask = change_network_configuration_netmask;
         srv.request.gateway = change_network_configuration_gateway;
@@ -88,9 +88,8 @@ void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_network_configuration");
             config.change_network_configuration_ip_address = change_network_configuration_ip_address;
         }
-    }
-    else if (config.change_network_configuration_netmask != change_network_configuration_netmask)
-    {
+        break;
+    case 3:
         srv.request.ip_address = change_network_configuration_ip_address;
         srv.request.netmask = config.change_network_configuration_netmask;
         srv.request.gateway = change_network_configuration_gateway;
@@ -108,9 +107,8 @@ void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_network_configuration");
             config.change_network_configuration_netmask = change_network_configuration_netmask;
         }
-    }
-    else if (config.change_network_configuration_gateway != change_network_configuration_gateway)
-    {
+        break;
+    case 4:
         srv.request.ip_address = change_network_configuration_ip_address;
         srv.request.netmask = change_network_configuration_netmask;
         srv.request.gateway = config.change_network_configuration_gateway;
@@ -128,6 +126,7 @@ void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
             ROS_ERROR("Failed to call service change_network_configuration");
             config.change_network_configuration_gateway = change_network_configuration_gateway;
         }
+        break;
     }
 
     if (error)
