@@ -64,24 +64,42 @@ l3cam_ros::ChangePolarimetricCameraAutoExposureTimeRange srvAutoExposureTimeRang
 ros::ServiceClient clientExposureTime;
 l3cam_ros::ChangePolarimetricCameraExposureTime srvExposureTime;
 
-int change_polarimetric_camera_brightness = 127;
-float change_polarimetric_camera_black_level = 6.0;
-bool enable_polarimetric_camera_auto_gain = true;
-float change_polarimetric_camera_auto_gain_range_minimum = 0.0;
-float change_polarimetric_camera_auto_gain_range_maximum = 48.0;
-float change_polarimetric_camera_gain = 24.0;
-bool enable_polarimetric_camera_auto_exposure_time = true;
-float change_polarimetric_camera_auto_exposure_time_range_minimum = 33.456;
-float change_polarimetric_camera_auto_exposure_time_range_maximum = 1000000.0;
-float change_polarimetric_camera_exposure_time = 500000.0;
+int change_polarimetric_camera_brightness;
+double change_polarimetric_camera_black_level;
+bool enable_polarimetric_camera_auto_gain;
+double change_polarimetric_camera_auto_gain_range_minimum;
+double change_polarimetric_camera_auto_gain_range_maximum;
+double change_polarimetric_camera_gain;
+bool enable_polarimetric_camera_auto_exposure_time;
+double change_polarimetric_camera_auto_exposure_time_range_minimum;
+double change_polarimetric_camera_auto_exposure_time_range_maximum;
+double change_polarimetric_camera_exposure_time;
+
+bool default_configured = false;
 
 void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
+    if(!default_configured)
+    {
+        config.change_polarimetric_camera_brightness = change_polarimetric_camera_brightness;
+        config.change_polarimetric_camera_black_level = change_polarimetric_camera_black_level;
+        config.enable_polarimetric_camera_auto_gain = enable_polarimetric_camera_auto_gain;
+        config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
+        config.change_polarimetric_camera_auto_gain_range_maximum = change_polarimetric_camera_auto_gain_range_maximum;
+        config.change_polarimetric_camera_gain = change_polarimetric_camera_gain;
+        config.enable_polarimetric_camera_auto_exposure_time = enable_polarimetric_camera_auto_exposure_time;
+        config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
+        config.change_polarimetric_camera_auto_exposure_time_range_maximum = change_polarimetric_camera_auto_exposure_time_range_maximum;
+        config.change_polarimetric_camera_exposure_time = change_polarimetric_camera_exposure_time;
+
+        default_configured = true;
+    }
+
     switch(level)
     {
-    case 1:
+    case 0:
         srvBrightness.request.brightness = config.change_polarimetric_camera_brightness;
         if (clientBrightness.call(srvBrightness))
         {
@@ -97,7 +115,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.change_polarimetric_camera_brightness = change_polarimetric_camera_brightness;
         }
         break;
-    case 2:
+    case 1:
         srvBlackLevel.request.black_level = config.change_polarimetric_camera_black_level;
         if (clientBlackLevel.call(srvBlackLevel))
         {
@@ -113,7 +131,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.change_polarimetric_camera_black_level = change_polarimetric_camera_black_level;
         }
         break;
-    case 3:
+    case 2:
         srvEnableAutoGain.request.enabled = config.enable_polarimetric_camera_auto_gain;
         if (clientEnableAutoGain.call(srvEnableAutoGain))
         {
@@ -129,7 +147,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.enable_polarimetric_camera_auto_gain = enable_polarimetric_camera_auto_gain;
         }
         break;
-    case 4:
+    case 3:
         if (enable_polarimetric_camera_auto_gain)
         {
             srvAutoGainRange.request.min_gain = config.change_polarimetric_camera_auto_gain_range_minimum;
@@ -154,7 +172,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
         }
         break;
-    case 5:
+    case 4:
         if (enable_polarimetric_camera_auto_gain)
         {
             srvAutoGainRange.request.max_gain = config.change_polarimetric_camera_auto_gain_range_maximum;
@@ -179,7 +197,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.change_polarimetric_camera_auto_gain_range_maximum = change_polarimetric_camera_auto_gain_range_maximum;
         }
         break;
-    case 6:
+    case 5:
         if (!enable_polarimetric_camera_auto_gain)
         {
             srvGain.request.gain = config.change_polarimetric_camera_gain;
@@ -203,7 +221,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.change_polarimetric_camera_gain = change_polarimetric_camera_gain;
         }
         break;
-    case 7:
+    case 6:
         srvEnableAutoExposureTime.request.enabled = config.enable_polarimetric_camera_auto_exposure_time;
         if (clientEnableAutoExposureTime.call(srvEnableAutoExposureTime))
         {
@@ -219,7 +237,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.enable_polarimetric_camera_auto_exposure_time = enable_polarimetric_camera_auto_exposure_time;
         }
         break;
-    case 8:
+    case 7:
         if (enable_polarimetric_camera_auto_exposure_time)
         {
             srvAutoExposureTimeRange.request.min_exposure = config.change_polarimetric_camera_auto_exposure_time_range_minimum;
@@ -244,7 +262,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
         }
         break;
-    case 9:
+    case 8:
         if (enable_polarimetric_camera_auto_exposure_time)
         {
             srvAutoExposureTimeRange.request.max_exposure = config.change_polarimetric_camera_auto_exposure_time_range_maximum;
@@ -269,7 +287,7 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
             config.change_polarimetric_camera_auto_exposure_time_range_maximum = change_polarimetric_camera_auto_exposure_time_range_maximum;
         }
         break;
-    case 10:
+    case 9:
         if (!enable_polarimetric_camera_auto_exposure_time)
         {
             srvExposureTime.request.exposure_time = config.change_polarimetric_camera_exposure_time;
@@ -334,6 +352,17 @@ int main(int argc, char **argv)
         ROS_INFO("Polarimetric camera is avaliable");
     else
         return 0;
+
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_brightness", change_polarimetric_camera_brightness, 127);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_black_level", change_polarimetric_camera_black_level, 6.0);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain", enable_polarimetric_camera_auto_gain, true);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_minimum", change_polarimetric_camera_auto_gain_range_minimum, 0.0);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_maximum", change_polarimetric_camera_auto_gain_range_maximum, 48.0);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_gain", change_polarimetric_camera_gain, 24.0);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time", enable_polarimetric_camera_auto_exposure_time, true);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_minimum", change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_maximum", change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
+    nh.param("/polarimetric_camera_configuration/polarimetric_camera_exposure_time", change_polarimetric_camera_exposure_time, 500000.0);
 
     dynamic_reconfigure::Server<l3cam_ros::PolarimetricCameraConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::PolarimetricCameraConfig>::CallbackType f;

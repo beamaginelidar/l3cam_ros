@@ -1,13 +1,183 @@
 <launch>
     <arg name="rqt_reconfigure" default="false" />
 
+    <!-- General configuration -->
+    <arg name="ip_address" default="192.168.5.18" />
+    <arg name="netmask" default="255.255.255.0" />
+    <arg name="gateway" default="0.0.0.0" />
+    <arg name="dhcp" default="true" />
+
+    <!-- Pointcloud configuration -->
+    <arg name="pointcloud_color" default="0" />
+    <arg name="pointcloud_color_range_minimum" default="0" />
+    <arg name="pointcloud_color_range_maximum" default="400000" />
+    <arg name="distance_range_minimum" default="0" />
+    <arg name="distance_range_maximum" default="400000" />
+
+    <!-- Polarimetric configuration -->
+    <arg name="polarimetric_camera_brightness" default="127" />
+    <arg name="polarimetric_camera_black_level" default="6.0" />
+    <arg name="polarimetric_camera_auto_gain" default="true" />
+    <arg name="polarimetric_camera_auto_gain_range_minimum" default="0.0" />
+    <arg name="polarimetric_camera_auto_gain_range_maximum" default="48.0" />
+    <arg name="polarimetric_camera_gain" default="24.0" />
+    <arg name="polarimetric_camera_auto_exposure_time" default="true" />
+    <arg name="polarimetric_camera_auto_exposure_time_range_minimum" default="33.456" />
+    <arg name="polarimetric_camera_auto_exposure_time_range_maximum" default="1000000.0" />
+    <arg name="polarimetric_camera_exposure_time" default="500000.0" />
+
+    <!-- RGB configuration -->
+    <arg name="rgb_camera_brightness" default="0" />
+    <arg name="rgb_camera_contrast" default="10" />
+    <arg name="rgb_camera_saturation" default="16" />
+    <arg name="rgb_camera_sharpness" default="16" />
+    <arg name="rgb_camera_gamma" default="220" />
+    <arg name="rgb_camera_gain" default="0" />
+    <arg name="rgb_camera_auto_white_balance" default="true" />
+    <arg name="rgb_camera_white_balance" default="5000" />
+    <arg name="rgb_camera_auto_exposure_time" default="true" />
+    <arg name="rgb_camera_exposure_time" default="156" />
+
+    <!-- Thermal configuration -->
+    <arg name="thermal_camera_colormap" default="1" />
+    <arg name="thermal_camera_temperature_filter" default="false" />
+    <arg name="thermal_camera_temperature_filter_min" default="0" />
+    <arg name="thermal_camera_temperature_filter_max" default="50" />
+
+    <!-- Allied Wide configuration -->
+    <arg name="allied_wide_camera_exposure_time" default="4992.32" />
+    <arg name="allied_wide_camera_auto_exposure_time" default="false" />
+    <arg name="allied_wide_camera_auto_exposure_time_range_min" default="87.596" />
+    <arg name="allied_wide_camera_auto_exposure_time_range_max" default="87.596" />
+    <arg name="allied_wide_camera_gain" default="0" />
+    <arg name="allied_wide_camera_auto_gain" default="false" />
+    <arg name="allied_wide_camera_auto_gain_range_min" default="0" />
+    <arg name="allied_wide_camera_auto_gain_range_max" default="48" />
+    <arg name="allied_wide_camera_gamma" default="1" />
+    <arg name="allied_wide_camera_saturation" default="1" />
+    <arg name="allied_wide_camera_hue" default="0" />
+    <arg name="allied_wide_camera_intensity_auto_precedence" default="1" />
+    <arg name="allied_wide_camera_auto_white_balance" default="false" />
+    <arg name="allied_wide_camera_balance_ratio_selector" default="1" />
+    <arg name="allied_wide_camera_balance_ratio" default="2.35498" />
+    <arg name="allied_wide_camera_balance_white_auto_rate" default="100" />
+    <arg name="allied_wide_camera_balance_white_auto_tolerance" default="5" />
+    <arg name="allied_wide_camera_intensity_controller_region" default="1" />
+    <arg name="allied_wide_camera_intensity_controller_target" default="50" />
+
+    <!-- Allied Narrow configuration -->
+    <arg name="allied_narrow_camera_exposure_time" default="4992.32" />
+    <arg name="allied_narrow_camera_auto_exposure_time" default="false" />
+    <arg name="allied_narrow_camera_auto_exposure_time_range_min" default="87.596" />
+    <arg name="allied_narrow_camera_auto_exposure_time_range_max" default="87.596" />
+    <arg name="allied_narrow_camera_gain" default="0" />
+    <arg name="allied_narrow_camera_auto_gain" default="false" />
+    <arg name="allied_narrow_camera_auto_gain_range_min" default="0" />
+    <arg name="allied_narrow_camera_auto_gain_range_max" default="48" />
+    <arg name="allied_narrow_camera_gamma" default="1" />
+    <arg name="allied_narrow_camera_saturation" default="1" />
+    <arg name="allied_narrow_camera_hue" default="0" />
+    <arg name="allied_narrow_camera_intensity_auto_precedence" default="1" />
+    <arg name="allied_narrow_camera_auto_white_balance" default="false" />
+    <arg name="allied_narrow_camera_balance_ratio_selector" default="1" />
+    <arg name="allied_narrow_camera_balance_ratio" default="2.35498" />
+    <arg name="allied_narrow_camera_balance_white_auto_rate" default="100" />
+    <arg name="allied_narrow_camera_balance_white_auto_tolerance" default="5" />
+    <arg name="allied_narrow_camera_intensity_controller_region" default="1" />
+    <arg name="allied_narrow_camera_intensity_controller_target" default="50" />
+
     <!-- Dynamic reconfigure -->
-    <node pkg="l3cam_ros" type="general_configuration" name="general_configuration" output="screen" />
-    <node pkg="l3cam_ros" type="pointcloud_configuration" name="pointcloud_configuration" output="screen" />
-    <node pkg="l3cam_ros" type="polarimetric_camera_configuration" name="polarimetric_camera_configuration" output="screen" />
-    <node pkg="l3cam_ros" type="rgb_camera_configuration" name="rgb_camera_configuration" output="screen" />
-    <node pkg="l3cam_ros" type="thermal_camera_configuration" name="thermal_camera_configuration" output="screen" />
-    <node pkg="l3cam_ros" type="allied_camera_configuration" name="allied_camera_configuration" output="screen" />
+    <node pkg="l3cam_ros" type="general_configuration" name="general_configuration" output="screen">
+        <param name="ip_address" value="$(arg ip_address)" type="str" />
+        <param name="netmask" value="$(arg netmask)" type="str" />
+        <param name="gateway" value="$(arg gateway)" type="str" />
+        <param name="dhcp" value="$(arg dhcp)" type="bool" />
+    </node>
+
+    <node pkg="l3cam_ros" type="pointcloud_configuration" name="pointcloud_configuration" output="screen">
+        <param name="pointcloud_color" value="$(arg pointcloud_color)" type="int" />
+        <param name="pointcloud_color_range_minimum" value="$(arg pointcloud_color_range_minimum)" type="int" />
+        <param name="pointcloud_color_range_maximum" value="$(arg pointcloud_color_range_maximum)" type="int" />
+        <param name="distance_range_minimum" value="$(arg distance_range_minimum)" type="int" />
+        <param name="distance_range_maximum" value="$(arg distance_range_maximum)" type="int" />
+    </node>
+
+    <node pkg="l3cam_ros" type="polarimetric_camera_configuration" name="polarimetric_camera_configuration" output="screen">
+        <param name="polarimetric_camera_brightness" value="$(arg polarimetric_camera_brightness)" type="int" />
+        <param name="polarimetric_camera_black_level" value="$(arg polarimetric_camera_black_level)" type="double" />
+        <param name="polarimetric_camera_auto_gain" value="$(arg polarimetric_camera_auto_gain)" type="bool" />
+        <param name="polarimetric_camera_auto_gain_range_minimum" value="$(arg polarimetric_camera_auto_gain_range_minimum)" type="float" />
+        <param name="polarimetric_camera_auto_gain_range_maximum" value="$(arg polarimetric_camera_auto_gain_range_maximum)" type="float" />
+        <param name="polarimetric_camera_gain" value="$(arg polarimetric_camera_gain)" type="float" />
+        <param name="polarimetric_camera_auto_exposure_time" value="$(arg polarimetric_camera_auto_exposure_time)" type="bool" />
+        <param name="polarimetric_camera_auto_exposure_time_range_minimum" value="$(arg polarimetric_camera_auto_exposure_time_range_minimum)" type="float" />
+        <param name="polarimetric_camera_auto_exposure_time_range_maximum" value="$(arg polarimetric_camera_auto_exposure_time_range_maximum)" type="float" />
+        <param name="polarimetric_camera_exposure_time" value="$(arg polarimetric_camera_exposure_time)" type="float" />
+    </node>
+
+    <node pkg="l3cam_ros" type="rgb_camera_configuration" name="rgb_camera_configuration" output="screen">
+        <param name="rgb_camera_brightness" value="$(arg rgb_camera_brightness)" type="int" />
+        <param name="rgb_camera_contrast" value="$(arg rgb_camera_contrast)" type="int" />
+        <param name="rgb_camera_saturation" value="$(arg rgb_camera_saturation)" type="int" />
+        <param name="rgb_camera_sharpness" value="$(arg rgb_camera_sharpness)" type="int" />
+        <param name="rgb_camera_gamma" value="$(arg rgb_camera_gamma)" type="int" />
+        <param name="rgb_camera_gain" value="$(arg rgb_camera_gain)" type="int" />
+        <param name="rgb_camera_auto_white_balance" value="$(arg rgb_camera_auto_white_balance)" type="bool" />
+        <param name="rgb_camera_white_balance" value="$(arg rgb_camera_white_balance)" type="int" />
+        <param name="rgb_camera_auto_exposure_time" value="$(arg rgb_camera_auto_exposure_time)" type="bool" />
+        <param name="rgb_camera_exposure_time" value="$(arg rgb_camera_exposure_time)" type="int" />
+    </node>
+
+    <node pkg="l3cam_ros" type="thermal_camera_configuration" name="thermal_camera_configuration" output="screen">
+        <param name="thermal_camera_colormap" value="$(arg thermal_camera_colormap)" type="int" />
+        <param name="thermal_camera_temperature_filter" value="$(arg thermal_camera_temperature_filter)" type="bool" />
+        <param name="thermal_camera_temperature_filter_min" value="$(arg thermal_camera_temperature_filter_min)" type="int" />
+        <param name="thermal_camera_temperature_filter_max" value="$(arg thermal_camera_temperature_filter_max)" type="int" />
+    </node>
+
+    <node pkg="l3cam_ros" type="allied_wide_camera_configuration" name="allied_wide_camera_configuration" output="screen">
+        <param name="allied_wide_camera_exposure_time" value="$(arg allied_wide_camera_exposure_time)" />
+        <param name="allied_wide_camera_auto_exposure_time" value="$(arg allied_wide_camera_auto_exposure_time)" />
+        <param name="allied_wide_camera_auto_exposure_time_range_min" value="$(arg allied_wide_camera_auto_exposure_time_range_min)" />
+        <param name="allied_wide_camera_auto_exposure_time_range_max" value="$(arg allied_wide_camera_auto_exposure_time_range_max)" />
+        <param name="allied_wide_camera_gain" value="$(arg allied_wide_camera_gain)" />
+        <param name="allied_wide_camera_auto_gain" value="$(arg allied_wide_camera_auto_gain)" />
+        <param name="allied_wide_camera_auto_gain_range_min" value="$(arg allied_wide_camera_auto_gain_range_min)" />
+        <param name="allied_wide_camera_auto_gain_range_max" value="$(arg allied_wide_camera_auto_gain_range_max)" />
+        <param name="allied_wide_camera_gamma" value="$(arg allied_wide_camera_gamma)" />
+        <param name="allied_wide_camera_saturation" value="$(arg allied_wide_camera_saturation)" />
+        <param name="allied_wide_camera_hue" value="$(arg allied_wide_camera_hue)" />
+        <param name="allied_wide_camera_intensity_auto_precedence" value="$(arg allied_wide_camera_intensity_auto_precedence)" />
+        <param name="allied_wide_camera_auto_white_balance" value="$(arg allied_wide_camera_auto_white_balance)" />
+        <param name="allied_wide_camera_balance_ratio_selector" value="$(arg allied_wide_camera_balance_ratio_selector)" />
+        <param name="allied_wide_camera_balance_ratio" value="$(arg allied_wide_camera_balance_ratio)" />
+        <param name="allied_wide_camera_balance_white_auto_rate" value="$(arg allied_wide_camera_balance_white_auto_rate)" />
+        <param name="allied_wide_camera_balance_white_auto_tolerance" value="$(arg allied_wide_camera_balance_white_auto_tolerance)" />
+        <param name="allied_wide_camera_intensity_controller_region" value="$(arg allied_wide_camera_intensity_controller_region)" />
+        <param name="allied_wide_camera_intensity_controller_target" value="$(arg allied_wide_camera_intensity_controller_target)" />
+    </node>
+    
+    <node pkg="l3cam_ros" type="allied_narrow_camera_configuration" name="allied_narrow_camera_configuration" output="screen">
+        <param name="allied_narrow_camera_exposure_time" value="$(arg allied_narrow_camera_exposure_time)" />
+        <param name="allied_narrow_camera_auto_exposure_time" value="$(arg allied_narrow_camera_auto_exposure_time)" />
+        <param name="allied_narrow_camera_auto_exposure_time_range_min" value="$(arg allied_narrow_camera_auto_exposure_time_range_min)" />
+        <param name="allied_narrow_camera_auto_exposure_time_range_max" value="$(arg allied_narrow_camera_auto_exposure_time_range_max)" />
+        <param name="allied_narrow_camera_gain" value="$(arg allied_narrow_camera_gain)" />
+        <param name="allied_narrow_camera_auto_gain" value="$(arg allied_narrow_camera_auto_gain)" />
+        <param name="allied_narrow_camera_auto_gain_range_min" value="$(arg allied_narrow_camera_auto_gain_range_min)" />
+        <param name="allied_narrow_camera_auto_gain_range_max" value="$(arg allied_narrow_camera_auto_gain_range_max)" />
+        <param name="allied_narrow_camera_gamma" value="$(arg allied_narrow_camera_gamma)" />
+        <param name="allied_narrow_camera_saturation" value="$(arg allied_narrow_camera_saturation)" />
+        <param name="allied_narrow_camera_hue" value="$(arg allied_narrow_camera_hue)" />
+        <param name="allied_narrow_camera_intensity_auto_precedence" value="$(arg allied_narrow_camera_intensity_auto_precedence)" />
+        <param name="allied_narrow_camera_auto_white_balance" value="$(arg allied_narrow_camera_auto_white_balance)" />
+        <param name="allied_narrow_camera_balance_ratio_selector" value="$(arg allied_narrow_camera_balance_ratio_selector)" />
+        <param name="allied_narrow_camera_balance_ratio" value="$(arg allied_narrow_camera_balance_ratio)" />
+        <param name="allied_narrow_camera_balance_white_auto_rate" value="$(arg allied_narrow_camera_balance_white_auto_rate)" />
+        <param name="allied_narrow_camera_balance_white_auto_tolerance" value="$(arg allied_narrow_camera_balance_white_auto_tolerance)" />
+        <param name="allied_narrow_camera_intensity_controller_region" value="$(arg allied_narrow_camera_intensity_controller_region)" />
+        <param name="allied_narrow_camera_intensity_controller_target" value="$(arg allied_narrow_camera_intensity_controller_target)" />
+    </node>
     
     <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" if="$(eval arg('rqt_reconfigure'))" />
 </launch>

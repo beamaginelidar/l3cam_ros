@@ -49,18 +49,30 @@ l3cam_ros::EnableThermalCameraTemperatureFilter srvEnableTemperatureFilter;
 ros::ServiceClient clientTemperatureFilter;
 l3cam_ros::ChangeThermalCameraTemperatureFilter srvTemperatureFilter;
 
-int change_thermal_camera_colormap = 1;
-bool enable_thermal_camera_temperature_filter = false;
-int change_thermal_camera_temperature_filter_min = 0;
-int change_thermal_camera_temperature_filter_max = 50;
+int change_thermal_camera_colormap;
+bool enable_thermal_camera_temperature_filter;
+int change_thermal_camera_temperature_filter_min;
+int change_thermal_camera_temperature_filter_max;
+
+bool default_configured = false;
 
 void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
+    if(!default_configured)
+    {
+        config.change_thermal_camera_colormap = change_thermal_camera_colormap;
+        config.enable_thermal_camera_temperature_filter = enable_thermal_camera_temperature_filter;
+        config.change_thermal_camera_temperature_filter_min = change_thermal_camera_temperature_filter_min;
+        config.change_thermal_camera_temperature_filter_max = change_thermal_camera_temperature_filter_max;
+
+        default_configured = true;
+    }
+
     switch (level)
     {
-    case 1:
+    case 0:
         srvColormap.request.colormap = config.change_thermal_camera_colormap;
         if (clientColormap.call(srvColormap))
         {
@@ -76,7 +88,7 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
             config.change_thermal_camera_colormap = change_thermal_camera_colormap;
         }
         break;
-    case 2:
+    case 1:
         srvEnableTemperatureFilter.request.enabled = config.enable_thermal_camera_temperature_filter;
         if (clientEnableTemperatureFilter.call(srvEnableTemperatureFilter))
         {
@@ -92,7 +104,7 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
             config.enable_thermal_camera_temperature_filter = enable_thermal_camera_temperature_filter;
         }
         break;
-    case 3:
+    case 2:
         srvTemperatureFilter.request.min_temperature = config.change_thermal_camera_temperature_filter_min;
         srvTemperatureFilter.request.max_temperature = change_thermal_camera_temperature_filter_max;
         if (clientTemperatureFilter.call(srvTemperatureFilter))
@@ -109,7 +121,7 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
             config.change_thermal_camera_temperature_filter_min = change_thermal_camera_temperature_filter_min;
         }
         break;
-    case 4:
+    case 3:
         srvTemperatureFilter.request.max_temperature = config.change_thermal_camera_temperature_filter_max;
         srvTemperatureFilter.request.min_temperature = change_thermal_camera_temperature_filter_min;
         if (clientTemperatureFilter.call(srvTemperatureFilter))
@@ -167,6 +179,11 @@ int main(int argc, char **argv)
         ROS_INFO("Thermal camera is avaliable");
     else
         return 0;
+
+    nh.param("/thermal_camera_configuration/thermal_camera_colormap", change_thermal_camera_colormap, 1);
+    nh.param("/thermal_camera_configuration/thermal_camera_temperature_filter", enable_thermal_camera_temperature_filter, false);
+    nh.param("/thermal_camera_configuration/thermal_camera_temperature_filter_min", change_thermal_camera_temperature_filter_min, 0);
+    nh.param("/thermal_camera_configuration/thermal_camera_temperature_filter_max", change_thermal_camera_temperature_filter_max, 50);
 
     dynamic_reconfigure::Server<l3cam_ros::ThermalCameraConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::ThermalCameraConfig>::CallbackType f;
