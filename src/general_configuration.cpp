@@ -40,37 +40,30 @@
 ros::ServiceClient client;
 l3cam_ros::ChangeNetworkConfiguration srv;
 
-std::string change_network_configuration_ip_address = "192.168.5.15";
-std::string change_network_configuration_netmask = "255.255.255.0";
-std::string change_network_configuration_gateway = "0.0.0.0";
-bool enable_network_configuration_dhcp = false;
+std::string change_network_configuration_ip_address;
+std::string change_network_configuration_netmask;
+std::string change_network_configuration_gateway;
+bool enable_network_configuration_dhcp;
+
+bool default_configured = false;
 
 void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
+    
+    if(!default_configured)
+    {
+        config.change_network_configuration_ip_address = change_network_configuration_ip_address;
+        config.change_network_configuration_netmask = change_network_configuration_netmask;
+        config.change_network_configuration_gateway = change_network_configuration_gateway;
+        config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
+
+        default_configured = true;
+    }
 
     switch(level)
     {
-    case 1:
-        srv.request.ip_address = change_network_configuration_ip_address;
-        srv.request.netmask = change_network_configuration_netmask;
-        srv.request.gateway = change_network_configuration_gateway;
-        srv.request.enable_dhcp = config.enable_network_configuration_dhcp;
-        if (client.call(srv))
-        {
-            error = srv.response.error;
-            if (!error)
-                enable_network_configuration_dhcp = config.enable_network_configuration_dhcp;
-            else
-                config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_network_configuration");
-            config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
-        }
-        break;
-    case 2:
+    case 0:
         srv.request.ip_address = config.change_network_configuration_ip_address;
         srv.request.netmask = change_network_configuration_netmask;
         srv.request.gateway = change_network_configuration_gateway;
@@ -89,7 +82,7 @@ void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
             config.change_network_configuration_ip_address = change_network_configuration_ip_address;
         }
         break;
-    case 3:
+    case 1:
         srv.request.ip_address = change_network_configuration_ip_address;
         srv.request.netmask = config.change_network_configuration_netmask;
         srv.request.gateway = change_network_configuration_gateway;
@@ -108,7 +101,7 @@ void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
             config.change_network_configuration_netmask = change_network_configuration_netmask;
         }
         break;
-    case 4:
+    case 2:
         srv.request.ip_address = change_network_configuration_ip_address;
         srv.request.netmask = change_network_configuration_netmask;
         srv.request.gateway = config.change_network_configuration_gateway;
@@ -127,6 +120,25 @@ void callback(l3cam_ros::GeneralConfig &config, uint32_t level)
             config.change_network_configuration_gateway = change_network_configuration_gateway;
         }
         break;
+    case 3:
+        srv.request.ip_address = change_network_configuration_ip_address;
+        srv.request.netmask = change_network_configuration_netmask;
+        srv.request.gateway = change_network_configuration_gateway;
+        srv.request.enable_dhcp = config.enable_network_configuration_dhcp;
+        if (client.call(srv))
+        {
+            error = srv.response.error;
+            if (!error)
+                enable_network_configuration_dhcp = config.enable_network_configuration_dhcp;
+            else
+                config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
+        }
+        else
+        {
+            ROS_ERROR("Failed to call service change_network_configuration");
+            config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
+        }
+        break;
     }
 
     if (error)
@@ -137,6 +149,11 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "general_configuration");
     ros::NodeHandle nh;
+
+    nh.param("/general_configuration/ip_address", change_network_configuration_ip_address, std::string("192.168.5.15"));
+    nh.param("/general_configuration/netmask", change_network_configuration_netmask, std::string("255.255.255.0"));
+    nh.param("/general_configuration/gateway", change_network_configuration_gateway, std::string("0.0.0.0"));
+    nh.param("/general_configuration/dhcp", enable_network_configuration_dhcp, false);
 
     dynamic_reconfigure::Server<l3cam_ros::GeneralConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::GeneralConfig>::CallbackType f;

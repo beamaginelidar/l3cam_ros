@@ -49,19 +49,32 @@ l3cam_ros::ChangePointcloudColorRange srvColorRange;
 ros::ServiceClient clientDistanceRange;
 l3cam_ros::ChangeDistanceRange srvDistanceRange;
 
-int change_pointcloud_color = 0;
-int change_pointcloud_color_range_minimum = 0;
-int change_pointcloud_color_range_maximum = 400000;
-int change_distance_range_minimum = 0;
-int change_distance_range_maximum = 400000;
+int change_pointcloud_color;
+int change_pointcloud_color_range_minimum;
+int change_pointcloud_color_range_maximum;
+int change_distance_range_minimum;
+int change_distance_range_maximum;
+
+bool default_configured = false;
 
 void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
+    if(!default_configured)
+    {
+        config.change_pointcloud_color = change_pointcloud_color;
+        config.change_pointcloud_color_range_minimum = change_pointcloud_color_range_minimum;
+        config.change_pointcloud_color_range_maximum = change_pointcloud_color_range_maximum;
+        config.change_distance_range_minimum = change_distance_range_minimum;
+        config.change_distance_range_maximum = change_distance_range_maximum;
+
+        default_configured = true;
+    }
+
     switch(level)
     {
-    case 1:
+    case 0:
         srvColor.request.visualization_color = config.change_pointcloud_color;
         if (clientColor.call(srvColor))
         {
@@ -77,7 +90,7 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             config.change_pointcloud_color = change_pointcloud_color;
         }
         break;
-    case 2:
+    case 1:
         srvColorRange.request.min_value = config.change_pointcloud_color_range_minimum;
         srvColorRange.request.max_value = change_pointcloud_color_range_maximum;
         if (clientColorRange.call(srvColorRange))
@@ -94,7 +107,7 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             config.change_pointcloud_color_range_minimum = change_pointcloud_color_range_minimum;
         }
         break;
-    case 3:
+    case 2:
         srvColorRange.request.max_value = config.change_pointcloud_color_range_maximum;
         srvColorRange.request.min_value = change_pointcloud_color_range_minimum;
         if (clientColorRange.call(srvColorRange))
@@ -111,7 +124,7 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             config.change_pointcloud_color_range_maximum = change_pointcloud_color_range_maximum;
         }
         break;
-    case 4:
+    case 3:
         srvDistanceRange.request.min_value = config.change_distance_range_minimum;
         srvDistanceRange.request.max_value = change_distance_range_maximum;
         if (clientDistanceRange.call(srvDistanceRange))
@@ -128,7 +141,7 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
             config.change_distance_range_minimum = change_distance_range_minimum;
         }
         break;
-    case 5:
+    case 4:
         srvDistanceRange.request.max_value = config.change_distance_range_maximum;
         srvDistanceRange.request.min_value = change_distance_range_minimum;
         if (clientDistanceRange.call(srvDistanceRange))
@@ -186,6 +199,12 @@ int main(int argc, char **argv)
         ROS_INFO("LiDAR is avaliable");
     else
         return 0;
+
+    nh.param("/pointcloud_configuration/pointcloud_color", change_pointcloud_color, 0);
+    nh.param("/pointcloud_configuration/pointcloud_color_range_minimum", change_pointcloud_color_range_minimum, 0);
+    nh.param("/pointcloud_configuration/pointcloud_color_range_maximum", change_pointcloud_color_range_maximum, 400000);
+    nh.param("/pointcloud_configuration/distance_range_minimum", change_distance_range_minimum, 0);
+    nh.param("/pointcloud_configuration/distance_range_maximum", change_distance_range_maximum, 400000);
 
     dynamic_reconfigure::Server<l3cam_ros::PointcloudConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::PointcloudConfig>::CallbackType f;

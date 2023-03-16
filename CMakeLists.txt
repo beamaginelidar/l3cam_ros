@@ -108,7 +108,8 @@ generate_dynamic_reconfigure_options(
   cfg/PolarimetricCamera.cfg
   cfg/RgbCamera.cfg
   cfg/ThermalCamera.cfg
-  cfg/AlliedCamera.cfg
+  cfg/AlliedWideCamera.cfg
+  cfg/AlliedNarrowCamera.cfg
 )
 
 ###################################
@@ -135,7 +136,8 @@ add_executable(pointcloud_configuration src/pointcloud_configuration.cpp)
 add_executable(polarimetric_camera_configuration src/polarimetric_camera_configuration.cpp)
 add_executable(rgb_camera_configuration src/rgb_camera_configuration.cpp)
 add_executable(thermal_camera_configuration src/thermal_camera_configuration.cpp)
-add_executable(allied_camera_configuration src/allied_camera_configuration.cpp)
+add_executable(allied_wide_camera_configuration src/allied_wide_camera_configuration.cpp)
+add_executable(allied_narrow_camera_configuration src/allied_narrow_camera_configuration.cpp)
 add_executable(pointcloud_stream src/pointcloud_stream.cpp)
 add_executable(polarimetric_stream src/polarimetric_stream.cpp)
 add_executable(rgb_stream src/rgb_stream.cpp)
@@ -148,7 +150,8 @@ add_dependencies(pointcloud_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}
 add_dependencies(polarimetric_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(rgb_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(thermal_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
-add_dependencies(allied_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(allied_wide_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(allied_narrow_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(pointcloud_stream ${PROJECT_NAME}_gencpp) 
 add_dependencies(polarimetric_stream ${PROJECT_NAME}_gencpp) 
 add_dependencies(rgb_stream ${PROJECT_NAME}_gencpp) 
@@ -162,7 +165,8 @@ target_link_libraries(pointcloud_configuration ${catkin_LIBRARIES} ${l3cam_LIBRA
 target_link_libraries(polarimetric_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(rgb_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(thermal_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(allied_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(allied_wide_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(allied_narrow_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(pointcloud_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(polarimetric_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(rgb_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})

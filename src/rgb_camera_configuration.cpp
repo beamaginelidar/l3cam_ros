@@ -70,24 +70,42 @@ l3cam_ros::EnableRgbCameraAutoExposureTime srvEnableAutoExposureTime;
 ros::ServiceClient clientExposureTime;
 l3cam_ros::ChangeRgbCameraExposureTime srvExposureTime;
 
-int change_rgb_camera_brightness = 0;
-int change_rgb_camera_contrast = 10;
-int change_rgb_camera_saturation = 16;
-int change_rgb_camera_sharpness = 16;
-int change_rgb_camera_gamma = 220;
-int change_rgb_camera_gain = 0;
-bool enable_rgb_camera_auto_white_balance = true;
-int change_rgb_camera_white_balance = 5000;
-bool enable_rgb_camera_auto_exposure_time = true;
-int change_rgb_camera_exposure_time = 156;
+int change_rgb_camera_brightness;
+int change_rgb_camera_contrast;
+int change_rgb_camera_saturation;
+int change_rgb_camera_sharpness;
+int change_rgb_camera_gamma;
+int change_rgb_camera_gain;
+bool enable_rgb_camera_auto_white_balance;
+int change_rgb_camera_white_balance;
+bool enable_rgb_camera_auto_exposure_time;
+int change_rgb_camera_exposure_time;
+
+bool default_configured = false;
 
 void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
+    if(!default_configured)
+    {
+        config.change_rgb_camera_brightness = change_rgb_camera_brightness;
+        config.change_rgb_camera_contrast = change_rgb_camera_contrast;
+        config.change_rgb_camera_saturation = change_rgb_camera_saturation;
+        config.change_rgb_camera_sharpness = change_rgb_camera_sharpness;
+        config.change_rgb_camera_gamma = change_rgb_camera_gamma;
+        config.change_rgb_camera_gain = change_rgb_camera_gain;
+        config.enable_rgb_camera_auto_white_balance = enable_rgb_camera_auto_white_balance;
+        config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
+        config.enable_rgb_camera_auto_exposure_time = enable_rgb_camera_auto_exposure_time;
+        config.change_rgb_camera_exposure_time = change_rgb_camera_exposure_time;
+
+        default_configured = true;
+    }
+
     switch(level)
     {
-    case 1:
+    case 0:
         srvBrightness.request.brightness = config.change_rgb_camera_brightness;
         if (clientBrightness.call(srvBrightness))
         {
@@ -103,7 +121,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.change_rgb_camera_brightness = change_rgb_camera_brightness;
         }
         break;
-    case 2:
+    case 1:
         srvContrast.request.contrast = config.change_rgb_camera_contrast;
         if (clientContrast.call(srvContrast))
         {
@@ -119,7 +137,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.change_rgb_camera_contrast = change_rgb_camera_contrast;
         }
         break;
-    case 3:
+    case 2:
         srvSaturation.request.saturation = config.change_rgb_camera_saturation;
         if (clientSaturation.call(srvSaturation))
         {
@@ -135,7 +153,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.change_rgb_camera_saturation = change_rgb_camera_saturation;
         }
         break;
-    case 4:
+    case 3:
         srvSharpness.request.sharpness = config.change_rgb_camera_sharpness;
         if (clientSharpness.call(srvSharpness))
         {
@@ -151,7 +169,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.change_rgb_camera_sharpness = change_rgb_camera_sharpness;
         }
         break;
-    case 5:
+    case 4:
         srvGamma.request.gamma = config.change_rgb_camera_gamma;
         if (clientGamma.call(srvGamma))
         {
@@ -167,7 +185,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.change_rgb_camera_gamma = change_rgb_camera_gamma;
         }
         break;
-    case 6:
+    case 5:
         srvGain.request.gain = config.change_rgb_camera_gain;
         if (clientGain.call(srvGain))
         {
@@ -183,7 +201,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.change_rgb_camera_gain = change_rgb_camera_gain;
         }
         break;
-    case 7:
+    case 6:
         srvEnableAutoWhiteBalance.request.enabled = config.enable_rgb_camera_auto_white_balance;
         if (clientEnableAutoWhiteBalance.call(srvEnableAutoWhiteBalance))
         {
@@ -199,7 +217,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.enable_rgb_camera_auto_white_balance = enable_rgb_camera_auto_white_balance;
         }
         break;
-    case 8:
+    case 7:
         if (!enable_rgb_camera_auto_white_balance)
         {
             srvWhiteBalance.request.white_balance = config.change_rgb_camera_white_balance;
@@ -223,7 +241,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
         }
         break;
-    case 9:
+    case 8:
         srvEnableAutoExposureTime.request.enabled = config.enable_rgb_camera_auto_exposure_time;
         if (clientEnableAutoExposureTime.call(srvEnableAutoExposureTime))
         {
@@ -239,7 +257,7 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
             config.enable_rgb_camera_auto_exposure_time = enable_rgb_camera_auto_exposure_time;
         }
         break;
-    case 10:
+    case 9:
         if (!enable_rgb_camera_auto_exposure_time)
         {
             srvExposureTime.request.exposure_time = config.change_rgb_camera_exposure_time;
@@ -304,6 +322,17 @@ int main(int argc, char **argv)
         ROS_INFO("RGB camera is avaliable");
     else
         return 0;
+
+    nh.param("/rgb_camera_configuration/rgb_camera_brightness", change_rgb_camera_brightness, 0);
+    nh.param("/rgb_camera_configuration/rgb_camera_contrast", change_rgb_camera_contrast, 10);
+    nh.param("/rgb_camera_configuration/rgb_camera_saturation", change_rgb_camera_saturation, 16);
+    nh.param("/rgb_camera_configuration/rgb_camera_sharpness", change_rgb_camera_sharpness, 16);
+    nh.param("/rgb_camera_configuration/rgb_camera_gamma", change_rgb_camera_gamma, 220);
+    nh.param("/rgb_camera_configuration/rgb_camera_gain", change_rgb_camera_gain, 0);
+    nh.param("/rgb_camera_configuration/rgb_camera_auto_white_balance", enable_rgb_camera_auto_white_balance, true);
+    nh.param("/rgb_camera_configuration/rgb_camera_white_balance", change_rgb_camera_white_balance, 5000);
+    nh.param("/rgb_camera_configuration/rgb_camera_auto_exposure_time", enable_rgb_camera_auto_exposure_time, true);
+    nh.param("/rgb_camera_configuration/rgb_camera_exposure_time", change_rgb_camera_exposure_time, 156);
 
     dynamic_reconfigure::Server<l3cam_ros::RgbCameraConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::RgbCameraConfig>::CallbackType f;

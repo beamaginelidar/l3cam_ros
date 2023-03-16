@@ -466,7 +466,7 @@ bool changeAlliedCameraBlackLevel(l3cam_ros::ChangeAlliedCameraBlackLevel::Reque
         res.error = CHANGE_ALLIED_CAMERA_BLACK_LEVEL(devices[0], *m_allied_narrow_sensor, req.black_level);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -482,7 +482,7 @@ bool changeAlliedCameraExposureTime(l3cam_ros::ChangeAlliedCameraExposureTime::R
         res.error = CHANGE_ALLIED_CAMERA_EXPOSURE_TIME_US(devices[0], *m_allied_narrow_sensor, req.exposure_time);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -498,7 +498,7 @@ bool enableAlliedCameraAutoExposureTime(l3cam_ros::EnableAlliedCameraAutoExposur
         res.error = ENABLE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(devices[0], *m_allied_narrow_sensor, req.enabled);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -514,7 +514,7 @@ bool changeAlliedCameraAutoExposureTimeRange(l3cam_ros::ChangeAlliedCameraAutoEx
         res.error = CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(devices[0], *m_allied_narrow_sensor, req.auto_exposure_time_range_min, req.auto_exposure_time_range_max);
         break;
     default:
-        res.error = 1000; //! Can't put max and min
+        res.error = L3CAM_VALUE_OUT_OF_RANGE; //! Can't put max and min
     }
     return true;
 }
@@ -530,7 +530,7 @@ bool changeAlliedCameraGain(l3cam_ros::ChangeAlliedCameraGain::Request &req, l3c
         res.error = CHANGE_ALLIED_CAMERA_GAIN(devices[0], *m_allied_narrow_sensor, req.gain);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -546,7 +546,7 @@ bool enableAlliedCameraAutoGain(l3cam_ros::EnableAlliedCameraAutoGain::Request &
         res.error = ENABLE_ALLIED_CAMERA_AUTO_GAIN(devices[0], *m_allied_narrow_sensor, req.enabled);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -556,13 +556,13 @@ bool changeAlliedCameraAutoGainRange(l3cam_ros::ChangeAlliedCameraAutoGainRange:
     switch (req.allied_type)
     {
     case 1:
-        res.error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(devices[0], *m_allied_wide_sensor, req.auto_gain_range_min, req.auto_gain_range_max);
+        res.error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(devices[0], *m_allied_wide_sensor, (float)req.auto_gain_range_min, (float)req.auto_gain_range_max);
         break;
     case 2:
-        res.error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(devices[0], *m_allied_narrow_sensor, req.auto_gain_range_min, req.auto_gain_range_max);
+        res.error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(devices[0], *m_allied_narrow_sensor, (float)req.auto_gain_range_min, (float)req.auto_gain_range_max);
         break;
     default:
-        res.error = 1000; //! Can't put max and min
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -578,7 +578,7 @@ bool changeAlliedCameraGamma(l3cam_ros::ChangeAlliedCameraGamma::Request &req, l
         res.error = CHANGE_ALLIED_CAMERA_GAMMA(devices[0], *m_allied_narrow_sensor, req.gamma);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -594,7 +594,7 @@ bool changeAlliedCameraSaturation(l3cam_ros::ChangeAlliedCameraSaturation::Reque
         res.error = CHANGE_ALLIED_CAMERA_SATURATION(devices[0], *m_allied_narrow_sensor, req.saturation);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -610,7 +610,7 @@ bool changeAlliedCameraSharpness(l3cam_ros::ChangeAlliedCameraSharpness::Request
         res.error = CHANGE_ALLIED_CAMERA_SHARPNESS(devices[0], *m_allied_narrow_sensor, req.sharpness);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -626,7 +626,7 @@ bool changeAlliedCameraHue(l3cam_ros::ChangeAlliedCameraHue::Request &req, l3cam
         res.error = CHANGE_ALLIED_CAMERA_HUE(devices[0], *m_allied_narrow_sensor, req.hue);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -658,7 +658,7 @@ bool changeAlliedCameraIntensityAutoPrecedence(l3cam_ros::ChangeAlliedCameraInte
         }
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -674,7 +674,7 @@ bool enableAlliedCameraAutoWhiteBalance(l3cam_ros::EnableAlliedCameraAutoWhiteBa
         res.error = ENABLE_ALLIED_CAMERA_AUTO_WHITE_BALANCE(devices[0], *m_allied_narrow_sensor, req.enabled);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -704,7 +704,7 @@ bool changeAlliedCameraBalanceRatioSelector(l3cam_ros::ChangeAlliedCameraBalance
         }
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -720,7 +720,7 @@ bool changeAlliedCameraBalanceRatio(l3cam_ros::ChangeAlliedCameraBalanceRatio::R
         res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO(devices[0], *m_allied_narrow_sensor, req.balance_ratio);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -736,7 +736,7 @@ bool changeAlliedCameraBalanceWhiteAutoRate(l3cam_ros::ChangeAlliedCameraBalance
         res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(devices[0], *m_allied_narrow_sensor, req.white_balance_auto_rate);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -752,7 +752,7 @@ bool changeAlliedCameraBalanceWhiteAutoTolerance(l3cam_ros::ChangeAlliedCameraBa
         res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(devices[0], *m_allied_narrow_sensor, req.white_balance_auto_tolerance);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -768,7 +768,7 @@ bool changeAlliedCameraAutoModeRegion(l3cam_ros::ChangeAlliedCameraAutoModeRegio
         res.error = CHANGE_ALLIED_CAMERA_AUTO_MODE_REGION(devices[0], *m_allied_narrow_sensor, req.auto_mode_region_height, req.auto_mode_region_width);
         break;
     default:
-        res.error = 1000; //! Can't put height and width
+        res.error = L3CAM_VALUE_OUT_OF_RANGE; //! Can't put height and width
     }
     return true;
 }
@@ -800,7 +800,7 @@ bool changeAlliedCameraIntensityControllerRegion(l3cam_ros::ChangeAlliedCameraIn
         }
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -816,7 +816,7 @@ bool changeAlliedCameraIntensityControllerTarget(l3cam_ros::ChangeAlliedCameraIn
         res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(devices[0], *m_allied_narrow_sensor, req.intensity_controller_target);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -832,7 +832,7 @@ bool changeAlliedCameraMaxDriverBuffersCount(l3cam_ros::ChangeAlliedCameraMaxDri
         res.error = CHANGE_ALLIED_CAMERA_MAX_DRIVER_BUFFERS_COUNT(devices[0], *m_allied_narrow_sensor, req.max_driver_buffers_count);
         break;
     default:
-        res.error = 1000;
+        res.error = L3CAM_VALUE_OUT_OF_RANGE;
     }
     return true;
 }
@@ -993,6 +993,8 @@ int main(int argc, char **argv)
     }
     ROS_INFO("Device started");
 
+    // TODO: default parameters
+
     error = START_STREAM(devices[0]);
     if (error)
     {
@@ -1001,7 +1003,7 @@ int main(int argc, char **argv)
         TERMINATE(devices[0]);
         return 1;
     }
-    
+
     while (ros::ok() && num_devices != 0)
     {
         error = FIND_DEVICES(devices, &num_devices);
