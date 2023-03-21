@@ -222,9 +222,7 @@ int main(int argc, char **argv)
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
     int error = L3CAM_OK;
 
-    if (isLidarAvaliable())
-        ROS_INFO("LiDAR avaliable");
-    else
+    if (!isLidarAvaliable())
         return 0;
 
     pthread_create(&pointcloud_thread, NULL, &PointCloudThread, NULL);

@@ -87,200 +87,213 @@ void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
-    if(!default_configured)
+    if (!default_configured)
     {
-        config.change_rgb_camera_brightness = change_rgb_camera_brightness;
-        config.change_rgb_camera_contrast = change_rgb_camera_contrast;
-        config.change_rgb_camera_saturation = change_rgb_camera_saturation;
-        config.change_rgb_camera_sharpness = change_rgb_camera_sharpness;
-        config.change_rgb_camera_gamma = change_rgb_camera_gamma;
-        config.change_rgb_camera_gain = change_rgb_camera_gain;
-        config.enable_rgb_camera_auto_white_balance = enable_rgb_camera_auto_white_balance;
-        config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
-        config.enable_rgb_camera_auto_exposure_time = enable_rgb_camera_auto_exposure_time;
-        config.change_rgb_camera_exposure_time = change_rgb_camera_exposure_time;
+        ros::param::param("/rgb_camera_configuration/rgb_camera_brightness", config.change_rgb_camera_brightness, 0);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_contrast", config.change_rgb_camera_contrast, 10);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_saturation", config.change_rgb_camera_saturation, 16);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_sharpness", config.change_rgb_camera_sharpness, 16);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_gamma", config.change_rgb_camera_gamma, 220);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_gain", config.change_rgb_camera_gain, 0);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_auto_white_balance", config.enable_rgb_camera_auto_white_balance, true);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_white_balance", config.change_rgb_camera_white_balance, 5000);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_auto_exposure_time", config.enable_rgb_camera_auto_exposure_time, true);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_exposure_time", config.change_rgb_camera_exposure_time, 156);
+
+        ros::param::param("/rgb_camera_configuration/rgb_camera_brightness", change_rgb_camera_brightness, 0);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_contrast", change_rgb_camera_contrast, 10);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_saturation", change_rgb_camera_saturation, 16);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_sharpness", change_rgb_camera_sharpness, 16);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_gamma", change_rgb_camera_gamma, 220);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_gain", change_rgb_camera_gain, 0);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_auto_white_balance", enable_rgb_camera_auto_white_balance, true);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_white_balance", change_rgb_camera_white_balance, 5000);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_auto_exposure_time", enable_rgb_camera_auto_exposure_time, true);
+        ros::param::param("/rgb_camera_configuration/rgb_camera_exposure_time", change_rgb_camera_exposure_time, 156);
 
         default_configured = true;
     }
-
-    switch(level)
+    else
     {
-    case 0:
-        srvBrightness.request.brightness = config.change_rgb_camera_brightness;
-        if (clientBrightness.call(srvBrightness))
+        switch (level)
         {
-            error = srvBrightness.response.error;
-            if (!error)
-                change_rgb_camera_brightness = config.change_rgb_camera_brightness;
-            else
-                config.change_rgb_camera_brightness = change_rgb_camera_brightness;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_rgb_camera_brightness");
-            config.change_rgb_camera_brightness = change_rgb_camera_brightness;
-        }
-        break;
-    case 1:
-        srvContrast.request.contrast = config.change_rgb_camera_contrast;
-        if (clientContrast.call(srvContrast))
-        {
-            error = srvContrast.response.error;
-            if (!error)
-                change_rgb_camera_contrast = config.change_rgb_camera_contrast;
-            else
-                config.change_rgb_camera_contrast = change_rgb_camera_contrast;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_rgb_camera_contrast");
-            config.change_rgb_camera_contrast = change_rgb_camera_contrast;
-        }
-        break;
-    case 2:
-        srvSaturation.request.saturation = config.change_rgb_camera_saturation;
-        if (clientSaturation.call(srvSaturation))
-        {
-            error = srvSaturation.response.error;
-            if (!error)
-                change_rgb_camera_saturation = config.change_rgb_camera_saturation;
-            else
-                config.change_rgb_camera_saturation = change_rgb_camera_saturation;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_rgb_camera_saturation");
-            config.change_rgb_camera_saturation = change_rgb_camera_saturation;
-        }
-        break;
-    case 3:
-        srvSharpness.request.sharpness = config.change_rgb_camera_sharpness;
-        if (clientSharpness.call(srvSharpness))
-        {
-            error = srvSharpness.response.error;
-            if (!error)
-                change_rgb_camera_sharpness = config.change_rgb_camera_sharpness;
-            else
-                config.change_rgb_camera_sharpness = change_rgb_camera_sharpness;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_rgb_camera_sharpness");
-            config.change_rgb_camera_sharpness = change_rgb_camera_sharpness;
-        }
-        break;
-    case 4:
-        srvGamma.request.gamma = config.change_rgb_camera_gamma;
-        if (clientGamma.call(srvGamma))
-        {
-            error = srvGamma.response.error;
-            if (!error)
-                change_rgb_camera_gamma = config.change_rgb_camera_gamma;
-            else
-                config.change_rgb_camera_gamma = change_rgb_camera_gamma;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_rgb_camera_gamma");
-            config.change_rgb_camera_gamma = change_rgb_camera_gamma;
-        }
-        break;
-    case 5:
-        srvGain.request.gain = config.change_rgb_camera_gain;
-        if (clientGain.call(srvGain))
-        {
-            error = srvGain.response.error;
-            if (!error)
-                change_rgb_camera_gain = config.change_rgb_camera_gain;
-            else
-                config.change_rgb_camera_gain = change_rgb_camera_gain;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_rgb_camera_gain");
-            config.change_rgb_camera_gain = change_rgb_camera_gain;
-        }
-        break;
-    case 6:
-        srvEnableAutoWhiteBalance.request.enabled = config.enable_rgb_camera_auto_white_balance;
-        if (clientEnableAutoWhiteBalance.call(srvEnableAutoWhiteBalance))
-        {
-            error = srvEnableAutoWhiteBalance.response.error;
-            if (!error)
-                enable_rgb_camera_auto_white_balance = config.enable_rgb_camera_auto_white_balance;
-            else
-                config.enable_rgb_camera_auto_white_balance = enable_rgb_camera_auto_white_balance;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service enable_rgb_camera_auto_white_balance");
-            config.enable_rgb_camera_auto_white_balance = enable_rgb_camera_auto_white_balance;
-        }
-        break;
-    case 7:
-        if (!enable_rgb_camera_auto_white_balance)
-        {
-            srvWhiteBalance.request.white_balance = config.change_rgb_camera_white_balance;
-            if (clientWhiteBalance.call(srvWhiteBalance))
+        case 0:
+            srvBrightness.request.brightness = config.change_rgb_camera_brightness;
+            if (clientBrightness.call(srvBrightness))
             {
-                error = srvWhiteBalance.response.error;
+                error = srvBrightness.response.error;
                 if (!error)
-                    change_rgb_camera_white_balance = config.change_rgb_camera_white_balance;
+                    change_rgb_camera_brightness = config.change_rgb_camera_brightness;
                 else
-                    config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
+                    config.change_rgb_camera_brightness = change_rgb_camera_brightness;
             }
             else
             {
-                ROS_ERROR("Failed to call service change_rgb_camera_white_balance");
+                ROS_ERROR("Failed to call service change_rgb_camera_brightness");
+                config.change_rgb_camera_brightness = change_rgb_camera_brightness;
+            }
+            break;
+        case 1:
+            srvContrast.request.contrast = config.change_rgb_camera_contrast;
+            if (clientContrast.call(srvContrast))
+            {
+                error = srvContrast.response.error;
+                if (!error)
+                    change_rgb_camera_contrast = config.change_rgb_camera_contrast;
+                else
+                    config.change_rgb_camera_contrast = change_rgb_camera_contrast;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service change_rgb_camera_contrast");
+                config.change_rgb_camera_contrast = change_rgb_camera_contrast;
+            }
+            break;
+        case 2:
+            srvSaturation.request.saturation = config.change_rgb_camera_saturation;
+            if (clientSaturation.call(srvSaturation))
+            {
+                error = srvSaturation.response.error;
+                if (!error)
+                    change_rgb_camera_saturation = config.change_rgb_camera_saturation;
+                else
+                    config.change_rgb_camera_saturation = change_rgb_camera_saturation;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service change_rgb_camera_saturation");
+                config.change_rgb_camera_saturation = change_rgb_camera_saturation;
+            }
+            break;
+        case 3:
+            srvSharpness.request.sharpness = config.change_rgb_camera_sharpness;
+            if (clientSharpness.call(srvSharpness))
+            {
+                error = srvSharpness.response.error;
+                if (!error)
+                    change_rgb_camera_sharpness = config.change_rgb_camera_sharpness;
+                else
+                    config.change_rgb_camera_sharpness = change_rgb_camera_sharpness;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service change_rgb_camera_sharpness");
+                config.change_rgb_camera_sharpness = change_rgb_camera_sharpness;
+            }
+            break;
+        case 4:
+            srvGamma.request.gamma = config.change_rgb_camera_gamma;
+            if (clientGamma.call(srvGamma))
+            {
+                error = srvGamma.response.error;
+                if (!error)
+                    change_rgb_camera_gamma = config.change_rgb_camera_gamma;
+                else
+                    config.change_rgb_camera_gamma = change_rgb_camera_gamma;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service change_rgb_camera_gamma");
+                config.change_rgb_camera_gamma = change_rgb_camera_gamma;
+            }
+            break;
+        case 5:
+            srvGain.request.gain = config.change_rgb_camera_gain;
+            if (clientGain.call(srvGain))
+            {
+                error = srvGain.response.error;
+                if (!error)
+                    change_rgb_camera_gain = config.change_rgb_camera_gain;
+                else
+                    config.change_rgb_camera_gain = change_rgb_camera_gain;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service change_rgb_camera_gain");
+                config.change_rgb_camera_gain = change_rgb_camera_gain;
+            }
+            break;
+        case 6:
+            srvEnableAutoWhiteBalance.request.enabled = config.enable_rgb_camera_auto_white_balance;
+            if (clientEnableAutoWhiteBalance.call(srvEnableAutoWhiteBalance))
+            {
+                error = srvEnableAutoWhiteBalance.response.error;
+                if (!error)
+                    enable_rgb_camera_auto_white_balance = config.enable_rgb_camera_auto_white_balance;
+                else
+                    config.enable_rgb_camera_auto_white_balance = enable_rgb_camera_auto_white_balance;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service enable_rgb_camera_auto_white_balance");
+                config.enable_rgb_camera_auto_white_balance = enable_rgb_camera_auto_white_balance;
+            }
+            break;
+        case 7:
+            if (!enable_rgb_camera_auto_white_balance)
+            {
+                srvWhiteBalance.request.white_balance = config.change_rgb_camera_white_balance;
+                if (clientWhiteBalance.call(srvWhiteBalance))
+                {
+                    error = srvWhiteBalance.response.error;
+                    if (!error)
+                        change_rgb_camera_white_balance = config.change_rgb_camera_white_balance;
+                    else
+                        config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
+                }
+                else
+                {
+                    ROS_ERROR("Failed to call service change_rgb_camera_white_balance");
+                    config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
+                }
+            }
+            else
+            {
+                ROS_INFO("RGB camera auto white balance must be disabled to change white balance");
                 config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
             }
-        }
-        else
-        {
-            ROS_INFO("RGB camera auto white balance must be disabled to change white balance");
-            config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
-        }
-        break;
-    case 8:
-        srvEnableAutoExposureTime.request.enabled = config.enable_rgb_camera_auto_exposure_time;
-        if (clientEnableAutoExposureTime.call(srvEnableAutoExposureTime))
-        {
-            error = srvEnableAutoExposureTime.response.error;
-            if (!error)
-                enable_rgb_camera_auto_exposure_time = config.enable_rgb_camera_auto_exposure_time;
-            else
-                config.enable_rgb_camera_auto_exposure_time = enable_rgb_camera_auto_exposure_time;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service enable_rgb_camera_auto_exposure_time");
-            config.enable_rgb_camera_auto_exposure_time = enable_rgb_camera_auto_exposure_time;
-        }
-        break;
-    case 9:
-        if (!enable_rgb_camera_auto_exposure_time)
-        {
-            srvExposureTime.request.exposure_time = config.change_rgb_camera_exposure_time;
-            if (clientExposureTime.call(srvExposureTime))
+            break;
+        case 8:
+            srvEnableAutoExposureTime.request.enabled = config.enable_rgb_camera_auto_exposure_time;
+            if (clientEnableAutoExposureTime.call(srvEnableAutoExposureTime))
             {
-                error = srvExposureTime.response.error;
+                error = srvEnableAutoExposureTime.response.error;
                 if (!error)
-                    change_rgb_camera_exposure_time = config.change_rgb_camera_exposure_time;
+                    enable_rgb_camera_auto_exposure_time = config.enable_rgb_camera_auto_exposure_time;
                 else
-                    config.change_rgb_camera_exposure_time = change_rgb_camera_exposure_time;
+                    config.enable_rgb_camera_auto_exposure_time = enable_rgb_camera_auto_exposure_time;
             }
             else
             {
-                ROS_ERROR("Failed to call service change_rgb_camera_exposure_time");
+                ROS_ERROR("Failed to call service enable_rgb_camera_auto_exposure_time");
+                config.enable_rgb_camera_auto_exposure_time = enable_rgb_camera_auto_exposure_time;
+            }
+            break;
+        case 9:
+            if (!enable_rgb_camera_auto_exposure_time)
+            {
+                srvExposureTime.request.exposure_time = config.change_rgb_camera_exposure_time;
+                if (clientExposureTime.call(srvExposureTime))
+                {
+                    error = srvExposureTime.response.error;
+                    if (!error)
+                        change_rgb_camera_exposure_time = config.change_rgb_camera_exposure_time;
+                    else
+                        config.change_rgb_camera_exposure_time = change_rgb_camera_exposure_time;
+                }
+                else
+                {
+                    ROS_ERROR("Failed to call service change_rgb_camera_exposure_time");
+                    config.change_rgb_camera_exposure_time = change_rgb_camera_exposure_time;
+                }
+            }
+            else
+            {
+                ROS_INFO("RGB camera auto exposure time must be disabled to change exposure time");
                 config.change_rgb_camera_exposure_time = change_rgb_camera_exposure_time;
             }
+            break;
         }
-        else
-        {
-            ROS_INFO("RGB camera auto exposure time must be disabled to change exposure time");
-            config.change_rgb_camera_exposure_time = change_rgb_camera_exposure_time;
-        }
-        break;
     }
 
     if (error)
@@ -319,20 +332,9 @@ int main(int argc, char **argv)
     }
 
     if (sensor_is_avaliable)
-        ROS_INFO("RGB camera is avaliable");
+        ROS_INFO("RGB camera configuration is avaliable");
     else
         return 0;
-
-    nh.param("/rgb_camera_configuration/rgb_camera_brightness", change_rgb_camera_brightness, 0);
-    nh.param("/rgb_camera_configuration/rgb_camera_contrast", change_rgb_camera_contrast, 10);
-    nh.param("/rgb_camera_configuration/rgb_camera_saturation", change_rgb_camera_saturation, 16);
-    nh.param("/rgb_camera_configuration/rgb_camera_sharpness", change_rgb_camera_sharpness, 16);
-    nh.param("/rgb_camera_configuration/rgb_camera_gamma", change_rgb_camera_gamma, 220);
-    nh.param("/rgb_camera_configuration/rgb_camera_gain", change_rgb_camera_gain, 0);
-    nh.param("/rgb_camera_configuration/rgb_camera_auto_white_balance", enable_rgb_camera_auto_white_balance, true);
-    nh.param("/rgb_camera_configuration/rgb_camera_white_balance", change_rgb_camera_white_balance, 5000);
-    nh.param("/rgb_camera_configuration/rgb_camera_auto_exposure_time", enable_rgb_camera_auto_exposure_time, true);
-    nh.param("/rgb_camera_configuration/rgb_camera_exposure_time", change_rgb_camera_exposure_time, 156);
 
     dynamic_reconfigure::Server<l3cam_ros::RgbCameraConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::RgbCameraConfig>::CallbackType f;

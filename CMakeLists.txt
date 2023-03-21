@@ -68,7 +68,6 @@ add_service_files(
   ChangeThermalCameraColormap.srv
   ChangeThermalCameraTemperatureFilter.srv
   EnableThermalCameraTemperatureFilter.srv
-  ChangeAlliedCameraBlackLevel.srv
   ChangeAlliedCameraExposureTime.srv
   EnableAlliedCameraAutoExposureTime.srv
   ChangeAlliedCameraAutoExposureTimeRange.srv
@@ -77,7 +76,6 @@ add_service_files(
   ChangeAlliedCameraAutoGainRange.srv
   ChangeAlliedCameraGamma.srv
   ChangeAlliedCameraSaturation.srv
-  ChangeAlliedCameraSharpness.srv
   ChangeAlliedCameraHue.srv
   ChangeAlliedCameraIntensityAutoPrecedence.srv
   EnableAlliedCameraAutoWhiteBalance.srv
@@ -85,10 +83,8 @@ add_service_files(
   ChangeAlliedCameraBalanceRatio.srv
   ChangeAlliedCameraBalanceWhiteAutoRate.srv
   ChangeAlliedCameraBalanceWhiteAutoTolerance.srv
-  ChangeAlliedCameraAutoModeRegion.srv
   ChangeAlliedCameraIntensityControllerRegion.srv
   ChangeAlliedCameraIntensityControllerTarget.srv
-  ChangeAlliedCameraMaxDriverBuffersCount.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -103,7 +99,7 @@ generate_messages(
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
-  cfg/General.cfg
+  cfg/Network.cfg
   cfg/Pointcloud.cfg
   cfg/PolarimetricCamera.cfg
   cfg/RgbCamera.cfg
@@ -131,7 +127,7 @@ include_directories(
 
 ## Declare C++ executables
 add_executable(${PROJECT_NAME}_node src/l3cam_ros_node.cpp)
-add_executable(general_configuration src/general_configuration.cpp)
+add_executable(network_configuration src/network_configuration.cpp)
 add_executable(pointcloud_configuration src/pointcloud_configuration.cpp)
 add_executable(polarimetric_camera_configuration src/polarimetric_camera_configuration.cpp)
 add_executable(rgb_camera_configuration src/rgb_camera_configuration.cpp)
@@ -145,7 +141,7 @@ add_executable(thermal_stream src/thermal_stream.cpp)
 
 ## Add cmake target dependencies of the executable
 add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_gencpp)
-add_dependencies(general_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(network_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(pointcloud_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(polarimetric_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(rgb_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
@@ -160,7 +156,7 @@ add_dependencies(thermal_stream ${PROJECT_NAME}_gencpp)
 ## Specify libraries to link a library or executable target against
 FIND_LIBRARY(l3cam_LIBRARIES libL3Cam.a /usr/local/lib/libl3cam/)
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(general_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(network_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(pointcloud_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(polarimetric_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(rgb_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})

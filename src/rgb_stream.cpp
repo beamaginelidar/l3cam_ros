@@ -259,12 +259,9 @@ int main(int argc, char **argv)
 
     if (isRgbAvaliable())
     {
-        ROS_INFO("RGB camera avaliable");
         rgb = true;
     }
-    else if (isNarrowAvaliable())
-        ROS_INFO("Allied Narrow camera avaliable");
-    else
+    else if (!isNarrowAvaliable())
         return 0;
 
     pthread_create(&stream_thread, NULL, &ImageThread, NULL);

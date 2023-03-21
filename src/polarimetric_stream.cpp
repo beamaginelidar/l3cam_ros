@@ -260,12 +260,9 @@ int main(int argc, char **argv)
 
     if (isPolarimetricAvaliable())
     {
-        ROS_INFO("Polarimetric camera avaliable");
         pol = true;
     }
-    if (isWideAvaliable())
-        ROS_INFO("Allied Wide camera avaliable");
-    else
+    else if (!isWideAvaliable())
         return 0;
 
     pthread_create(&stream_thread, NULL, &ImageThread, NULL);

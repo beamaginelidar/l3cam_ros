@@ -61,105 +61,113 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
-    if(!default_configured)
+    if (!default_configured)
     {
-        config.change_pointcloud_color = change_pointcloud_color;
-        config.change_pointcloud_color_range_minimum = change_pointcloud_color_range_minimum;
-        config.change_pointcloud_color_range_maximum = change_pointcloud_color_range_maximum;
-        config.change_distance_range_minimum = change_distance_range_minimum;
-        config.change_distance_range_maximum = change_distance_range_maximum;
+        ros::param::param("/pointcloud_configuration/pointcloud_color", config.change_pointcloud_color, 0);
+        ros::param::param("/pointcloud_configuration/pointcloud_color_range_minimum", config.change_pointcloud_color_range_minimum, 0);
+        ros::param::param("/pointcloud_configuration/pointcloud_color_range_maximum", config.change_pointcloud_color_range_maximum, 400000);
+        ros::param::param("/pointcloud_configuration/distance_range_minimum", config.change_distance_range_minimum, 0);
+        ros::param::param("/pointcloud_configuration/distance_range_maximum", config.change_distance_range_maximum, 400000);
+
+        ros::param::param("/pointcloud_configuration/pointcloud_color", change_pointcloud_color, 0);
+        ros::param::param("/pointcloud_configuration/pointcloud_color_range_minimum", change_pointcloud_color_range_minimum, 0);
+        ros::param::param("/pointcloud_configuration/pointcloud_color_range_maximum", change_pointcloud_color_range_maximum, 400000);
+        ros::param::param("/pointcloud_configuration/distance_range_minimum", change_distance_range_minimum, 0);
+        ros::param::param("/pointcloud_configuration/distance_range_maximum", change_distance_range_maximum, 400000);
 
         default_configured = true;
     }
-
-    switch(level)
+    else
     {
-    case 0:
-        srvColor.request.visualization_color = config.change_pointcloud_color;
-        if (clientColor.call(srvColor))
+        switch (level)
         {
-            error = srvColor.response.error;
-            if (!error)
-                change_pointcloud_color = config.change_pointcloud_color;
+        case 0:
+            srvColor.request.visualization_color = config.change_pointcloud_color;
+            if (clientColor.call(srvColor))
+            {
+                error = srvColor.response.error;
+                if (!error)
+                    change_pointcloud_color = config.change_pointcloud_color;
+                else
+                    config.change_pointcloud_color = change_pointcloud_color;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service change_pointcloud_color");
                 config.change_pointcloud_color = change_pointcloud_color;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_pointcloud_color");
-            config.change_pointcloud_color = change_pointcloud_color;
-        }
-        break;
-    case 1:
-        srvColorRange.request.min_value = config.change_pointcloud_color_range_minimum;
-        srvColorRange.request.max_value = change_pointcloud_color_range_maximum;
-        if (clientColorRange.call(srvColorRange))
-        {
-            error = srvColorRange.response.error;
-            if (!error)
-                change_pointcloud_color_range_minimum = config.change_pointcloud_color_range_minimum;
+            }
+            break;
+        case 1:
+            srvColorRange.request.min_value = config.change_pointcloud_color_range_minimum;
+            srvColorRange.request.max_value = change_pointcloud_color_range_maximum;
+            if (clientColorRange.call(srvColorRange))
+            {
+                error = srvColorRange.response.error;
+                if (!error)
+                    change_pointcloud_color_range_minimum = config.change_pointcloud_color_range_minimum;
+                else
+                    config.change_pointcloud_color_range_minimum = change_pointcloud_color_range_minimum;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service change_pointcloud_color_range");
                 config.change_pointcloud_color_range_minimum = change_pointcloud_color_range_minimum;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_pointcloud_color_range");
-            config.change_pointcloud_color_range_minimum = change_pointcloud_color_range_minimum;
-        }
-        break;
-    case 2:
-        srvColorRange.request.max_value = config.change_pointcloud_color_range_maximum;
-        srvColorRange.request.min_value = change_pointcloud_color_range_minimum;
-        if (clientColorRange.call(srvColorRange))
-        {
-            error = srvColorRange.response.error;
-            if (!error)
-                change_pointcloud_color_range_maximum = config.change_pointcloud_color_range_maximum;
+            }
+            break;
+        case 2:
+            srvColorRange.request.max_value = config.change_pointcloud_color_range_maximum;
+            srvColorRange.request.min_value = change_pointcloud_color_range_minimum;
+            if (clientColorRange.call(srvColorRange))
+            {
+                error = srvColorRange.response.error;
+                if (!error)
+                    change_pointcloud_color_range_maximum = config.change_pointcloud_color_range_maximum;
+                else
+                    config.change_pointcloud_color_range_maximum = change_pointcloud_color_range_maximum;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service change_pointcloud_color_range");
                 config.change_pointcloud_color_range_maximum = change_pointcloud_color_range_maximum;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_pointcloud_color_range");
-            config.change_pointcloud_color_range_maximum = change_pointcloud_color_range_maximum;
-        }
-        break;
-    case 3:
-        srvDistanceRange.request.min_value = config.change_distance_range_minimum;
-        srvDistanceRange.request.max_value = change_distance_range_maximum;
-        if (clientDistanceRange.call(srvDistanceRange))
-        {
-            error = srvDistanceRange.response.error;
-            if (!error)
-                change_distance_range_minimum = config.change_distance_range_minimum;
+            }
+            break;
+        case 3:
+            srvDistanceRange.request.min_value = config.change_distance_range_minimum;
+            srvDistanceRange.request.max_value = change_distance_range_maximum;
+            if (clientDistanceRange.call(srvDistanceRange))
+            {
+                error = srvDistanceRange.response.error;
+                if (!error)
+                    change_distance_range_minimum = config.change_distance_range_minimum;
+                else
+                    config.change_distance_range_minimum = change_distance_range_minimum;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service change_distance_range");
                 config.change_distance_range_minimum = change_distance_range_minimum;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_distance_range");
-            config.change_distance_range_minimum = change_distance_range_minimum;
-        }
-        break;
-    case 4:
-        srvDistanceRange.request.max_value = config.change_distance_range_maximum;
-        srvDistanceRange.request.min_value = change_distance_range_minimum;
-        if (clientDistanceRange.call(srvDistanceRange))
-        {
-            error = srvDistanceRange.response.error;
-            if (!error)
-                change_distance_range_maximum = config.change_distance_range_maximum;
+            }
+            break;
+        case 4:
+            srvDistanceRange.request.max_value = config.change_distance_range_maximum;
+            srvDistanceRange.request.min_value = change_distance_range_minimum;
+            if (clientDistanceRange.call(srvDistanceRange))
+            {
+                error = srvDistanceRange.response.error;
+                if (!error)
+                    change_distance_range_maximum = config.change_distance_range_maximum;
+                else
+                    config.change_distance_range_maximum = change_distance_range_maximum;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service change_distance_range");
                 config.change_distance_range_maximum = change_distance_range_maximum;
+            }
+            break;
         }
-        else
-        {
-            ROS_ERROR("Failed to call service change_distance_range");
-            config.change_distance_range_maximum = change_distance_range_maximum;
-        }
-        break;
     }
-    
+
     if (error)
         ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
 }
@@ -196,15 +204,9 @@ int main(int argc, char **argv)
     }
 
     if (sensor_is_avaliable)
-        ROS_INFO("LiDAR is avaliable");
+        ROS_INFO("LiDAR configuration is avaliable");
     else
         return 0;
-
-    nh.param("/pointcloud_configuration/pointcloud_color", change_pointcloud_color, 0);
-    nh.param("/pointcloud_configuration/pointcloud_color_range_minimum", change_pointcloud_color_range_minimum, 0);
-    nh.param("/pointcloud_configuration/pointcloud_color_range_maximum", change_pointcloud_color_range_maximum, 400000);
-    nh.param("/pointcloud_configuration/distance_range_minimum", change_distance_range_minimum, 0);
-    nh.param("/pointcloud_configuration/distance_range_maximum", change_distance_range_maximum, 400000);
 
     dynamic_reconfigure::Server<l3cam_ros::PointcloudConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::PointcloudConfig>::CallbackType f;

@@ -225,9 +225,7 @@ int main(int argc, char **argv)
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
     int error = L3CAM_OK;
 
-    if (isThermalAvaliable())
-        ROS_INFO("Thermal camera avaliable");
-    else
+    if (!isThermalAvaliable())
         return 0;
 
     pthread_create(&thermal_thread, NULL, &ImageThread, NULL);

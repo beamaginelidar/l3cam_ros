@@ -1,4 +1,0 @@
-int32 allied_type
-int32 max_driver_buffers_count
----
-int32 error

@@ -66,8 +66,8 @@ The rgb_stream is the node that publishes RGB image frames if the RGB sensor is 
 ### thermal_stream
 The thermal_stream is the node that publishes thermal image frames if the thermal sensor is avaliable.
 
-### general_configuration
-The general_configuration is a node that configures the general parameters by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/General.cfg` for documentation regarding the various parameters that can be used to configure the general parameters of the L3Cam.
+### network_configuration
+The network_configuration is a node that configures the network parameters by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/Network.cfg` for documentation regarding the various parameters that can be used to configure the network parameters of the L3Cam.
 
 ### pointcloud_configuration
 The pointcloud_configuration is a node that configures the pointcloud parameters (if a LiDAR sensor is avaliable) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/Pointcloud.cfg` for documentation regarding the various parameters that can be used to configure the pointcloud parameters of the L3Cam.

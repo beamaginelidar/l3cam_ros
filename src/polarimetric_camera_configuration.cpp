@@ -81,236 +81,249 @@ void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
-    if(!default_configured)
+    if (!default_configured)
     {
-        config.change_polarimetric_camera_brightness = change_polarimetric_camera_brightness;
-        config.change_polarimetric_camera_black_level = change_polarimetric_camera_black_level;
-        config.enable_polarimetric_camera_auto_gain = enable_polarimetric_camera_auto_gain;
-        config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
-        config.change_polarimetric_camera_auto_gain_range_maximum = change_polarimetric_camera_auto_gain_range_maximum;
-        config.change_polarimetric_camera_gain = change_polarimetric_camera_gain;
-        config.enable_polarimetric_camera_auto_exposure_time = enable_polarimetric_camera_auto_exposure_time;
-        config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
-        config.change_polarimetric_camera_auto_exposure_time_range_maximum = change_polarimetric_camera_auto_exposure_time_range_maximum;
-        config.change_polarimetric_camera_exposure_time = change_polarimetric_camera_exposure_time;
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_brightness", config.change_polarimetric_camera_brightness, 127);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_black_level", config.change_polarimetric_camera_black_level, 6.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain", config.enable_polarimetric_camera_auto_gain, true);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_minimum", config.change_polarimetric_camera_auto_gain_range_minimum, 0.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_maximum", config.change_polarimetric_camera_auto_gain_range_maximum, 48.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_gain", config.change_polarimetric_camera_gain, 24.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time", config.enable_polarimetric_camera_auto_exposure_time, true);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_minimum", config.change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_maximum", config.change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_exposure_time", config.change_polarimetric_camera_exposure_time, 500000.0);
+
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_brightness", change_polarimetric_camera_brightness, 127);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_black_level", change_polarimetric_camera_black_level, 6.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain", enable_polarimetric_camera_auto_gain, true);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_minimum", change_polarimetric_camera_auto_gain_range_minimum, 0.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_maximum", change_polarimetric_camera_auto_gain_range_maximum, 48.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_gain", change_polarimetric_camera_gain, 24.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time", enable_polarimetric_camera_auto_exposure_time, true);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_minimum", change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_maximum", change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
+        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_exposure_time", change_polarimetric_camera_exposure_time, 500000.0);
 
         default_configured = true;
     }
-
-    switch(level)
+    else
     {
-    case 0:
-        srvBrightness.request.brightness = config.change_polarimetric_camera_brightness;
-        if (clientBrightness.call(srvBrightness))
+        switch (level)
         {
-            error = srvBrightness.response.error;
-            if (!error)
-                change_polarimetric_camera_brightness = config.change_polarimetric_camera_brightness;
-            else
-                config.change_polarimetric_camera_brightness = change_polarimetric_camera_brightness;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_polarimetric_camera_brightness");
-            config.change_polarimetric_camera_brightness = change_polarimetric_camera_brightness;
-        }
-        break;
-    case 1:
-        srvBlackLevel.request.black_level = config.change_polarimetric_camera_black_level;
-        if (clientBlackLevel.call(srvBlackLevel))
-        {
-            error = srvBlackLevel.response.error;
-            if (!error)
-                change_polarimetric_camera_black_level = config.change_polarimetric_camera_black_level;
-            else
-                config.change_polarimetric_camera_black_level = change_polarimetric_camera_black_level;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_polarimetric_camera_black_level");
-            config.change_polarimetric_camera_black_level = change_polarimetric_camera_black_level;
-        }
-        break;
-    case 2:
-        srvEnableAutoGain.request.enabled = config.enable_polarimetric_camera_auto_gain;
-        if (clientEnableAutoGain.call(srvEnableAutoGain))
-        {
-            error = srvEnableAutoGain.response.error;
-            if (!error)
-                enable_polarimetric_camera_auto_gain = config.enable_polarimetric_camera_auto_gain;
-            else
-                config.enable_polarimetric_camera_auto_gain = enable_polarimetric_camera_auto_gain;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service enable_polarimetric_camera_auto_gain");
-            config.enable_polarimetric_camera_auto_gain = enable_polarimetric_camera_auto_gain;
-        }
-        break;
-    case 3:
-        if (enable_polarimetric_camera_auto_gain)
-        {
-            srvAutoGainRange.request.min_gain = config.change_polarimetric_camera_auto_gain_range_minimum;
-            srvAutoGainRange.request.max_gain = change_polarimetric_camera_auto_gain_range_maximum;
-            if (clientAutoGainRange.call(srvAutoGainRange))
+        case 0:
+            srvBrightness.request.brightness = config.change_polarimetric_camera_brightness;
+            if (clientBrightness.call(srvBrightness))
             {
-                error = srvAutoGainRange.response.error;
+                error = srvBrightness.response.error;
                 if (!error)
-                    change_polarimetric_camera_auto_gain_range_minimum = config.change_polarimetric_camera_auto_gain_range_minimum;
+                    change_polarimetric_camera_brightness = config.change_polarimetric_camera_brightness;
                 else
-                    config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
+                    config.change_polarimetric_camera_brightness = change_polarimetric_camera_brightness;
             }
             else
             {
-                ROS_ERROR("Failed to call service change_polarimetric_camera_auto_gain_range_minimum");
+                ROS_ERROR("Failed to call service change_polarimetric_camera_brightness");
+                config.change_polarimetric_camera_brightness = change_polarimetric_camera_brightness;
+            }
+            break;
+        case 1:
+            srvBlackLevel.request.black_level = config.change_polarimetric_camera_black_level;
+            if (clientBlackLevel.call(srvBlackLevel))
+            {
+                error = srvBlackLevel.response.error;
+                if (!error)
+                    change_polarimetric_camera_black_level = config.change_polarimetric_camera_black_level;
+                else
+                    config.change_polarimetric_camera_black_level = change_polarimetric_camera_black_level;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service change_polarimetric_camera_black_level");
+                config.change_polarimetric_camera_black_level = change_polarimetric_camera_black_level;
+            }
+            break;
+        case 2:
+            srvEnableAutoGain.request.enabled = config.enable_polarimetric_camera_auto_gain;
+            if (clientEnableAutoGain.call(srvEnableAutoGain))
+            {
+                error = srvEnableAutoGain.response.error;
+                if (!error)
+                    enable_polarimetric_camera_auto_gain = config.enable_polarimetric_camera_auto_gain;
+                else
+                    config.enable_polarimetric_camera_auto_gain = enable_polarimetric_camera_auto_gain;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service enable_polarimetric_camera_auto_gain");
+                config.enable_polarimetric_camera_auto_gain = enable_polarimetric_camera_auto_gain;
+            }
+            break;
+        case 3:
+            if (enable_polarimetric_camera_auto_gain)
+            {
+                srvAutoGainRange.request.min_gain = config.change_polarimetric_camera_auto_gain_range_minimum;
+                srvAutoGainRange.request.max_gain = change_polarimetric_camera_auto_gain_range_maximum;
+                if (clientAutoGainRange.call(srvAutoGainRange))
+                {
+                    error = srvAutoGainRange.response.error;
+                    if (!error)
+                        change_polarimetric_camera_auto_gain_range_minimum = config.change_polarimetric_camera_auto_gain_range_minimum;
+                    else
+                        config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
+                }
+                else
+                {
+                    ROS_ERROR("Failed to call service change_polarimetric_camera_auto_gain_range_minimum");
+                    config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
+                }
+            }
+            else
+            {
+                ROS_INFO("Polarimetric camera auto gain must be enabled to change auto gain range");
                 config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
             }
-        }
-        else
-        {
-            ROS_INFO("Polarimetric camera auto gain must be enabled to change auto gain range");
-            config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
-        }
-        break;
-    case 4:
-        if (enable_polarimetric_camera_auto_gain)
-        {
-            srvAutoGainRange.request.max_gain = config.change_polarimetric_camera_auto_gain_range_maximum;
-            srvAutoGainRange.request.min_gain = change_polarimetric_camera_auto_gain_range_minimum;
-            if (clientAutoGainRange.call(srvAutoGainRange))
+            break;
+        case 4:
+            if (enable_polarimetric_camera_auto_gain)
             {
-                error = srvAutoGainRange.response.error;
-                if (!error)
-                    change_polarimetric_camera_auto_gain_range_maximum = config.change_polarimetric_camera_auto_gain_range_maximum;
+                srvAutoGainRange.request.max_gain = config.change_polarimetric_camera_auto_gain_range_maximum;
+                srvAutoGainRange.request.min_gain = change_polarimetric_camera_auto_gain_range_minimum;
+                if (clientAutoGainRange.call(srvAutoGainRange))
+                {
+                    error = srvAutoGainRange.response.error;
+                    if (!error)
+                        change_polarimetric_camera_auto_gain_range_maximum = config.change_polarimetric_camera_auto_gain_range_maximum;
+                    else
+                        config.change_polarimetric_camera_auto_gain_range_maximum = change_polarimetric_camera_auto_gain_range_maximum;
+                }
                 else
+                {
+                    ROS_ERROR("Failed to call service change_polarimetric_camera_auto_gain_range_maximum");
                     config.change_polarimetric_camera_auto_gain_range_maximum = change_polarimetric_camera_auto_gain_range_maximum;
+                }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_polarimetric_camera_auto_gain_range_maximum");
+                ROS_INFO("Polarimetric camera auto gain must be enabled to change auto gain range");
                 config.change_polarimetric_camera_auto_gain_range_maximum = change_polarimetric_camera_auto_gain_range_maximum;
             }
-        }
-        else
-        {
-            ROS_INFO("Polarimetric camera auto gain must be enabled to change auto gain range");
-            config.change_polarimetric_camera_auto_gain_range_maximum = change_polarimetric_camera_auto_gain_range_maximum;
-        }
-        break;
-    case 5:
-        if (!enable_polarimetric_camera_auto_gain)
-        {
-            srvGain.request.gain = config.change_polarimetric_camera_gain;
-            if (clientGain.call(srvGain))
+            break;
+        case 5:
+            if (!enable_polarimetric_camera_auto_gain)
             {
-                error = srvGain.response.error;
-                if (!error)
-                    change_polarimetric_camera_gain = config.change_polarimetric_camera_gain;
+                srvGain.request.gain = config.change_polarimetric_camera_gain;
+                if (clientGain.call(srvGain))
+                {
+                    error = srvGain.response.error;
+                    if (!error)
+                        change_polarimetric_camera_gain = config.change_polarimetric_camera_gain;
+                    else
+                        config.change_polarimetric_camera_gain = change_polarimetric_camera_gain;
+                }
                 else
+                {
+                    ROS_ERROR("Failed to call service change_polarimetric_camera_gain");
                     config.change_polarimetric_camera_gain = change_polarimetric_camera_gain;
+                }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_polarimetric_camera_gain");
+                ROS_INFO("Polarimetric camera auto gain must be disabled to change gain");
                 config.change_polarimetric_camera_gain = change_polarimetric_camera_gain;
             }
-        }
-        else
-        {
-            ROS_INFO("Polarimetric camera auto gain must be disabled to change gain");
-            config.change_polarimetric_camera_gain = change_polarimetric_camera_gain;
-        }
-        break;
-    case 6:
-        srvEnableAutoExposureTime.request.enabled = config.enable_polarimetric_camera_auto_exposure_time;
-        if (clientEnableAutoExposureTime.call(srvEnableAutoExposureTime))
-        {
-            error = srvEnableAutoExposureTime.response.error;
-            if (!error)
-                enable_polarimetric_camera_auto_exposure_time = config.enable_polarimetric_camera_auto_exposure_time;
-            else
-                config.enable_polarimetric_camera_auto_exposure_time = enable_polarimetric_camera_auto_exposure_time;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service enable_polarimetric_camera_auto_exposure_time");
-            config.enable_polarimetric_camera_auto_exposure_time = enable_polarimetric_camera_auto_exposure_time;
-        }
-        break;
-    case 7:
-        if (enable_polarimetric_camera_auto_exposure_time)
-        {
-            srvAutoExposureTimeRange.request.min_exposure = config.change_polarimetric_camera_auto_exposure_time_range_minimum;
-            srvAutoExposureTimeRange.request.max_exposure = change_polarimetric_camera_auto_exposure_time_range_maximum;
-            if (clientAutoExposureTimeRange.call(srvAutoExposureTimeRange))
+            break;
+        case 6:
+            srvEnableAutoExposureTime.request.enabled = config.enable_polarimetric_camera_auto_exposure_time;
+            if (clientEnableAutoExposureTime.call(srvEnableAutoExposureTime))
             {
-                error = srvAutoExposureTimeRange.response.error;
+                error = srvEnableAutoExposureTime.response.error;
                 if (!error)
-                    change_polarimetric_camera_auto_exposure_time_range_minimum = config.change_polarimetric_camera_auto_exposure_time_range_minimum;
+                    enable_polarimetric_camera_auto_exposure_time = config.enable_polarimetric_camera_auto_exposure_time;
                 else
-                    config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
+                    config.enable_polarimetric_camera_auto_exposure_time = enable_polarimetric_camera_auto_exposure_time;
             }
             else
             {
-                ROS_ERROR("Failed to call service change_polarimetric_camera_auto_exposure_time_range");
+                ROS_ERROR("Failed to call service enable_polarimetric_camera_auto_exposure_time");
+                config.enable_polarimetric_camera_auto_exposure_time = enable_polarimetric_camera_auto_exposure_time;
+            }
+            break;
+        case 7:
+            if (enable_polarimetric_camera_auto_exposure_time)
+            {
+                srvAutoExposureTimeRange.request.min_exposure = config.change_polarimetric_camera_auto_exposure_time_range_minimum;
+                srvAutoExposureTimeRange.request.max_exposure = change_polarimetric_camera_auto_exposure_time_range_maximum;
+                if (clientAutoExposureTimeRange.call(srvAutoExposureTimeRange))
+                {
+                    error = srvAutoExposureTimeRange.response.error;
+                    if (!error)
+                        change_polarimetric_camera_auto_exposure_time_range_minimum = config.change_polarimetric_camera_auto_exposure_time_range_minimum;
+                    else
+                        config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
+                }
+                else
+                {
+                    ROS_ERROR("Failed to call service change_polarimetric_camera_auto_exposure_time_range");
+                    config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
+                }
+            }
+            else
+            {
+                ROS_INFO("Polarimetric camera auto exposure time must be enabled to change auto exposure time range");
                 config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
             }
-        }
-        else
-        {
-            ROS_INFO("Polarimetric camera auto exposure time must be enabled to change auto exposure time range");
-            config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
-        }
-        break;
-    case 8:
-        if (enable_polarimetric_camera_auto_exposure_time)
-        {
-            srvAutoExposureTimeRange.request.max_exposure = config.change_polarimetric_camera_auto_exposure_time_range_maximum;
-            srvAutoExposureTimeRange.request.min_exposure = change_polarimetric_camera_auto_exposure_time_range_minimum;
-            if (clientAutoExposureTimeRange.call(srvAutoExposureTimeRange))
+            break;
+        case 8:
+            if (enable_polarimetric_camera_auto_exposure_time)
             {
-                error = srvAutoExposureTimeRange.response.error;
-                if (!error)
-                    change_polarimetric_camera_auto_exposure_time_range_maximum = config.change_polarimetric_camera_auto_exposure_time_range_maximum;
+                srvAutoExposureTimeRange.request.max_exposure = config.change_polarimetric_camera_auto_exposure_time_range_maximum;
+                srvAutoExposureTimeRange.request.min_exposure = change_polarimetric_camera_auto_exposure_time_range_minimum;
+                if (clientAutoExposureTimeRange.call(srvAutoExposureTimeRange))
+                {
+                    error = srvAutoExposureTimeRange.response.error;
+                    if (!error)
+                        change_polarimetric_camera_auto_exposure_time_range_maximum = config.change_polarimetric_camera_auto_exposure_time_range_maximum;
+                    else
+                        config.change_polarimetric_camera_auto_exposure_time_range_maximum = change_polarimetric_camera_auto_exposure_time_range_maximum;
+                }
                 else
+                {
+                    ROS_ERROR("Failed to call service change_polarimetric_camera_auto_exposure_time_range");
                     config.change_polarimetric_camera_auto_exposure_time_range_maximum = change_polarimetric_camera_auto_exposure_time_range_maximum;
+                }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_polarimetric_camera_auto_exposure_time_range");
+                ROS_INFO("Polarimetric camera auto exposure time must be enabled to change auto exposure time range");
                 config.change_polarimetric_camera_auto_exposure_time_range_maximum = change_polarimetric_camera_auto_exposure_time_range_maximum;
             }
-        }
-        else
-        {
-            ROS_INFO("Polarimetric camera auto exposure time must be enabled to change auto exposure time range");
-            config.change_polarimetric_camera_auto_exposure_time_range_maximum = change_polarimetric_camera_auto_exposure_time_range_maximum;
-        }
-        break;
-    case 9:
-        if (!enable_polarimetric_camera_auto_exposure_time)
-        {
-            srvExposureTime.request.exposure_time = config.change_polarimetric_camera_exposure_time;
-            if (clientExposureTime.call(srvExposureTime))
+            break;
+        case 9:
+            if (!enable_polarimetric_camera_auto_exposure_time)
             {
-                error = srvExposureTime.response.error;
-                if (!error)
-                    change_polarimetric_camera_exposure_time = config.change_polarimetric_camera_exposure_time;
+                srvExposureTime.request.exposure_time = config.change_polarimetric_camera_exposure_time;
+                if (clientExposureTime.call(srvExposureTime))
+                {
+                    error = srvExposureTime.response.error;
+                    if (!error)
+                        change_polarimetric_camera_exposure_time = config.change_polarimetric_camera_exposure_time;
+                    else
+                        config.change_polarimetric_camera_exposure_time = change_polarimetric_camera_exposure_time;
+                }
                 else
+                {
+                    ROS_ERROR("Failed to call service change_polarimetric_camera_exposure_time");
                     config.change_polarimetric_camera_exposure_time = change_polarimetric_camera_exposure_time;
+                }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_polarimetric_camera_exposure_time");
+                ROS_INFO("Polarimetric camera auto exposure time must be disabled to change exposure time");
                 config.change_polarimetric_camera_exposure_time = change_polarimetric_camera_exposure_time;
             }
+            break;
         }
-        else
-        {
-            ROS_INFO("Polarimetric camera auto exposure time must be disabled to change exposure time");
-            config.change_polarimetric_camera_exposure_time = change_polarimetric_camera_exposure_time;
-        }
-        break;
     }
 
     if (error)
@@ -349,20 +362,9 @@ int main(int argc, char **argv)
     }
 
     if (sensor_is_avaliable)
-        ROS_INFO("Polarimetric camera is avaliable");
+        ROS_INFO("Polarimetric camera configuration is avaliable");
     else
         return 0;
-
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_brightness", change_polarimetric_camera_brightness, 127);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_black_level", change_polarimetric_camera_black_level, 6.0);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain", enable_polarimetric_camera_auto_gain, true);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_minimum", change_polarimetric_camera_auto_gain_range_minimum, 0.0);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_maximum", change_polarimetric_camera_auto_gain_range_maximum, 48.0);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_gain", change_polarimetric_camera_gain, 24.0);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time", enable_polarimetric_camera_auto_exposure_time, true);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_minimum", change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_maximum", change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
-    nh.param("/polarimetric_camera_configuration/polarimetric_camera_exposure_time", change_polarimetric_camera_exposure_time, 500000.0);
 
     dynamic_reconfigure::Server<l3cam_ros::PolarimetricCameraConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::PolarimetricCameraConfig>::CallbackType f;

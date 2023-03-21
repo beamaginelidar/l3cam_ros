@@ -60,84 +60,91 @@ void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
-    if(!default_configured)
+    if (!default_configured)
     {
-        config.change_thermal_camera_colormap = change_thermal_camera_colormap;
-        config.enable_thermal_camera_temperature_filter = enable_thermal_camera_temperature_filter;
-        config.change_thermal_camera_temperature_filter_min = change_thermal_camera_temperature_filter_min;
-        config.change_thermal_camera_temperature_filter_max = change_thermal_camera_temperature_filter_max;
+        ros::param::param("/thermal_camera_configuration/thermal_camera_colormap", config.change_thermal_camera_colormap, 1);
+        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter", config.enable_thermal_camera_temperature_filter, false);
+        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_min", config.change_thermal_camera_temperature_filter_min, 0);
+        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_max", config.change_thermal_camera_temperature_filter_max, 50);
+
+        ros::param::param("/thermal_camera_configuration/thermal_camera_colormap", change_thermal_camera_colormap, 1);
+        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter", enable_thermal_camera_temperature_filter, false);
+        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_min", change_thermal_camera_temperature_filter_min, 0);
+        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_max", change_thermal_camera_temperature_filter_max, 50);
 
         default_configured = true;
     }
-
-    switch (level)
+    else
     {
-    case 0:
-        srvColormap.request.colormap = config.change_thermal_camera_colormap;
-        if (clientColormap.call(srvColormap))
+        switch (level)
         {
-            error = srvColormap.response.error;
-            if (!error)
-                change_thermal_camera_colormap = config.change_thermal_camera_colormap;
+        case 0:
+            srvColormap.request.colormap = config.change_thermal_camera_colormap;
+            if (clientColormap.call(srvColormap))
+            {
+                error = srvColormap.response.error;
+                if (!error)
+                    change_thermal_camera_colormap = config.change_thermal_camera_colormap;
+                else
+                    config.change_thermal_camera_colormap = change_thermal_camera_colormap;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service change_thermal_camera_colormap");
                 config.change_thermal_camera_colormap = change_thermal_camera_colormap;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_thermal_camera_colormap");
-            config.change_thermal_camera_colormap = change_thermal_camera_colormap;
-        }
-        break;
-    case 1:
-        srvEnableTemperatureFilter.request.enabled = config.enable_thermal_camera_temperature_filter;
-        if (clientEnableTemperatureFilter.call(srvEnableTemperatureFilter))
-        {
-            error = srvEnableTemperatureFilter.response.error;
-            if (!error)
-                enable_thermal_camera_temperature_filter = config.enable_thermal_camera_temperature_filter;
+            }
+            break;
+        case 1:
+            srvEnableTemperatureFilter.request.enabled = config.enable_thermal_camera_temperature_filter;
+            if (clientEnableTemperatureFilter.call(srvEnableTemperatureFilter))
+            {
+                error = srvEnableTemperatureFilter.response.error;
+                if (!error)
+                    enable_thermal_camera_temperature_filter = config.enable_thermal_camera_temperature_filter;
+                else
+                    config.enable_thermal_camera_temperature_filter = enable_thermal_camera_temperature_filter;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service enable_thermal_camera_temperature_filter");
                 config.enable_thermal_camera_temperature_filter = enable_thermal_camera_temperature_filter;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service enable_thermal_camera_temperature_filter");
-            config.enable_thermal_camera_temperature_filter = enable_thermal_camera_temperature_filter;
-        }
-        break;
-    case 2:
-        srvTemperatureFilter.request.min_temperature = config.change_thermal_camera_temperature_filter_min;
-        srvTemperatureFilter.request.max_temperature = change_thermal_camera_temperature_filter_max;
-        if (clientTemperatureFilter.call(srvTemperatureFilter))
-        {
-            error = srvTemperatureFilter.response.error;
-            if (!error)
-                change_thermal_camera_temperature_filter_min = config.change_thermal_camera_temperature_filter_min;
+            }
+            break;
+        case 2:
+            srvTemperatureFilter.request.min_temperature = config.change_thermal_camera_temperature_filter_min;
+            srvTemperatureFilter.request.max_temperature = change_thermal_camera_temperature_filter_max;
+            if (clientTemperatureFilter.call(srvTemperatureFilter))
+            {
+                error = srvTemperatureFilter.response.error;
+                if (!error)
+                    change_thermal_camera_temperature_filter_min = config.change_thermal_camera_temperature_filter_min;
+                else
+                    config.change_thermal_camera_temperature_filter_min = change_thermal_camera_temperature_filter_min;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service change_thermal_camera_temperature_filter_min");
                 config.change_thermal_camera_temperature_filter_min = change_thermal_camera_temperature_filter_min;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service change_thermal_camera_temperature_filter_min");
-            config.change_thermal_camera_temperature_filter_min = change_thermal_camera_temperature_filter_min;
-        }
-        break;
-    case 3:
-        srvTemperatureFilter.request.max_temperature = config.change_thermal_camera_temperature_filter_max;
-        srvTemperatureFilter.request.min_temperature = change_thermal_camera_temperature_filter_min;
-        if (clientTemperatureFilter.call(srvTemperatureFilter))
-        {
-            error = srvTemperatureFilter.response.error;
-            if (!error)
-                change_thermal_camera_temperature_filter_max = config.change_thermal_camera_temperature_filter_max;
+            }
+            break;
+        case 3:
+            srvTemperatureFilter.request.max_temperature = config.change_thermal_camera_temperature_filter_max;
+            srvTemperatureFilter.request.min_temperature = change_thermal_camera_temperature_filter_min;
+            if (clientTemperatureFilter.call(srvTemperatureFilter))
+            {
+                error = srvTemperatureFilter.response.error;
+                if (!error)
+                    change_thermal_camera_temperature_filter_max = config.change_thermal_camera_temperature_filter_max;
+                else
+                    config.change_thermal_camera_temperature_filter_max = change_thermal_camera_temperature_filter_max;
+            }
             else
+            {
+                ROS_ERROR("Failed to call service change_thermal_camera_temperature_filter_max");
                 config.change_thermal_camera_temperature_filter_max = change_thermal_camera_temperature_filter_max;
+            }
+            break;
         }
-        else
-        {
-            ROS_ERROR("Failed to call service change_thermal_camera_temperature_filter_max");
-            config.change_thermal_camera_temperature_filter_max = change_thermal_camera_temperature_filter_max;
-        }
-        break;
     }
 
     if (error)
@@ -176,14 +183,9 @@ int main(int argc, char **argv)
     }
 
     if (sensor_is_avaliable)
-        ROS_INFO("Thermal camera is avaliable");
+        ROS_INFO("Thermal camera configuration is avaliable");
     else
         return 0;
-
-    nh.param("/thermal_camera_configuration/thermal_camera_colormap", change_thermal_camera_colormap, 1);
-    nh.param("/thermal_camera_configuration/thermal_camera_temperature_filter", enable_thermal_camera_temperature_filter, false);
-    nh.param("/thermal_camera_configuration/thermal_camera_temperature_filter_min", change_thermal_camera_temperature_filter_min, 0);
-    nh.param("/thermal_camera_configuration/thermal_camera_temperature_filter_max", change_thermal_camera_temperature_filter_max, 50);
 
     dynamic_reconfigure::Server<l3cam_ros::ThermalCameraConfig> server;
     dynamic_reconfigure::Server<l3cam_ros::ThermalCameraConfig>::CallbackType f;
