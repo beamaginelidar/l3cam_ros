@@ -57,26 +57,44 @@ int change_distance_range_maximum;
 
 bool default_configured = false;
 
+void configureDefault(l3cam_ros::PointcloudConfig &config)
+{
+    ros::param::param("/pointcloud_configuration/pointcloud_color", change_pointcloud_color, 0);
+    ros::param::param("/pointcloud_configuration/pointcloud_color_range_minimum", change_pointcloud_color_range_minimum, 0);
+    ros::param::param("/pointcloud_configuration/pointcloud_color_range_maximum", change_pointcloud_color_range_maximum, 400000);
+    ros::param::param("/pointcloud_configuration/distance_range_minimum", change_distance_range_minimum, 0);
+    ros::param::param("/pointcloud_configuration/distance_range_maximum", change_distance_range_maximum, 400000);
+
+    if (change_pointcloud_color >= 0 && change_pointcloud_color <= 7 || change_pointcloud_color >= 12 && change_pointcloud_color <= 13)
+        config.change_pointcloud_color = change_pointcloud_color;
+    else
+        change_pointcloud_color = config.change_pointcloud_color;
+    if (change_pointcloud_color_range_minimum >= 0 && change_pointcloud_color_range_minimum <= 400000)
+        config.change_pointcloud_color_range_minimum = change_pointcloud_color_range_minimum;
+    else
+        change_pointcloud_color_range_minimum = config.change_pointcloud_color_range_minimum;
+    if (change_pointcloud_color_range_maximum >= 0 && change_pointcloud_color_range_maximum <= 400000)
+        config.change_pointcloud_color_range_maximum = change_pointcloud_color_range_maximum;
+    else
+        change_pointcloud_color_range_maximum = config.change_pointcloud_color_range_maximum;
+    if (change_distance_range_minimum >= 0 && change_distance_range_minimum <= 400000)
+        config.change_distance_range_minimum = change_distance_range_minimum;
+    else
+        change_distance_range_minimum = config.change_distance_range_minimum;
+    if (change_distance_range_maximum >= 0 && change_distance_range_maximum <= 400000)
+        config.change_distance_range_maximum = change_distance_range_maximum;
+    else
+        change_distance_range_maximum = config.change_distance_range_maximum;
+
+    default_configured = true;
+}
+
 void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
     if (!default_configured)
-    {
-        ros::param::param("/pointcloud_configuration/pointcloud_color", config.change_pointcloud_color, 0);
-        ros::param::param("/pointcloud_configuration/pointcloud_color_range_minimum", config.change_pointcloud_color_range_minimum, 0);
-        ros::param::param("/pointcloud_configuration/pointcloud_color_range_maximum", config.change_pointcloud_color_range_maximum, 400000);
-        ros::param::param("/pointcloud_configuration/distance_range_minimum", config.change_distance_range_minimum, 0);
-        ros::param::param("/pointcloud_configuration/distance_range_maximum", config.change_distance_range_maximum, 400000);
-
-        ros::param::param("/pointcloud_configuration/pointcloud_color", change_pointcloud_color, 0);
-        ros::param::param("/pointcloud_configuration/pointcloud_color_range_minimum", change_pointcloud_color_range_minimum, 0);
-        ros::param::param("/pointcloud_configuration/pointcloud_color_range_maximum", change_pointcloud_color_range_maximum, 400000);
-        ros::param::param("/pointcloud_configuration/distance_range_minimum", change_distance_range_minimum, 0);
-        ros::param::param("/pointcloud_configuration/distance_range_maximum", change_distance_range_maximum, 400000);
-
-        default_configured = true;
-    }
+        configureDefault(config);
     else
     {
         switch (level)

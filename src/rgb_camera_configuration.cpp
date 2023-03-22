@@ -83,36 +83,63 @@ int change_rgb_camera_exposure_time;
 
 bool default_configured = false;
 
+void configureDefault(l3cam_ros::RgbCameraConfig &config)
+{
+    ros::param::param("/rgb_camera_configuration/rgb_camera_brightness", change_rgb_camera_brightness, 0);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_contrast", change_rgb_camera_contrast, 10);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_saturation", change_rgb_camera_saturation, 16);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_sharpness", change_rgb_camera_sharpness, 16);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_gamma", change_rgb_camera_gamma, 220);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_gain", change_rgb_camera_gain, 0);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_auto_white_balance", enable_rgb_camera_auto_white_balance, true);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_white_balance", change_rgb_camera_white_balance, 5000);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_auto_exposure_time", enable_rgb_camera_auto_exposure_time, true);
+    ros::param::param("/rgb_camera_configuration/rgb_camera_exposure_time", change_rgb_camera_exposure_time, 156);
+
+    if (change_rgb_camera_brightness >= -15 && change_rgb_camera_brightness <= 15)
+        config.change_rgb_camera_brightness = change_rgb_camera_brightness;
+    else
+        change_rgb_camera_brightness = config.change_rgb_camera_brightness;
+    if (change_rgb_camera_contrast >= 0 && change_rgb_camera_contrast <= 30)
+        config.change_rgb_camera_contrast = change_rgb_camera_contrast;
+    else
+        change_rgb_camera_contrast = config.change_rgb_camera_contrast;
+    if (change_rgb_camera_saturation >= 0 && change_rgb_camera_saturation <= 60)
+        config.change_rgb_camera_saturation = change_rgb_camera_saturation;
+    else
+        change_rgb_camera_saturation = config.change_rgb_camera_saturation;
+    if (change_rgb_camera_sharpness >= 0 && change_rgb_camera_sharpness <= 127)
+        config.change_rgb_camera_sharpness = change_rgb_camera_sharpness;
+    else
+        change_rgb_camera_sharpness = config.change_rgb_camera_sharpness;
+    if (change_rgb_camera_gamma >= 40 && change_rgb_camera_gamma <= 500)
+        config.change_rgb_camera_gamma = change_rgb_camera_gamma;
+    else
+        change_rgb_camera_gamma = config.change_rgb_camera_gamma;
+    if (change_rgb_camera_gain >= 0 && change_rgb_camera_gain <= 63)
+        config.change_rgb_camera_gain = change_rgb_camera_gain;
+    else
+        change_rgb_camera_gain = config.change_rgb_camera_gain;
+    config.enable_rgb_camera_auto_white_balance = enable_rgb_camera_auto_white_balance;
+    if (change_rgb_camera_white_balance >= 1000 && change_rgb_camera_white_balance <= 10000)
+        config.change_rgb_camera_white_balance = change_rgb_camera_white_balance;
+    else
+        change_rgb_camera_white_balance = config.change_rgb_camera_white_balance;
+    config.enable_rgb_camera_auto_exposure_time = enable_rgb_camera_auto_exposure_time;
+    if (change_rgb_camera_exposure_time >= 1 && change_rgb_camera_exposure_time <= 10000)
+        config.change_rgb_camera_exposure_time = change_rgb_camera_exposure_time;
+    else
+        change_rgb_camera_exposure_time = config.change_rgb_camera_exposure_time;
+
+    default_configured = true;
+}
+
 void callback(l3cam_ros::RgbCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
     if (!default_configured)
-    {
-        ros::param::param("/rgb_camera_configuration/rgb_camera_brightness", config.change_rgb_camera_brightness, 0);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_contrast", config.change_rgb_camera_contrast, 10);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_saturation", config.change_rgb_camera_saturation, 16);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_sharpness", config.change_rgb_camera_sharpness, 16);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_gamma", config.change_rgb_camera_gamma, 220);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_gain", config.change_rgb_camera_gain, 0);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_auto_white_balance", config.enable_rgb_camera_auto_white_balance, true);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_white_balance", config.change_rgb_camera_white_balance, 5000);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_auto_exposure_time", config.enable_rgb_camera_auto_exposure_time, true);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_exposure_time", config.change_rgb_camera_exposure_time, 156);
-
-        ros::param::param("/rgb_camera_configuration/rgb_camera_brightness", change_rgb_camera_brightness, 0);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_contrast", change_rgb_camera_contrast, 10);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_saturation", change_rgb_camera_saturation, 16);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_sharpness", change_rgb_camera_sharpness, 16);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_gamma", change_rgb_camera_gamma, 220);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_gain", change_rgb_camera_gain, 0);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_auto_white_balance", enable_rgb_camera_auto_white_balance, true);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_white_balance", change_rgb_camera_white_balance, 5000);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_auto_exposure_time", enable_rgb_camera_auto_exposure_time, true);
-        ros::param::param("/rgb_camera_configuration/rgb_camera_exposure_time", change_rgb_camera_exposure_time, 156);
-
-        default_configured = true;
-    }
+        configureDefault(config);
     else
     {
         switch (level)

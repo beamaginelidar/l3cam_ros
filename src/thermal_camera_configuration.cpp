@@ -56,24 +56,39 @@ int change_thermal_camera_temperature_filter_max;
 
 bool default_configured = false;
 
+void configureDefault(l3cam_ros::ThermalCameraConfig &config)
+{
+    ros::param::param("/thermal_camera_configuration/thermal_camera_colormap", change_thermal_camera_colormap, 1);
+    ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter", enable_thermal_camera_temperature_filter, false);
+    ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_min", change_thermal_camera_temperature_filter_min, 0);
+    ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_max", change_thermal_camera_temperature_filter_max, 50);
+
+    if (change_thermal_camera_colormap == 1 || change_thermal_camera_colormap == 2 ||
+        change_thermal_camera_colormap >= 8 && change_thermal_camera_colormap <= 10 ||
+        change_thermal_camera_colormap == 16 || change_thermal_camera_colormap == 17 || change_thermal_camera_colormap == 20 ||
+        change_thermal_camera_colormap >= 100 && change_thermal_camera_colormap <= 108)
+        config.change_thermal_camera_colormap = change_thermal_camera_colormap;
+    else
+        change_thermal_camera_colormap = config.change_thermal_camera_colormap;
+    config.enable_thermal_camera_temperature_filter = enable_thermal_camera_temperature_filter;
+    if (change_thermal_camera_temperature_filter_min >= -40 && change_thermal_camera_temperature_filter_min <= 200)
+        config.change_thermal_camera_temperature_filter_min = change_thermal_camera_temperature_filter_min;
+    else
+        change_thermal_camera_temperature_filter_min = config.change_thermal_camera_temperature_filter_min;
+    if (change_thermal_camera_temperature_filter_max >= -40 && change_thermal_camera_temperature_filter_max <= 200)
+        config.change_thermal_camera_temperature_filter_max = change_thermal_camera_temperature_filter_max;
+    else
+        change_thermal_camera_temperature_filter_max = config.change_thermal_camera_temperature_filter_max;
+
+    default_configured = true;
+}
+
 void callback(l3cam_ros::ThermalCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
     if (!default_configured)
-    {
-        ros::param::param("/thermal_camera_configuration/thermal_camera_colormap", config.change_thermal_camera_colormap, 1);
-        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter", config.enable_thermal_camera_temperature_filter, false);
-        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_min", config.change_thermal_camera_temperature_filter_min, 0);
-        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_max", config.change_thermal_camera_temperature_filter_max, 50);
-
-        ros::param::param("/thermal_camera_configuration/thermal_camera_colormap", change_thermal_camera_colormap, 1);
-        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter", enable_thermal_camera_temperature_filter, false);
-        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_min", change_thermal_camera_temperature_filter_min, 0);
-        ros::param::param("/thermal_camera_configuration/thermal_camera_temperature_filter_max", change_thermal_camera_temperature_filter_max, 50);
-
-        default_configured = true;
-    }
+        configureDefault(config);
     else
     {
         switch (level)

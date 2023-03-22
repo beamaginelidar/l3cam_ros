@@ -113,74 +113,136 @@ double change_allied_narrow_camera_intensity_controller_target;
 
 bool default_configured = false;
 
+void configureDefault(l3cam_ros::AlliedNarrowCameraConfig &config)
+{
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_exposure_time", change_allied_narrow_camera_exposure_time, 4992.32);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time", enable_allied_narrow_camera_auto_exposure_time, false);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time_range_min", change_allied_narrow_camera_auto_exposure_time_range_min, 87.596);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time_range_max", change_allied_narrow_camera_auto_exposure_time_range_max, 87.596);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_gain", change_allied_narrow_camera_gain, 0.);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain", enable_allied_narrow_camera_auto_gain, false);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain_range_min", change_allied_narrow_camera_auto_gain_range_min, 0.);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain_range_max", change_allied_narrow_camera_auto_gain_range_max, 48.);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_gamma", change_allied_narrow_camera_gamma, 1.);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_saturation", change_allied_narrow_camera_saturation, 1.);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_hue", change_allied_narrow_camera_hue, 0.);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_auto_precedence", change_allied_narrow_camera_intensity_auto_precedence, 1);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_white_balance", enable_allied_narrow_camera_auto_white_balance, false);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_ratio_selector", change_allied_narrow_camera_balance_ratio_selector, 1);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_ratio", change_allied_narrow_camera_balance_ratio, 2.35498);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_white_auto_rate", change_allied_narrow_camera_balance_white_auto_rate, 100.);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_white_auto_tolerance", change_allied_narrow_camera_balance_white_auto_tolerance, 5.);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_controller_region", change_allied_narrow_camera_intensity_controller_region, 1);
+    ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_controller_target", change_allied_narrow_camera_intensity_controller_target, 50.);
+
+    if (change_allied_narrow_camera_exposure_time >= 0 && change_allied_narrow_camera_exposure_time <= 4095)
+        config.change_allied_narrow_camera_exposure_time = change_allied_narrow_camera_exposure_time;
+    else
+        change_allied_narrow_camera_exposure_time = config.change_allied_narrow_camera_exposure_time;
+    if (enable_allied_narrow_camera_auto_exposure_time >= 63 && enable_allied_narrow_camera_auto_exposure_time <= 10000000)
+        config.enable_allied_narrow_camera_auto_exposure_time = enable_allied_narrow_camera_auto_exposure_time;
+    else
+        enable_allied_narrow_camera_auto_exposure_time = config.enable_allied_narrow_camera_auto_exposure_time;
+    if (change_allied_narrow_camera_auto_exposure_time_range_min >= 63.03 && change_allied_narrow_camera_auto_exposure_time_range_min <= 8999990)
+        config.change_allied_narrow_camera_auto_exposure_time_range_min = change_allied_narrow_camera_auto_exposure_time_range_min;
+    else
+        change_allied_narrow_camera_auto_exposure_time_range_min = config.change_allied_narrow_camera_auto_exposure_time_range_min;
+    if (change_allied_narrow_camera_auto_exposure_time_range_max >= 87.596 && change_allied_narrow_camera_auto_exposure_time_range_max <= 10000000)
+        config.change_allied_narrow_camera_auto_exposure_time_range_max = change_allied_narrow_camera_auto_exposure_time_range_max;
+    else
+        change_allied_narrow_camera_auto_exposure_time_range_max = config.change_allied_narrow_camera_auto_exposure_time_range_max;
+    if (change_allied_narrow_camera_gain >= 0 && change_allied_narrow_camera_gain <= 48)
+        config.change_allied_narrow_camera_gain = change_allied_narrow_camera_gain;
+    else
+        change_allied_narrow_camera_gain = config.change_allied_narrow_camera_gain;
+    config.enable_allied_narrow_camera_auto_gain = enable_allied_narrow_camera_auto_gain;
+    if (change_allied_narrow_camera_auto_gain_range_min >= 0 && change_allied_narrow_camera_auto_gain_range_min <= 48)
+        config.change_allied_narrow_camera_auto_gain_range_min = change_allied_narrow_camera_auto_gain_range_min;
+    else
+        change_allied_narrow_camera_auto_gain_range_min = config.change_allied_narrow_camera_auto_gain_range_min;
+    if (change_allied_narrow_camera_auto_gain_range_max >= 0 && change_allied_narrow_camera_auto_gain_range_max <= 48)
+        config.change_allied_narrow_camera_auto_gain_range_max = change_allied_narrow_camera_auto_gain_range_max;
+    else
+        change_allied_narrow_camera_auto_gain_range_max = config.change_allied_narrow_camera_auto_gain_range_max;
+    if (change_allied_narrow_camera_gamma >= 0.4 && change_allied_narrow_camera_gamma <= 2.4)
+        config.change_allied_narrow_camera_gamma = change_allied_narrow_camera_gamma;
+    else
+        change_allied_narrow_camera_gamma = config.change_allied_narrow_camera_gamma;
+    if (change_allied_narrow_camera_saturation >= 0 && change_allied_narrow_camera_saturation <= 2)
+        config.change_allied_narrow_camera_saturation = change_allied_narrow_camera_saturation;
+    else
+        change_allied_narrow_camera_saturation = config.change_allied_narrow_camera_saturation;
+    if (change_allied_narrow_camera_hue >= -40 && change_allied_narrow_camera_hue <= 40)
+        config.change_allied_narrow_camera_hue = change_allied_narrow_camera_hue;
+    else
+        change_allied_narrow_camera_hue = config.change_allied_narrow_camera_hue;
+    if (change_allied_narrow_camera_intensity_auto_precedence == 0 || change_allied_narrow_camera_intensity_auto_precedence == 1)
+        config.change_allied_narrow_camera_intensity_auto_precedence = change_allied_narrow_camera_intensity_auto_precedence;
+    else
+        change_allied_narrow_camera_intensity_auto_precedence = config.change_allied_narrow_camera_intensity_auto_precedence;
+    config.enable_allied_narrow_camera_auto_white_balance = enable_allied_narrow_camera_auto_white_balance;
+    if (change_allied_narrow_camera_balance_ratio_selector == 0 || change_allied_narrow_camera_balance_ratio_selector == 1)
+        config.change_allied_narrow_camera_white_balance_ratio_selector = change_allied_narrow_camera_balance_ratio_selector;
+    else
+        change_allied_narrow_camera_balance_ratio_selector = config.change_allied_narrow_camera_white_balance_ratio_selector;
+    if (change_allied_narrow_camera_balance_ratio >= 0 && change_allied_narrow_camera_balance_ratio <= 8)
+        config.change_allied_narrow_camera_balance_ratio = change_allied_narrow_camera_balance_ratio;
+    else
+        change_allied_narrow_camera_balance_ratio = config.change_allied_narrow_camera_balance_ratio;
+    if (change_allied_narrow_camera_balance_white_auto_rate >= 0 && change_allied_narrow_camera_balance_white_auto_rate <= 100)
+        config.change_allied_narrow_camera_white_balance_auto_rate = change_allied_narrow_camera_balance_white_auto_rate;
+    else
+        change_allied_narrow_camera_balance_white_auto_rate = config.change_allied_narrow_camera_white_balance_auto_rate;
+    if (change_allied_narrow_camera_balance_white_auto_tolerance >= 0 && change_allied_narrow_camera_balance_white_auto_tolerance <= 50)
+        config.change_allied_narrow_camera_white_balance_auto_tolerance = change_allied_narrow_camera_balance_white_auto_tolerance;
+    else
+        change_allied_narrow_camera_balance_white_auto_tolerance = config.change_allied_narrow_camera_white_balance_auto_tolerance;
+    if (change_allied_narrow_camera_intensity_controller_region == 0 || change_allied_narrow_camera_intensity_controller_region == 4)
+        config.change_allied_narrow_camera_intensity_controller_region = change_allied_narrow_camera_intensity_controller_region;
+    else
+        change_allied_narrow_camera_intensity_controller_region = config.change_allied_narrow_camera_intensity_controller_region;
+    if (change_allied_narrow_camera_intensity_controller_target >= 10 && change_allied_narrow_camera_intensity_controller_target <= 90)
+        config.change_allied_narrow_camera_intensity_controller_target = change_allied_narrow_camera_intensity_controller_target;
+    else
+        change_allied_narrow_camera_intensity_controller_target = config.change_allied_narrow_camera_intensity_controller_target;
+
+    default_configured = true;
+}
+
 void callback(l3cam_ros::AlliedNarrowCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
     if (!default_configured)
-    {
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_exposure_time", config.change_allied_narrow_camera_exposure_time, 4992.32);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time", config.enable_allied_narrow_camera_auto_exposure_time, false);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time_range_min", config.change_allied_narrow_camera_auto_exposure_time_range_min, 87.596);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time_range_max", config.change_allied_narrow_camera_auto_exposure_time_range_max, 87.596);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_gain", config.change_allied_narrow_camera_gain, 0.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain", config.enable_allied_narrow_camera_auto_gain, false);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain_range_min", config.change_allied_narrow_camera_auto_gain_range_min, 0.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain_range_max", config.change_allied_narrow_camera_auto_gain_range_max, 48.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_gamma", config.change_allied_narrow_camera_gamma, 1.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_saturation", config.change_allied_narrow_camera_saturation, 1.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_hue", config.change_allied_narrow_camera_hue, 0.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_auto_precedence", config.change_allied_narrow_camera_intensity_auto_precedence, 1);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_white_balance", config.enable_allied_narrow_camera_auto_white_balance, false);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_ratio_selector", config.change_allied_narrow_camera_white_balance_ratio_selector, 1);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_ratio", config.change_allied_narrow_camera_balance_ratio, 2.35498);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_white_auto_rate", config.change_allied_narrow_camera_white_balance_auto_rate, 100.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_white_auto_tolerance", config.change_allied_narrow_camera_white_balance_auto_tolerance, 5.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_controller_region", config.change_allied_narrow_camera_intensity_controller_region, 1);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_controller_target", config.change_allied_narrow_camera_intensity_controller_target, 50.);
-
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_exposure_time", change_allied_narrow_camera_exposure_time, 4992.32);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time", enable_allied_narrow_camera_auto_exposure_time, false);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time_range_min", change_allied_narrow_camera_auto_exposure_time_range_min, 87.596);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_exposure_time_range_max", change_allied_narrow_camera_auto_exposure_time_range_max, 87.596);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_gain", change_allied_narrow_camera_gain, 0.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain", enable_allied_narrow_camera_auto_gain, false);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain_range_min", change_allied_narrow_camera_auto_gain_range_min, 0.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_gain_range_max", change_allied_narrow_camera_auto_gain_range_max, 48.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_gamma", change_allied_narrow_camera_gamma, 1.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_saturation", change_allied_narrow_camera_saturation, 1.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_hue", change_allied_narrow_camera_hue, 0.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_auto_precedence", change_allied_narrow_camera_intensity_auto_precedence, 1);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_auto_white_balance", enable_allied_narrow_camera_auto_white_balance, false);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_ratio_selector", change_allied_narrow_camera_balance_ratio_selector, 1);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_ratio", change_allied_narrow_camera_balance_ratio, 2.35498);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_white_auto_rate", change_allied_narrow_camera_balance_white_auto_rate, 100.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_balance_white_auto_tolerance", change_allied_narrow_camera_balance_white_auto_tolerance, 5.);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_controller_region", change_allied_narrow_camera_intensity_controller_region, 1);
-        ros::param::param("/allied_narrow_camera_configuration/allied_narrow_camera_intensity_controller_target", change_allied_narrow_camera_intensity_controller_target, 50.);
-
-        default_configured = true;
-    }
+        configureDefault(config);
     else
     {
         switch (level)
         {
         case 0:
-            srvExposureTime.request.exposure_time = config.change_allied_narrow_camera_exposure_time;
-            srvExposureTime.request.allied_type = 2;
-            if (clientExposureTime.call(srvExposureTime))
+            if (!config.enable_allied_narrow_camera_auto_exposure_time)
             {
-                error = srvExposureTime.response.error;
-                if (!error)
-                    change_allied_narrow_camera_exposure_time = config.change_allied_narrow_camera_exposure_time;
+                srvExposureTime.request.exposure_time = config.change_allied_narrow_camera_exposure_time;
+                srvExposureTime.request.allied_type = 2;
+                if (clientExposureTime.call(srvExposureTime))
+                {
+                    error = srvExposureTime.response.error;
+                    if (!error)
+                        change_allied_narrow_camera_exposure_time = config.change_allied_narrow_camera_exposure_time;
+                    else
+                    {
+                        config.change_allied_narrow_camera_exposure_time = change_allied_narrow_camera_exposure_time;
+                    }
+                }
                 else
                 {
+                    ROS_ERROR("Failed to call service change_allied_narrow_camera_exposure_time");
                     config.change_allied_narrow_camera_exposure_time = change_allied_narrow_camera_exposure_time;
                 }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_allied_narrow_camera_exposure_time");
+                ROS_INFO("Allied Narrow camera auto exposure time must be disabled to change exposure time");
                 config.change_allied_narrow_camera_exposure_time = change_allied_narrow_camera_exposure_time;
             }
             break;
@@ -204,63 +266,87 @@ void callback(l3cam_ros::AlliedNarrowCameraConfig &config, uint32_t level)
             }
             break;
         case 2:
-            srvAutoExposureTimeRange.request.auto_exposure_time_range_min = config.change_allied_narrow_camera_auto_exposure_time_range_min;
-            srvAutoExposureTimeRange.request.allied_type = 2;
-            srvAutoExposureTimeRange.request.auto_exposure_time_range_max = config.change_allied_narrow_camera_auto_exposure_time_range_max;
-            if (clientAutoExposureTimeRange.call(srvAutoExposureTimeRange))
+            if (config.enable_allied_narrow_camera_auto_exposure_time)
             {
-                error = srvAutoExposureTimeRange.response.error;
-                if (!error)
-                    change_allied_narrow_camera_auto_exposure_time_range_min = config.change_allied_narrow_camera_auto_exposure_time_range_min;
+                srvAutoExposureTimeRange.request.auto_exposure_time_range_min = config.change_allied_narrow_camera_auto_exposure_time_range_min;
+                srvAutoExposureTimeRange.request.allied_type = 2;
+                srvAutoExposureTimeRange.request.auto_exposure_time_range_max = config.change_allied_narrow_camera_auto_exposure_time_range_max;
+                if (clientAutoExposureTimeRange.call(srvAutoExposureTimeRange))
+                {
+                    error = srvAutoExposureTimeRange.response.error;
+                    if (!error)
+                        change_allied_narrow_camera_auto_exposure_time_range_min = config.change_allied_narrow_camera_auto_exposure_time_range_min;
+                    else
+                    {
+                        config.change_allied_narrow_camera_auto_exposure_time_range_min = change_allied_narrow_camera_auto_exposure_time_range_min;
+                    }
+                }
                 else
                 {
+                    ROS_ERROR("Failed to call service change_allied_narrow_camera_auto_exposure_time_range_min");
                     config.change_allied_narrow_camera_auto_exposure_time_range_min = change_allied_narrow_camera_auto_exposure_time_range_min;
                 }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_allied_narrow_camera_auto_exposure_time_range_min");
+                ROS_INFO("Allied Narrow camera auto exposure time must be enabled to change auto exposure time range");
                 config.change_allied_narrow_camera_auto_exposure_time_range_min = change_allied_narrow_camera_auto_exposure_time_range_min;
             }
             break;
         case 3:
-            srvAutoExposureTimeRange.request.auto_exposure_time_range_min = config.change_allied_narrow_camera_auto_exposure_time_range_min;
-            srvAutoExposureTimeRange.request.allied_type = 2;
-            srvAutoExposureTimeRange.request.auto_exposure_time_range_max = config.change_allied_narrow_camera_auto_exposure_time_range_max;
-            if (clientAutoExposureTimeRange.call(srvAutoExposureTimeRange))
+            if (config.enable_allied_narrow_camera_auto_exposure_time)
             {
-                error = srvAutoExposureTimeRange.response.error;
-                if (!error)
-                    change_allied_narrow_camera_auto_exposure_time_range_max = config.change_allied_narrow_camera_auto_exposure_time_range_max;
+                srvAutoExposureTimeRange.request.auto_exposure_time_range_min = config.change_allied_narrow_camera_auto_exposure_time_range_min;
+                srvAutoExposureTimeRange.request.allied_type = 2;
+                srvAutoExposureTimeRange.request.auto_exposure_time_range_max = config.change_allied_narrow_camera_auto_exposure_time_range_max;
+                if (clientAutoExposureTimeRange.call(srvAutoExposureTimeRange))
+                {
+                    error = srvAutoExposureTimeRange.response.error;
+                    if (!error)
+                        change_allied_narrow_camera_auto_exposure_time_range_max = config.change_allied_narrow_camera_auto_exposure_time_range_max;
+                    else
+                    {
+                        config.change_allied_narrow_camera_auto_exposure_time_range_max = change_allied_narrow_camera_auto_exposure_time_range_max;
+                    }
+                }
                 else
                 {
+                    ROS_ERROR("Failed to call service change_allied_narrow_camera_auto_exposure_time_range_max");
                     config.change_allied_narrow_camera_auto_exposure_time_range_max = change_allied_narrow_camera_auto_exposure_time_range_max;
                 }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_allied_narrow_camera_auto_exposure_time_range_max");
+                ROS_INFO("Allied Narrow camera auto exposure time must be enabled to change auto exposure time range");
                 config.change_allied_narrow_camera_auto_exposure_time_range_max = change_allied_narrow_camera_auto_exposure_time_range_max;
             }
             break;
         case 4:
-            srvGain.request.gain = config.change_allied_narrow_camera_gain;
-            srvGain.request.allied_type = 2;
-            if (clientGain.call(srvGain))
+            if (!config.enable_allied_narrow_camera_auto_gain)
             {
-                error = srvGain.response.error;
-                if (!error)
+                srvGain.request.gain = config.change_allied_narrow_camera_gain;
+                srvGain.request.allied_type = 2;
+                if (clientGain.call(srvGain))
                 {
-                    change_allied_narrow_camera_gain = config.change_allied_narrow_camera_gain;
+                    error = srvGain.response.error;
+                    if (!error)
+                    {
+                        change_allied_narrow_camera_gain = config.change_allied_narrow_camera_gain;
+                    }
+                    else
+                    {
+                        config.change_allied_narrow_camera_gain = change_allied_narrow_camera_gain;
+                    }
                 }
                 else
                 {
+                    ROS_ERROR("Failed to call service change_allied_narrow_camera_gain");
                     config.change_allied_narrow_camera_gain = change_allied_narrow_camera_gain;
                 }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_allied_narrow_camera_gain");
+                ROS_INFO("Allied Narrow camera auto gain must be disabled to change gain");
                 config.change_allied_narrow_camera_gain = change_allied_narrow_camera_gain;
             }
             break;
@@ -284,42 +370,58 @@ void callback(l3cam_ros::AlliedNarrowCameraConfig &config, uint32_t level)
             }
             break;
         case 6:
-            srvAutoGainRange.request.auto_gain_range_min = config.change_allied_narrow_camera_auto_gain_range_min;
-            srvAutoGainRange.request.allied_type = 2;
-            srvAutoGainRange.request.auto_gain_range_max = config.change_allied_narrow_camera_auto_gain_range_max;
-            if (clientAutoGainRange.call(srvAutoGainRange))
+            if (config.enable_allied_narrow_camera_auto_gain)
             {
-                error = srvAutoGainRange.response.error;
-                if (!error)
-                    change_allied_narrow_camera_auto_gain_range_min = config.change_allied_narrow_camera_auto_gain_range_min;
+                srvAutoGainRange.request.auto_gain_range_min = config.change_allied_narrow_camera_auto_gain_range_min;
+                srvAutoGainRange.request.allied_type = 2;
+                srvAutoGainRange.request.auto_gain_range_max = config.change_allied_narrow_camera_auto_gain_range_max;
+                if (clientAutoGainRange.call(srvAutoGainRange))
+                {
+                    error = srvAutoGainRange.response.error;
+                    if (!error)
+                        change_allied_narrow_camera_auto_gain_range_min = config.change_allied_narrow_camera_auto_gain_range_min;
+                    else
+                    {
+                        config.change_allied_narrow_camera_auto_gain_range_min = change_allied_narrow_camera_auto_gain_range_min;
+                    }
+                }
                 else
                 {
+                    ROS_ERROR("Failed to call service change_allied_narrow_camera_auto_gain_range_min");
                     config.change_allied_narrow_camera_auto_gain_range_min = change_allied_narrow_camera_auto_gain_range_min;
                 }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_allied_narrow_camera_auto_gain_range_min");
+                ROS_INFO("Allied Narrow camera auto gain must be enabled to change auto gain range");
                 config.change_allied_narrow_camera_auto_gain_range_min = change_allied_narrow_camera_auto_gain_range_min;
             }
             break;
         case 7:
-            srvAutoGainRange.request.auto_gain_range_min = config.change_allied_narrow_camera_auto_gain_range_min;
-            srvAutoGainRange.request.allied_type = 2;
-            srvAutoGainRange.request.auto_gain_range_max = config.change_allied_narrow_camera_auto_gain_range_max;
-            if (clientAutoGainRange.call(srvAutoGainRange))
+            if (config.enable_allied_narrow_camera_auto_gain)
             {
-                error = srvAutoGainRange.response.error;
-                if (!error)
-                    change_allied_narrow_camera_auto_gain_range_max = config.change_allied_narrow_camera_auto_gain_range_max;
+                srvAutoGainRange.request.auto_gain_range_min = config.change_allied_narrow_camera_auto_gain_range_min;
+                srvAutoGainRange.request.allied_type = 2;
+                srvAutoGainRange.request.auto_gain_range_max = config.change_allied_narrow_camera_auto_gain_range_max;
+                if (clientAutoGainRange.call(srvAutoGainRange))
+                {
+                    error = srvAutoGainRange.response.error;
+                    if (!error)
+                        change_allied_narrow_camera_auto_gain_range_max = config.change_allied_narrow_camera_auto_gain_range_max;
+                    else
+                    {
+                        config.change_allied_narrow_camera_auto_gain_range_max = change_allied_narrow_camera_auto_gain_range_max;
+                    }
+                }
                 else
                 {
+                    ROS_ERROR("Failed to call service change_allied_narrow_camera_auto_gain_range_max");
                     config.change_allied_narrow_camera_auto_gain_range_max = change_allied_narrow_camera_auto_gain_range_max;
                 }
             }
             else
             {
-                ROS_ERROR("Failed to call service change_allied_narrow_camera_auto_gain_range_max");
+                ROS_INFO("Allied Narrow camera auto gain must be enabled to change auto gain range");
                 config.change_allied_narrow_camera_auto_gain_range_max = change_allied_narrow_camera_auto_gain_range_max;
             }
             break;
@@ -495,10 +597,7 @@ void callback(l3cam_ros::AlliedNarrowCameraConfig &config, uint32_t level)
             }
             break;
         case 17:
-            if(config.change_allied_narrow_camera_intensity_controller_region)
-                srvIntensityControllerRegion.request.intensity_controller_region = 4;
-            else
-                srvIntensityControllerRegion.request.intensity_controller_region = 0;
+            srvIntensityControllerRegion.request.intensity_controller_region = config.change_allied_narrow_camera_intensity_controller_region;
             srvIntensityControllerRegion.request.allied_type = 2;
             if (clientIntensityControllerRegion.call(srvIntensityControllerRegion))
             {

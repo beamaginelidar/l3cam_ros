@@ -239,6 +239,7 @@ bool isWideAvaliable()
         else
         {
             ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
+            return false;
         }
     }
     else

@@ -77,36 +77,63 @@ double change_polarimetric_camera_exposure_time;
 
 bool default_configured = false;
 
+void configureDefault(l3cam_ros::PolarimetricCameraConfig &config)
+{
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_brightness", change_polarimetric_camera_brightness, 127);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_black_level", change_polarimetric_camera_black_level, 6.0);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain", enable_polarimetric_camera_auto_gain, true);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_minimum", change_polarimetric_camera_auto_gain_range_minimum, 0.0);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_maximum", change_polarimetric_camera_auto_gain_range_maximum, 48.0);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_gain", change_polarimetric_camera_gain, 24.0);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time", enable_polarimetric_camera_auto_exposure_time, true);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_minimum", change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_maximum", change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
+    ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_exposure_time", change_polarimetric_camera_exposure_time, 500000.0);
+
+    if (change_polarimetric_camera_brightness >= 0 && change_polarimetric_camera_brightness <= 255)
+        config.change_polarimetric_camera_brightness = change_polarimetric_camera_brightness;
+    else
+        change_polarimetric_camera_brightness = config.change_polarimetric_camera_brightness;
+    if (change_polarimetric_camera_black_level >= 0 && change_polarimetric_camera_black_level <= 12.5)
+        config.change_polarimetric_camera_black_level = change_polarimetric_camera_black_level;
+    else
+        change_polarimetric_camera_black_level = config.change_polarimetric_camera_black_level;
+    config.enable_polarimetric_camera_auto_gain = enable_polarimetric_camera_auto_gain;
+    if (change_polarimetric_camera_auto_gain_range_minimum >= 0 && change_polarimetric_camera_auto_gain_range_minimum <= 48)
+        config.change_polarimetric_camera_auto_gain_range_minimum = change_polarimetric_camera_auto_gain_range_minimum;
+    else
+        change_polarimetric_camera_auto_gain_range_minimum = config.change_polarimetric_camera_auto_gain_range_minimum;
+    if (change_polarimetric_camera_auto_gain_range_maximum >= 0 && change_polarimetric_camera_auto_gain_range_maximum <= 48)
+        config.change_polarimetric_camera_auto_gain_range_maximum = change_polarimetric_camera_auto_gain_range_maximum;
+    else
+        change_polarimetric_camera_auto_gain_range_maximum = config.change_polarimetric_camera_auto_gain_range_maximum;
+    if (change_polarimetric_camera_gain >= 0 && change_polarimetric_camera_gain <= 48)
+        config.change_polarimetric_camera_gain = change_polarimetric_camera_gain;
+    else
+        change_polarimetric_camera_gain = config.change_polarimetric_camera_gain;
+    config.enable_polarimetric_camera_auto_exposure_time = enable_polarimetric_camera_auto_exposure_time;
+    if (change_polarimetric_camera_auto_exposure_time_range_minimum >= 33.456 && change_polarimetric_camera_auto_exposure_time_range_minimum <= 1000000)
+        config.change_polarimetric_camera_auto_exposure_time_range_minimum = change_polarimetric_camera_auto_exposure_time_range_minimum;
+    else
+        change_polarimetric_camera_auto_exposure_time_range_minimum = config.change_polarimetric_camera_auto_exposure_time_range_minimum;
+    if (change_polarimetric_camera_auto_exposure_time_range_maximum >= 33.456 && change_polarimetric_camera_auto_exposure_time_range_maximum <= 1000000)
+        config.change_polarimetric_camera_auto_exposure_time_range_maximum = change_polarimetric_camera_auto_exposure_time_range_maximum;
+    else
+        change_polarimetric_camera_auto_exposure_time_range_maximum = config.change_polarimetric_camera_auto_exposure_time_range_maximum;
+    if (change_polarimetric_camera_exposure_time >= 33.456 && change_polarimetric_camera_exposure_time <= 1000000)
+        config.change_polarimetric_camera_exposure_time = change_polarimetric_camera_exposure_time;
+    else
+        change_polarimetric_camera_exposure_time = config.change_polarimetric_camera_exposure_time;
+
+    default_configured = true;
+}
+
 void callback(l3cam_ros::PolarimetricCameraConfig &config, uint32_t level)
 {
     int error = L3CAM_OK;
 
     if (!default_configured)
-    {
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_brightness", config.change_polarimetric_camera_brightness, 127);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_black_level", config.change_polarimetric_camera_black_level, 6.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain", config.enable_polarimetric_camera_auto_gain, true);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_minimum", config.change_polarimetric_camera_auto_gain_range_minimum, 0.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_maximum", config.change_polarimetric_camera_auto_gain_range_maximum, 48.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_gain", config.change_polarimetric_camera_gain, 24.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time", config.enable_polarimetric_camera_auto_exposure_time, true);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_minimum", config.change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_maximum", config.change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_exposure_time", config.change_polarimetric_camera_exposure_time, 500000.0);
-
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_brightness", change_polarimetric_camera_brightness, 127);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_black_level", change_polarimetric_camera_black_level, 6.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain", enable_polarimetric_camera_auto_gain, true);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_minimum", change_polarimetric_camera_auto_gain_range_minimum, 0.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_gain_range_maximum", change_polarimetric_camera_auto_gain_range_maximum, 48.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_gain", change_polarimetric_camera_gain, 24.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time", enable_polarimetric_camera_auto_exposure_time, true);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_minimum", change_polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_auto_exposure_time_range_maximum", change_polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
-        ros::param::param("/polarimetric_camera_configuration/polarimetric_camera_exposure_time", change_polarimetric_camera_exposure_time, 500000.0);
-
-        default_configured = true;
-    }
+        configureDefault(config);
     else
     {
         switch (level)
