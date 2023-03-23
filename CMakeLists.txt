@@ -155,10 +155,6 @@ add_dependencies(thermal_stream ${PROJECT_NAME}_gencpp)
 
 ## Specify libraries to link a library or executable target against
 FIND_LIBRARY(l3cam_LIBRARIES libL3Cam.a /usr/local/lib/libl3cam/)
-#add_library(l3cam_LIBRARIES STATIC IMPORTED)
-#set_target_properties(l3cam_LIBRARIES PROPERTIES
-#  IMPORTED_LOCATION "/usr/local/lib/libl3cam/libL3Cam.a"
-#  INTERFACE_INCLUDE_DIRECTORIES "/usr/local/include/libl3cam/")
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(network_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(pointcloud_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
