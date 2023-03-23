@@ -1,26 +1,3 @@
-## l3cam_ros (noetic) - 0.0.3-1
-
-The packages in the `l3cam_ros` repository were released into the `noetic` distro by running `/usr/local/bin/bloom-release --rosdistro noetic --track noetic l3cam_ros --edit` on `Thu, 23 Mar 2023 11:59:54 -0000`
-
-The `l3cam_ros` package was released.
-
-Version of package(s) in repository `l3cam_ros`:
-
-- upstream repository: https://github.com/beamaginelidar/l3cam_ros
-- release repository: unknown
-- rosdistro version: `null`
-- old version: `null`
-- new version: `0.0.3-1`
-
-Versions of tools used:
-
-- bloom version: `0.11.2`
-- catkin_pkg version: `0.5.2`
-- rosdep version: `0.22.2`
-- rosdistro version: `0.9.0`
-- vcstools version: `0.1.42`
-
-
 # l3cam_ros
 
 This package is an ROS driver for the L3Cam device manufactured by [Beamagine](https://beamagine.com/). The driver relies on the library provided by Beamagine as part of the [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git).
