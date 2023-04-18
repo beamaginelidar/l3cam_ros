@@ -65,17 +65,17 @@ sudo sysctl -p
 
 `libL3Cam` uses the following ports for streaming and communications:
 
-| PROTOCOL | PORT                            | CONFIGURATION  |
-| -------- | ------------------------------- | -------------- |
-| TCP      | 6000                            | Fixed          |
-| UDP      | 6050 (LIDAR)                    | Fixed          |
+| PROTOCOL | PORT                             | CONFIGURATION  |
+| -------- | -------------------------------- | -------------- |
+| TCP      | 6000                             | Fixed          |
+| UDP      | 6050 (LIDAR)                     | Fixed          |
 | UDP      | 6060 (Allied Wide, Polarimetric) | Fixed          |
 | UDP      | 6020 (Allied Narrow, RGB)        | Fixed          |
-| UDP      | 6030 (LWIR)                     | Fixed          |
-| RTSP     | 5040 (LIDAR)                    | Reconfigurable |
+| UDP      | 6030 (LWIR)                      | Fixed          |
+| RTSP     | 5040 (LIDAR)                     | Reconfigurable |
 | RTSP     | 5030 (Allied Wide, Polarimetric) | Reconfigurable |
 | RTSP     | 5010 (Allied Narrow, RGB)        | Reconfigurable |
-| RTSP     | 5020 (LWIR)                     | Reconfigurable |
+| RTSP     | 5020 (LWIR)                      | Reconfigurable |
 
 TCP is used internally by `lib3Cam` and is transparent to the user. However, the system host must have the required port available.
 
@@ -83,27 +83,27 @@ TCP is used internally by `lib3Cam` and is transparent to the user. However, the
 
 ### l3cam
 
-To run the l3cam_ros driver, launch the `l3cam.launch` file specifying (if wanted) if the streaming nodes, the configure nodes, `rviz` (for visualization GUI) and `rqt_reconfigure` (for dynamic reconfigure GUI) have to be launched too. By default, the values are as follows:
+To run the l3cam_ros driver, launch the `l3cam.launch` file specifying (if wanted) if the [stream launch file](#stream_l3cam), the [configure launch file](#configure_l3cam), `rviz` (for visualization GUI) and `rqt_reconfigure` (for dynamic reconfigure GUI) have to be launched too. By default, the values are as follows:
 
 ```
 roslaunch l3cam_ros l3cam.launch stream:=true configure:=true rviz:=false rqt_reconfigure:=false
 ```
 
-This will launch the l3cam_ros_node, which is the main node that connects to and controls the L3Cam, and the `stream_l3cam.launch` and `configure_l3cam.launch` files.
+This will launch the [l3cam_ros_node](#l3cam_ros_node), which is the main node that connects to and controls the L3Cam, and the `stream_l3cam.launch` and `configure_l3cam.launch` files.
 
-More parameters can be set if wanted for the default network and sensors parameters, this will be seen in the [parameters section](#parameters). The default parameters specified will be passed to the main node (`l3cam_ros_node`) and the configure nodes.
+More parameters can be set if wanted for the default network and sensors parameters, this is seen in the [parameters section](#parameters). The default parameters specified will be passed to the main node ([l3cam_ros_node](#l3cam_ros_node)) and the [configure launch file](#configure_l3cam).
 
 ### stream_l3cam
 
-This launch file launches all the streaming nodes for all the sensors and `rviz` if specified. Once the main node connects to the L3Cam it will only keep open the streaming nodes of the sensors the L3Cam has available, the other ones will shut down automatically.
+This launch file launches all the [stream nodes](#pointcloud_stream) for all the sensors and `rviz` if specified. Once the main node connects to the L3Cam it will only keep open the stream nodes of the sensors the L3Cam has available, the other ones will shut down automatically.
 
-The streaming nodes stream automatically their sensor data to each sensor topic when data is available.
+The stream nodes stream automatically their sensor data to each sensor topic when data is available.
 
 ### configure_l3cam
 
-This launch file launches all the dynamic reconfigure nodes for all the sensors and `rqt_reconfigure` if specified. Once the main node connects to the L3Cam it will only keep open the configure nodes of the sensors the L3Cam has available, the other ones will shut down automatically.
+This launch file launches all the [configure nodes](#network_configuration) for all the sensors and `rqt_reconfigure` if specified. Once the main node connects to the L3Cam it will only keep open the configure nodes of the sensors the L3Cam has available, the other ones will shut down automatically.
 
-The configure nodes function like a user friendly interface to change parameters. In reality, the parameters are changed with the main node through services, the configure nodes call services when a dynamic reconfigure parameter is changed.
+The configure nodes function like a dynamic reconfigure interface to change parameters, which is more user friendly. In reality, the parameters are changed with the main node through services, the configure nodes call services when a dynamic reconfigure parameter is changed.
 
 If using `rqt_reconfiugre`, the window might show up before the driver is connected to the L3Cam, so you might need to click refresh for it to show the available parameters.
 
@@ -111,7 +111,7 @@ If using `rqt_reconfiugre`, the window might show up before the driver is connec
 
 ### l3cam_ros_node
 
-The l3cam_ros_node is the main node that connects to the L3Cam and configures it according to ROS parameters/services. See the service files (`srv/`) for documentation regarding the various parameters that can be used to configure the L3Cam.
+The l3cam_ros_node is the main node that connects to the L3Cam and configures it according to ROS [parameters](#parameters)/[services](#services). See the service files (`srv/`) for documentation regarding the various parameters that can be used to configure the L3Cam.
 
 ### pointcloud_stream
 
@@ -287,7 +287,7 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 
 ## Services
 
-Once the nodes are launched, the parameters can be changed through services. While streaming, some parameters cannot be changed, and the driver starts streaming when it connects to the L3Cam. 
+Once the nodes are launched, the parameters can be changed through services. While streaming, some parameters cannot be changed, and the driver starts streaming when it connects to the L3Cam.
 
 Only the changeable parameters while streaming will appear on the dynamic reconfigure of the configure nodes. Even though all the parameters are available, if a non changeable parameter is attempted to be changed, the service will return error.
 
