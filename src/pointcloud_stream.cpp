@@ -47,7 +47,7 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-#include "l3cam_ros/GetSensorsAvaliable.h"
+#include "l3cam_ros/GetSensorsAvailable.h"
 
 pthread_t pointcloud_thread;
 
@@ -56,7 +56,7 @@ ros::Publisher PC2_pub;
 bool g_listening = false;
 
 ros::ServiceClient clientGetSensors;
-l3cam_ros::GetSensorsAvaliable srvGetSensors;
+l3cam_ros::GetSensorsAvailable srvGetSensors;
 
 void *PointCloudThread(void *functionData)
 {
@@ -185,7 +185,7 @@ void *PointCloudThread(void *functionData)
     pthread_exit(0);
 }
 
-bool isLidarAvaliable()
+bool isLidarAvailable()
 {
     int error = L3CAM_OK;
 
@@ -207,7 +207,7 @@ bool isLidarAvaliable()
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        ROS_ERROR("Failed to call service get_sensors_available");
         return false;
     }
 
@@ -219,10 +219,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "pointcloud_stream");
     ros::NodeHandle nh;
 
-    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
+    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
     int error = L3CAM_OK;
 
-    if (!isLidarAvaliable())
+    if (!isLidarAvailable())
         return 0;
 
     pthread_create(&pointcloud_thread, NULL, &PointCloudThread, NULL);
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
     PC2_pub = nh.advertise<sensor_msgs::PointCloud2>("/PC2_lidar", 2);
 
     ros::Rate loop_rate(1);
-    while (ros::ok() && isLidarAvaliable())
+    while (ros::ok() && isLidarAvailable())
     {
         ros::spinOnce();
         loop_rate.sleep();

@@ -35,7 +35,7 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-#include "l3cam_ros/GetSensorsAvaliable.h"
+#include "l3cam_ros/GetSensorsAvailable.h"
 #include "l3cam_ros/ChangeAlliedCameraExposureTime.h"
 #include "l3cam_ros/EnableAlliedCameraAutoExposureTime.h"
 #include "l3cam_ros/ChangeAlliedCameraAutoExposureTimeRange.h"
@@ -55,7 +55,7 @@
 #include "l3cam_ros/ChangeAlliedCameraIntensityControllerTarget.h"
 
 ros::ServiceClient clientGetSensors;
-l3cam_ros::GetSensorsAvaliable srvGetSensors;
+l3cam_ros::GetSensorsAvailable srvGetSensors;
 ros::ServiceClient clientExposureTime;
 l3cam_ros::ChangeAlliedCameraExposureTime srvExposureTime;
 ros::ServiceClient clientEnableAutoExposureTime;
@@ -646,10 +646,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "allied_narrow_camera_configuration");
     ros::NodeHandle nh;
 
-    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
+    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
     int error = L3CAM_OK;
 
-    bool sensor_is_avaliable = false;
+    bool sensor_is_available = false;
     if (clientGetSensors.call(srvGetSensors))
     {
         error = srvGetSensors.response.error;
@@ -658,7 +658,7 @@ int main(int argc, char **argv)
             for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
             {
                 if (srvGetSensors.response.sensors[i].sensor_type == sensor_allied_narrow)
-                    sensor_is_avaliable = true;
+                    sensor_is_available = true;
             }
         else
         {
@@ -668,12 +668,12 @@ int main(int argc, char **argv)
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        ROS_ERROR("Failed to call service get_sensors_available");
         return 1;
     }
 
-    if (sensor_is_avaliable)
-        ROS_INFO("Allied Narrow camera configuration is avaliable");
+    if (sensor_is_available)
+        ROS_INFO("Allied Narrow camera configuration is available");
     else
         return 0;
 

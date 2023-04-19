@@ -50,7 +50,7 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-#include "l3cam_ros/GetSensorsAvaliable.h"
+#include "l3cam_ros/GetSensorsAvailable.h"
 
 pthread_t stream_thread;
 
@@ -59,9 +59,9 @@ ros::Publisher pub;
 bool g_listening = false;
 
 ros::ServiceClient clientGetSensors;
-l3cam_ros::GetSensorsAvaliable srvGetSensors;
+l3cam_ros::GetSensorsAvailable srvGetSensors;
 
-bool rgb = false; // true if rgb avaliable, false if narrow avaliable
+bool rgb = false; // true if rgb available, false if narrow available
 
 void *ImageThread(void *functionData)
 {
@@ -193,7 +193,7 @@ void *ImageThread(void *functionData)
     pthread_exit(0);
 }
 
-bool isRgbAvaliable()
+bool isRgbAvailable()
 {
     int error = L3CAM_OK;
 
@@ -215,14 +215,14 @@ bool isRgbAvaliable()
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        ROS_ERROR("Failed to call service get_sensors_available");
         return false;
     }
 
     return false;
 }
 
-bool isNarrowAvaliable()
+bool isNarrowAvailable()
 {
     int error = L3CAM_OK;
     if (clientGetSensors.call(srvGetSensors))
@@ -243,7 +243,7 @@ bool isNarrowAvaliable()
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        ROS_ERROR("Failed to call service get_sensors_available");
         return false;
     }
 
@@ -255,14 +255,14 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "rgb_stream");
     ros::NodeHandle nh;
 
-    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
+    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
     int error = L3CAM_OK;
 
-    if (isRgbAvaliable())
+    if (isRgbAvailable())
     {
         rgb = true;
     }
-    else if (!isNarrowAvaliable())
+    else if (!isNarrowAvailable())
         return 0;
 
     pthread_create(&stream_thread, NULL, &ImageThread, NULL);
@@ -272,7 +272,7 @@ int main(int argc, char **argv)
     {
         pub = nh.advertise<sensor_msgs::Image>("/img_rgb", 2);
 
-        while (ros::ok() && isRgbAvaliable())
+        while (ros::ok() && isRgbAvailable())
         {
             ros::spinOnce();
             loop_rate.sleep();
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
     {
         pub = nh.advertise<sensor_msgs::Image>("/img_narrow", 2);
 
-        while (ros::ok() && isNarrowAvaliable())
+        while (ros::ok() && isNarrowAvailable())
         {
             ros::spinOnce();
             loop_rate.sleep();

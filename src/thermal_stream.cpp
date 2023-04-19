@@ -50,7 +50,7 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-#include "l3cam_ros/GetSensorsAvaliable.h"
+#include "l3cam_ros/GetSensorsAvailable.h"
 
 pthread_t thermal_thread;
 
@@ -59,7 +59,7 @@ ros::Publisher thermal_pub;
 bool g_listening = false;
 
 ros::ServiceClient clientGetSensors;
-l3cam_ros::GetSensorsAvaliable srvGetSensors;
+l3cam_ros::GetSensorsAvailable srvGetSensors;
 
 void *ImageThread(void *functionData)
 {
@@ -188,7 +188,7 @@ void *ImageThread(void *functionData)
     pthread_exit(0);
 }
 
-bool isThermalAvaliable()
+bool isThermalAvailable()
 {
     int error = L3CAM_OK;
 
@@ -210,7 +210,7 @@ bool isThermalAvaliable()
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        ROS_ERROR("Failed to call service get_sensors_available");
         return false;
     }
 
@@ -222,10 +222,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "thermal_stream");
     ros::NodeHandle nh;
 
-    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
+    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
     int error = L3CAM_OK;
 
-    if (!isThermalAvaliable())
+    if (!isThermalAvailable())
         return 0;
 
     pthread_create(&thermal_thread, NULL, &ImageThread, NULL);
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
     thermal_pub = nh.advertise<sensor_msgs::Image>("/img_thermal", 2);
 
     ros::Rate loop_rate(1);
-    while (ros::ok() && isThermalAvaliable())
+    while (ros::ok() && isThermalAvailable())
     {
         ros::spinOnce();
         loop_rate.sleep();

@@ -273,10 +273,10 @@
         <arg name="allied_narrow_camera_intensity_controller_target" value="$(arg allied_narrow_camera_intensity_controller_target)" />
     </include>
 
-    <!-- Start streaming the avaliable sensors. -->
+    <!-- Start streaming the available sensors. -->
     <include file="$(find l3cam_ros)/launch/stream_l3cam.launch" if="$(eval arg('stream'))">
         <arg name="rviz" value="$(arg rviz)" />
     </include>
 
-    <!-- The nodes that don't have their sensor avaliable will automatically shut down -->
+    <!-- The nodes that don't have their sensor available will automatically shut down -->
 </launch>

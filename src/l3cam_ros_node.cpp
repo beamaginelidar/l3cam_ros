@@ -42,7 +42,7 @@
 #include "l3cam_ros/FindDevices.h"
 #include "l3cam_ros/GetLocalServerAddress.h"
 #include "l3cam_ros/GetDeviceStatus.h"
-#include "l3cam_ros/GetSensorsAvaliable.h"
+#include "l3cam_ros/GetSensorsAvailable.h"
 #include "l3cam_ros/GetNetworkConfiguration.h"
 #include "l3cam_ros/ChangeNetworkConfiguration.h"
 #include "l3cam_ros/PowerOffDevice.h"
@@ -219,7 +219,7 @@ bool getDeviceStatus(l3cam_ros::GetDeviceStatus::Request &req, l3cam_ros::GetDev
     return true;
 }
 
-bool getSensorsAvaliable(l3cam_ros::GetSensorsAvaliable::Request &req, l3cam_ros::GetSensorsAvaliable::Response &res)
+bool getSensorsAvailable(l3cam_ros::GetSensorsAvailable::Request &req, l3cam_ros::GetSensorsAvailable::Response &res)
 {
     res.error = GET_SENSORS_AVAILABLE(devices[0], av_sensors, &res.num_sensors);
     res.sensors.resize(res.num_sensors);
@@ -1045,7 +1045,7 @@ int main(int argc, char **argv)
     ros::ServiceServer srvFindDevices = nh.advertiseService("find_devices", findDevices);
     ros::ServiceServer srvGetLocalServerAddress = nh.advertiseService("get_local_server_address", getLocalServerAddress);
     ros::ServiceServer srvGetDeviceStatus = nh.advertiseService("get_device_status", getDeviceStatus);
-    ros::ServiceServer srvGetSensorsAvaliable = nh.advertiseService("get_sensors_avaliable", getSensorsAvaliable);
+    ros::ServiceServer srvGetSensorsAvailable = nh.advertiseService("get_sensors_available", getSensorsAvailable);
     ros::ServiceServer srvGetNetworkConfiguration = nh.advertiseService("get_network_configuration", getNetworkConfiguration);
     ros::ServiceServer srvChangeNetworkConfiguration = nh.advertiseService("change_network_configuration", changeNetworkConfiguration);
     ros::ServiceServer srvPowerOffDevice = nh.advertiseService("power_off_device", powerOffDevice);
@@ -1144,7 +1144,7 @@ int main(int argc, char **argv)
     error = GET_SENSORS_AVAILABLE(devices[0], av_sensors, &num_sensors);
     if (error)
     {
-        ROS_ERROR_STREAM("(GET_SENSORS_AVALIABLE error " << error << ") " << getBeamErrorDescription(error));
+        ROS_ERROR_STREAM("(GET_SENSORS_AVAILABLE error " << error << ") " << getBeamErrorDescription(error));
         TERMINATE(devices[0]);
         return 1;
     }
@@ -1172,7 +1172,7 @@ int main(int argc, char **argv)
             break;
         }
     }
-    ROS_INFO_STREAM(num_sensors << " sensors avaliable");
+    ROS_INFO_STREAM(num_sensors << " sensors available");
 
     error = START_DEVICE(devices[0]);
     if (error)

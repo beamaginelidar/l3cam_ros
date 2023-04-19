@@ -50,7 +50,7 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-#include "l3cam_ros/GetSensorsAvaliable.h"
+#include "l3cam_ros/GetSensorsAvailable.h"
 
 pthread_t stream_thread;
 
@@ -59,9 +59,9 @@ ros::Publisher pub;
 bool g_listening = false;
 
 ros::ServiceClient clientGetSensors;
-l3cam_ros::GetSensorsAvaliable srvGetSensors;
+l3cam_ros::GetSensorsAvailable srvGetSensors;
 
-bool pol = false; // true if polarimetric avaliable, false if wide avaliable
+bool pol = false; // true if polarimetric available, false if wide available
 
 void *ImageThread(void *functionData)
 {
@@ -194,7 +194,7 @@ void *ImageThread(void *functionData)
     pthread_exit(0);
 }
 
-bool isPolarimetricAvaliable()
+bool isPolarimetricAvailable()
 {
     int error = L3CAM_OK;
 
@@ -216,14 +216,14 @@ bool isPolarimetricAvaliable()
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        ROS_ERROR("Failed to call service get_sensors_available");
         return false;
     }
 
     return false;
 }
 
-bool isWideAvaliable()
+bool isWideAvailable()
 {
     int error = L3CAM_OK;
     if (clientGetSensors.call(srvGetSensors))
@@ -244,7 +244,7 @@ bool isWideAvaliable()
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_avaliable");
+        ROS_ERROR("Failed to call service get_sensors_available");
         return false;
     }
 
@@ -256,14 +256,14 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "polarimetric_stream");
     ros::NodeHandle nh;
 
-    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvaliable>("get_sensors_avaliable");
+    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
     int error = L3CAM_OK;
 
-    if (isPolarimetricAvaliable())
+    if (isPolarimetricAvailable())
     {
         pol = true;
     }
-    else if (!isWideAvaliable())
+    else if (!isWideAvailable())
         return 0;
 
     pthread_create(&stream_thread, NULL, &ImageThread, NULL);
@@ -273,7 +273,7 @@ int main(int argc, char **argv)
     {
         pub = nh.advertise<sensor_msgs::Image>("/img_polarimetric", 2);
 
-        while (ros::ok() && isPolarimetricAvaliable())
+        while (ros::ok() && isPolarimetricAvailable())
         {
             ros::spinOnce();
             loop_rate.sleep();
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
     {
         pub = nh.advertise<sensor_msgs::Image>("/img_wide", 2);
 
-        while (ros::ok() && isWideAvaliable())
+        while (ros::ok() && isWideAvailable())
         {
             ros::spinOnce();
             loop_rate.sleep();
