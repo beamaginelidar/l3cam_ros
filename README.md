@@ -363,9 +363,11 @@ The ranges shown in the [parameters](#parameters) section also apply to the serv
 
 On `/get_sensors_available` a custom message is returned with the following structure:
 
-| Message  | Data                                                                                              |
-| -------- | ------------------------------------------------------------------------------------------------- |
-| `Sensor` | int32 protocol, int32 sensor_type, uint8 sensor_status, uint8 image_type, bool perception_enabled |
+| Message | Data                                                                                              |
+| ------- | ------------------------------------------------------------------------------------------------- |
+| Sensor  | int32 protocol, int32 sensor_type, uint8 sensor_status, uint8 image_type, bool perception_enabled |
+
+Being protocol a number contained in the enum `streamingProtocols` and sensor_type a number contained in the enum `sensorTypes`.
 
 ## Topics
 
