@@ -26,13 +26,13 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  GetSensorsAvailable.srv
   GetVersion.srv
   Initialize.srv
   Terminate.srv
   FindDevices.srv
   GetLocalServerAddress.srv
   GetDeviceStatus.srv
+  GetSensorsAvailable.srv
   GetNetworkConfiguration.srv
   ChangeNetworkConfiguration.srv
   PowerOffDevice.srv
@@ -63,8 +63,6 @@ add_service_files(
   ChangeRgbCameraWhiteBalance.srv
   EnableRgbCameraAutoExposureTime.srv
   ChangeRgbCameraExposureTime.srv
-  ChangeRgbCameraResolution.srv
-  ChangeRgbCameraFrameRate.srv
   ChangeThermalCameraColormap.srv
   ChangeThermalCameraTemperatureFilter.srv
   EnableThermalCameraTemperatureFilter.srv
