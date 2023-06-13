@@ -80,7 +80,6 @@ void *ImageThread(void *functionData)
     uint32_t m_timestamp;
     int m_image_data_size;
     bool m_is_reading_image;
-    bool m_image_ready;
     char *m_image_buffer = NULL;
     int bytes_count = 0;
 
@@ -116,7 +115,7 @@ void *ImageThread(void *functionData)
     }
 
     g_listening = true;
-    if(rgb)
+    if (rgb)
         ROS_INFO("RGB streaming");
     else
         ROS_INFO("Allied Narrow streaming");
@@ -149,13 +148,11 @@ void *ImageThread(void *functionData)
             memcpy(&m_timestamp, &buffer[6], sizeof(uint32_t));
             m_image_data_size = m_image_height * m_image_width * m_image_channels;
             m_is_reading_image = true;
-            m_image_ready = false;
             bytes_count = 0;
         }
         else if (size_read == 1)
         {
             m_is_reading_image = false;
-            m_image_ready = true;
             bytes_count = 0;
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
 
@@ -166,12 +163,12 @@ void *ImageThread(void *functionData)
 
             std_msgs::Header header;         // empty header
             header.stamp = ros::Time::now(); // time
-            header.frame_id = "lidar";
+            header.frame_id = rgb ? "rgb" : "allied_narrow";
             img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_data);
             img_bridge.toImageMsg(img_msg); // from cv_bridge to sensor_msgs::Image
             pub.publish(img_msg);
         }
-        else if (size_read > 0)
+        else if (size_read > 0 && m_is_reading_image)
         {
             if (m_is_reading_image)
             {
@@ -193,7 +190,7 @@ void *ImageThread(void *functionData)
     pthread_exit(0);
 }
 
-bool isRgbAvailable()
+bool isSensorAvailable(sensorTypes sensor_type)
 {
     int error = L3CAM_OK;
 
@@ -204,35 +201,7 @@ bool isRgbAvailable()
         if (!error)
             for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
             {
-                if (srvGetSensors.response.sensors[i].sensor_type == sensor_econ_rgb)
-                    return true;
-            }
-        else
-        {
-            ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
-            return false;
-        }
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service get_sensors_available");
-        return false;
-    }
-
-    return false;
-}
-
-bool isNarrowAvailable()
-{
-    int error = L3CAM_OK;
-    if (clientGetSensors.call(srvGetSensors))
-    {
-        error = srvGetSensors.response.error;
-
-        if (!error)
-            for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
-            {
-                if (srvGetSensors.response.sensors[i].sensor_type == sensor_allied_narrow)
+                if (srvGetSensors.response.sensors[i].sensor_type == sensor_type)
                     return true;
             }
         else
@@ -256,37 +225,23 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
-    int error = L3CAM_OK;
 
-    if (isRgbAvailable())
+    if (isSensorAvailable(sensor_econ_rgb))
     {
         rgb = true;
     }
-    else if (!isNarrowAvailable())
+    else if (!isSensorAvailable(sensor_allied_narrow))
         return 0;
 
+    pub = nh.advertise<sensor_msgs::Image>(rgb ? "/img_rgb" : "/img_narrow", 2);
     pthread_create(&stream_thread, NULL, &ImageThread, NULL);
 
     ros::Rate loop_rate(1);
-    if (rgb)
-    {
-        pub = nh.advertise<sensor_msgs::Image>("/img_rgb", 2);
 
-        while (ros::ok() && isRgbAvailable())
-        {
-            ros::spinOnce();
-            loop_rate.sleep();
-        }
-    }
-    else
+    while (ros::ok() && isSensorAvailable(rgb ? sensor_econ_rgb : sensor_allied_narrow))
     {
-        pub = nh.advertise<sensor_msgs::Image>("/img_narrow", 2);
-
-        while (ros::ok() && isNarrowAvailable())
-        {
-            ros::spinOnce();
-            loop_rate.sleep();
-        }
+        ros::spinOnce();
+        loop_rate.sleep();
     }
 
     g_listening = false;

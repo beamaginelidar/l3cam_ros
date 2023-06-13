@@ -78,7 +78,6 @@ void *ImageThread(void *functionData)
     uint32_t m_timestamp;
     int m_image_data_size;
     bool m_is_reading_image;
-    bool m_image_ready;
     char *m_image_buffer = NULL;
     int bytes_count = 0;
 
@@ -143,13 +142,11 @@ void *ImageThread(void *functionData)
             memcpy(&m_timestamp, &buffer[6], sizeof(uint32_t));
             m_image_data_size = m_image_height * m_image_width * m_image_channels;
             m_is_reading_image = true;
-            m_image_ready = false;
             bytes_count = 0;
         }
         else if (size_read == 1)
         {
             m_is_reading_image = false;
-            m_image_ready = true;
             bytes_count = 0;
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
 
@@ -160,7 +157,7 @@ void *ImageThread(void *functionData)
 
             std_msgs::Header header;         // empty header
             header.stamp = ros::Time::now(); // time
-            header.frame_id = "lidar";
+            header.frame_id = "thermal";
             img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_data);
             img_bridge.toImageMsg(img_msg); // from cv_bridge to sensor_msgs::Image
             thermal_pub.publish(img_msg);
@@ -223,14 +220,12 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
-    int error = L3CAM_OK;
 
     if (!isThermalAvailable())
         return 0;
 
-    pthread_create(&thermal_thread, NULL, &ImageThread, NULL);
-
     thermal_pub = nh.advertise<sensor_msgs::Image>("/img_thermal", 2);
+    pthread_create(&thermal_thread, NULL, &ImageThread, NULL);
 
     ros::Rate loop_rate(1);
     while (ros::ok() && isThermalAvailable())

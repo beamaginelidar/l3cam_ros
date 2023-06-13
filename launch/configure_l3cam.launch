@@ -24,7 +24,7 @@
     <arg name="polarimetric_camera_gain" default="24.0" />
     <arg name="polarimetric_camera_auto_exposure_time" default="true" />
     <arg name="polarimetric_camera_auto_exposure_time_range_minimum" default="33.456" />
-    <arg name="polarimetric_camera_auto_exposure_time_range_maximum" default="1000000.0" />
+    <arg name="polarimetric_camera_auto_exposure_time_range_maximum" default="66470.6" />
     <arg name="polarimetric_camera_exposure_time" default="500000.0" />
 
     <!-- RGB configuration -->

@@ -150,8 +150,8 @@ void *PointCloudThread(void *functionData)
             }
 
             sensor_msgs::PointCloud2 PC2_msg;
-            // PC2_msg.header.frame_id = "lidar";
-            // PC2_msg.header.stamp = ros::Time(0);
+            PC2_msg.header.frame_id = "lidar";
+            PC2_msg.header.stamp = ros::Time::now();
 
             sensor_msgs::convertPointCloudToPointCloud2(cloud_, PC2_msg);
             PC2_pub.publish(PC2_msg);
@@ -220,14 +220,12 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
-    int error = L3CAM_OK;
 
     if (!isLidarAvailable())
         return 0;
 
-    pthread_create(&pointcloud_thread, NULL, &PointCloudThread, NULL);
-
     PC2_pub = nh.advertise<sensor_msgs::PointCloud2>("/PC2_lidar", 2);
+    pthread_create(&pointcloud_thread, NULL, &PointCloudThread, NULL);
 
     ros::Rate loop_rate(1);
     while (ros::ok() && isLidarAvailable())

@@ -80,7 +80,6 @@ void *ImageThread(void *functionData)
     uint32_t m_timestamp;
     int m_image_data_size;
     bool m_is_reading_image;
-    bool m_image_ready;
     char *m_image_buffer = NULL;
     int bytes_count = 0;
 
@@ -116,11 +115,11 @@ void *ImageThread(void *functionData)
     }
 
     g_listening = true;
-    if(pol)
+    if (pol)
         ROS_INFO("Polarimetric streaming");
     else
         ROS_INFO("Allied Wide streaming");
-        
+
     uint8_t *image_pointer = NULL;
 
     while (g_listening)
@@ -131,7 +130,7 @@ void *ImageThread(void *functionData)
             memcpy(&m_image_height, &buffer[1], 2);
             memcpy(&m_image_width, &buffer[3], 2);
             memcpy(&m_image_channels, &buffer[5], 1);
-
+            
             if (image_pointer != NULL)
             {
                 free(image_pointer);
@@ -149,24 +148,32 @@ void *ImageThread(void *functionData)
             memcpy(&m_timestamp, &buffer[6], sizeof(uint32_t));
             m_image_data_size = m_image_height * m_image_width * m_image_channels;
             m_is_reading_image = true;
-            m_image_ready = false;
             bytes_count = 0;
         }
-        else if (size_read == 1)
+        else if (size_read == 1 && bytes_count == m_image_data_size)
         {
             m_is_reading_image = false;
-            m_image_ready = true;
             bytes_count = 0;
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
 
-            cv::Mat img_data(m_image_height, m_image_width, CV_8UC3, image_pointer);
+            cv::Mat img_data;
+            if(m_image_channels == 1)
+            {
+                img_data = cv::Mat(m_image_height, m_image_width, CV_8UC1, image_pointer);
+                cv::cvtColor(img_data, img_data, cv::COLOR_GRAY2BGR);
+            }
+            else if(m_image_channels == 3)
+            {
+                img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
+            }
 
             cv_bridge::CvImage img_bridge;
             sensor_msgs::Image img_msg; // message to be sent
 
             std_msgs::Header header;         // empty header
             header.stamp = ros::Time::now(); // time
-            header.frame_id = "lidar";
+            header.frame_id = pol ? "polarimetric" : "allied_wide";
+
             img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_data);
             img_bridge.toImageMsg(img_msg); // from cv_bridge to sensor_msgs::Image
             pub.publish(img_msg);
@@ -194,7 +201,7 @@ void *ImageThread(void *functionData)
     pthread_exit(0);
 }
 
-bool isPolarimetricAvailable()
+bool isSensorAvailable(sensorTypes sensor_type)
 {
     int error = L3CAM_OK;
 
@@ -205,35 +212,7 @@ bool isPolarimetricAvailable()
         if (!error)
             for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
             {
-                if (srvGetSensors.response.sensors[i].sensor_type == sensor_pol)
-                    return true;
-            }
-        else
-        {
-            ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
-            return false;
-        }
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service get_sensors_available");
-        return false;
-    }
-
-    return false;
-}
-
-bool isWideAvailable()
-{
-    int error = L3CAM_OK;
-    if (clientGetSensors.call(srvGetSensors))
-    {
-        error = srvGetSensors.response.error;
-
-        if (!error)
-            for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
-            {
-                if (srvGetSensors.response.sensors[i].sensor_type == sensor_allied_wide)
+                if (srvGetSensors.response.sensors[i].sensor_type == sensor_type)
                     return true;
             }
         else
@@ -257,37 +236,22 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
-    int error = L3CAM_OK;
 
-    if (isPolarimetricAvailable())
+    if (isSensorAvailable(sensor_pol))
     {
         pol = true;
     }
-    else if (!isWideAvailable())
+    else if (!isSensorAvailable(sensor_allied_wide))
         return 0;
 
+    pub = nh.advertise<sensor_msgs::Image>(pol ? "/img_polarimetric" : "/img_wide", 2);
     pthread_create(&stream_thread, NULL, &ImageThread, NULL);
 
     ros::Rate loop_rate(1);
-    if (pol)
+    while (ros::ok() && isSensorAvailable(pol ? sensor_pol : sensor_allied_wide))
     {
-        pub = nh.advertise<sensor_msgs::Image>("/img_polarimetric", 2);
-
-        while (ros::ok() && isPolarimetricAvailable())
-        {
-            ros::spinOnce();
-            loop_rate.sleep();
-        }
-    }
-    else
-    {
-        pub = nh.advertise<sensor_msgs::Image>("/img_wide", 2);
-
-        while (ros::ok() && isWideAvailable())
-        {
-            ros::spinOnce();
-            loop_rate.sleep();
-        }
+        ros::spinOnce();
+        loop_rate.sleep();
     }
 
     g_listening = false;

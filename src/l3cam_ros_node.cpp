@@ -753,7 +753,6 @@ void loadDefaultParams(ros::NodeHandle nh)
         nh.param("/l3cam_ros_node/distance_range_maximum", distance_range_maximum, 400000);
         printDefaultError(CHANGE_DISTANCE_RANGE(devices[0], distance_range_minimum, distance_range_maximum));
     }
-
     if (m_polarimetric_sensor != NULL)
     {
         int polarimetric_camera_brightness;
@@ -787,7 +786,7 @@ void loadDefaultParams(ros::NodeHandle nh)
             double polarimetric_camera_auto_exposure_time_range_minimum;
             nh.param("/l3cam_ros_node/polarimetric_camera_auto_exposure_time_range_minimum", polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
             double polarimetric_camera_auto_exposure_time_range_maximum;
-            nh.param("/l3cam_ros_node/polarimetric_camera_auto_exposure_time_range_maximum", polarimetric_camera_auto_exposure_time_range_maximum, 1000000.0);
+            nh.param("/l3cam_ros_node/polarimetric_camera_auto_exposure_time_range_maximum", polarimetric_camera_auto_exposure_time_range_maximum, 66470.6);
             printDefaultError(CHANGE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME_RANGE(devices[0], polarimetric_camera_auto_exposure_time_range_minimum, polarimetric_camera_auto_exposure_time_range_maximum));
         }
         else
