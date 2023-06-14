@@ -18,13 +18,14 @@ sudo dpkg -i <PACKAGE>
 
 ### ROS Driver
 
-Once the SDK is successfully installed, you can continue with the ROS driver install:
+<!-- Once the SDK is successfully installed, you can continue with the ROS driver install:
 
 ```
 sudo apt install ros-<ROS_DISTRO>-l3cam-ros
 ```
 
-Or clone this repository in your catkin workspace (e.g. catkin_ws):
+Or clone this repository in your catkin workspace (e.g. catkin_ws): -->
+Clone this repository in your catkin workspace (e.g. catkin_ws):
 
 ```
 cd ~/catkin_ws/src && git clone https://github.com/beamaginelidar/l3cam_ros
@@ -135,35 +136,35 @@ The thermal_stream is the node that publishes thermal image frames if the therma
 
 ### network_configuration
 
-The network_configuration is a node that configures the network parameters by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/Network.cfg` for documentation regarding the various parameters that can be used to configure the network parameters of the L3Cam.
+The network_configuration is a node that configures the network parameters by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/Network.cfg` or the [network parameters](#network-parameters) section for documentation regarding the various parameters that can be used to configure the network parameters of the L3Cam.
 
 ### pointcloud_configuration
 
-The pointcloud_configuration is a node that configures the pointcloud parameters (if a LiDAR sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/Pointcloud.cfg` for documentation regarding the various parameters that can be used to configure the pointcloud parameters of the L3Cam.
+The pointcloud_configuration is a node that configures the pointcloud parameters (if a LiDAR sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/Pointcloud.cfg` or the [pointcloud parameters](#pointcloud-parameters) section for documentation regarding the various parameters that can be used to configure the pointcloud parameters of the L3Cam.
 
 ### polarimetric_camera_configuration
 
-The polarimetric_camera_configuration is a node that configures the polarimetric camera parameters (if a polarimetric sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/PolarimetricCamera.cfg` for documentation regarding the various parameters that can be used to configure the polarimetric camera parameters of the L3Cam.
+The polarimetric_camera_configuration is a node that configures the polarimetric camera parameters (if a polarimetric sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/PolarimetricCamera.cfg` or the [polarimetric parameters](#polarimetric-parameters) section for documentation regarding the various parameters that can be used to configure the polarimetric camera parameters of the L3Cam.
 
 ### rgb_camera_configuration
 
-The rgb_camera_configuration is a node that configures the RGB camera parameters (if an RGB sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/RgbCamera.cfg` for documentation regarding the various parameters that can be used to configure the RGB camera parameters of the L3Cam.
+The rgb_camera_configuration is a node that configures the RGB camera parameters (if an RGB sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/RgbCamera.cfg` or the [rgb parameters](#rgb-parameters) section for documentation regarding the various parameters that can be used to configure the RGB camera parameters of the L3Cam.
 
 ### thermal_camera_configuration
 
-The thermal_camera_configuration is a node that configures the thermal camera parameters (if a thermal sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/ThermalCamera.cfg` for documentation regarding the various parameters that can be used to configure the thermal camera parameters of the L3Cam.
+The thermal_camera_configuration is a node that configures the thermal camera parameters (if a thermal sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/ThermalCamera.cfg` or the [thermal parameters](#thermal-parameters) section for documentation regarding the various parameters that can be used to configure the thermal camera parameters of the L3Cam.
 
 ### allied_wide_camera_configuration
 
-The allied_wide_camera_configuration is a node that configures the Allied Wide camera parameters (if aan Allied Wide sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/AlliedWideCamera.cfg` for documentation regarding the various parameters that can be used to configure the Allied Wide camera parameters of the L3Cam.
+The allied_wide_camera_configuration is a node that configures the Allied Wide camera parameters (if aan Allied Wide sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/AlliedWideCamera.cfg` or the [allied wide parameters](#allied-wide-parameters) section for documentation regarding the various parameters that can be used to configure the Allied Wide camera parameters of the L3Cam.
 
 ### allied_narrow_camera_configuration
 
-The allied_narrow_camera_configuration is a node that configures the Allied Narrow camera parameters (if aan Allied Narrow sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/AlliedNarrowCamera.cfg` for documentation regarding the various parameters that can be used to configure the Allied Narrow camera parameters of the L3Cam.
+The allied_narrow_camera_configuration is a node that configures the Allied Narrow camera parameters (if aan Allied Narrow sensor is available) by using dynamic reconfigure and the services to communicate with the l3cam_ros_node. See the config file `cfg/AlliedNarrowCamera.cfg` or the [allied narrow parameters](#allied-narrow-parameters) section for documentation regarding the various parameters that can be used to configure the Allied Narrow camera parameters of the L3Cam.
 
 ## Parameters
 
-Default parameters for the L3Cam can be set by editing the `l3cam.launch` file or specifying them when calling it:
+Default parameters for the L3Cam can be set by editing the `l3cam.launch` file or specifying them when launching it:
 
 ```
 roslaunch l3cam_ros l3cam.launch <PARAMETER>:=<VALUE>
