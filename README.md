@@ -2,6 +2,8 @@
 
 This package is an ROS driver for the L3Cam device manufactured by [Beamagine](https://beamagine.com/). The driver relies on the library provided by Beamagine as part of the [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git). For more info on the L3Cam check the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf).
 
+If you are looking for this package for ROS2, go to the [l3cam_ros2](https://github.com/beamaginelidar/l3cam_ros2) package.
+
 This package is supported only on Linux systems and has only been tested with ROS noetic on an Ubuntu 20.04 system.
 
 ## Installation
@@ -25,10 +27,12 @@ sudo apt install ros-<ROS_DISTRO>-l3cam-ros
 ```
 
 Or clone this repository in your catkin workspace (e.g. catkin_ws): -->
-Clone this repository in your catkin workspace (e.g. catkin_ws):
+
+Clone this repository in your catkin workspace (e.g. catkin_ws) and build:
 
 ```
 cd ~/catkin_ws/src && git clone https://github.com/beamaginelidar/l3cam_ros
+catkin_make
 ```
 
 ## Operational Advice
@@ -167,7 +171,7 @@ The allied_narrow_camera_configuration is a node that configures the Allied Narr
 Default parameters for the L3Cam can be set by editing the `l3cam.launch` file or specifying them when launching it:
 
 ```
-roslaunch l3cam_ros l3cam.launch <PARAMETER>:=<VALUE>
+roslaunch l3cam_ros l3cam.launch <PARAM>:=<VALUE>
 ```
 
 Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf) for more info.
@@ -306,7 +310,7 @@ The ranges shown in the [parameters](#parameters) section also apply to the serv
 | `/find_devices`                                        | -                                                                                       | int error, int num_devices                                   |
 | `/get_local_server_address`                            | -                                                                                       | string local_ip_address                                      |
 | `/get_device_status`                                   | -                                                                                       | int error, int system_status                                 |
-| `/get_sensors_available`                               | -                                                                                       | int error, Sensor[] sensors, int num_sensors                |
+| `/get_sensors_available`                               | -                                                                                       | int error, Sensor[] sensors, int num_sensors                 |
 | `/get_network_configuration`                           | -                                                                                       | int error, string ip_address, string netmask, string gateway |
 | `/change_network_configuration`                        | string ip_address, string netmask, string gateway, bool enable_dhcp                     | int error                                                    |
 | `/power_off_device`                                    | -                                                                                       | int error                                                    |
