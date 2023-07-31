@@ -8,9 +8,7 @@
   <url type="repository">https://github.com/beamaginelidar/l3cam_ros</url>
 
   <author>Beamagine</author>
-  <author email="adria.subi@gmail.com">Adrià Subirana</author>
-  <maintainer email="adria.subi@gmail.com">Adrià Subirana</maintainer>
-
+  <maintainer email="info@beamagine.com">Beamagine</maintainer>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
