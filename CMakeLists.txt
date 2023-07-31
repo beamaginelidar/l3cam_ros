@@ -83,6 +83,27 @@ add_service_files(
   ChangeAlliedCameraBalanceWhiteAutoTolerance.srv
   ChangeAlliedCameraIntensityControllerRegion.srv
   ChangeAlliedCameraIntensityControllerTarget.srv
+  GetAlliedCameraBlackLevel.srv
+  GetAlliedCameraExposureTime.srv
+  GetAlliedCameraAutoExposureTime.srv
+  GetAlliedCameraAutoExposureTimeRange.srv
+  GetAlliedCameraGain.srv
+  GetAlliedCameraAutoGain.srv
+  GetAlliedCameraAutoGainRange.srv
+  GetAlliedCameraGamma.srv
+  GetAlliedCameraSaturation.srv
+  GetAlliedCameraSharpness.srv
+  GetAlliedCameraHue.srv
+  GetAlliedCameraIntensityAutoPrecedence.srv
+  GetAlliedCameraAutoWhiteBalance.srv
+  GetAlliedCameraBalanceRatioSelector.srv
+  GetAlliedCameraBalanceRatio.srv
+  GetAlliedCameraBalanceWhiteAutoRate.srv
+  GetAlliedCameraBalanceWhiteAutoTolerance.srv
+  GetAlliedCameraAutoModeRegion.srv
+  GetAlliedCameraIntensityControllerRegion.srv
+  GetAlliedCameraIntensityControllerTarget.srv
+  GetAlliedCameraMaxDriverBuffersCount.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
