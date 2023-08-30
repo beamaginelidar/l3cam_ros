@@ -43,6 +43,8 @@ add_service_files(
   ChangePointcloudColor.srv
   ChangePointcloudColorRange.srv
   ChangeDistanceRange.srv
+  EnableAutoBias.srv
+  ChangeBiasValue.srv
   SetPolarimetricCameraDefaultSettings.srv
   ChangePolarimetricCameraBrightness.srv
   ChangePolarimetricCameraBlackLevel.srv
