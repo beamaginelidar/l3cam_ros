@@ -39,6 +39,8 @@
 #include "l3cam_ros/ChangePointcloudColor.h"
 #include "l3cam_ros/ChangePointcloudColorRange.h"
 #include "l3cam_ros/ChangeDistanceRange.h"
+#include "l3cam_ros/EnableAutoBias.h"
+#include "l3cam_ros/ChangeBiasValue.h"
 
 ros::ServiceClient clientGetSensors;
 l3cam_ros::GetSensorsAvailable srvGetSensors;
@@ -48,12 +50,19 @@ ros::ServiceClient clientColorRange;
 l3cam_ros::ChangePointcloudColorRange srvColorRange;
 ros::ServiceClient clientDistanceRange;
 l3cam_ros::ChangeDistanceRange srvDistanceRange;
+ros::ServiceClient clientAutoBias;
+l3cam_ros::EnableAutoBias srvAutoBias;
+ros::ServiceClient clientBiasValue;
+l3cam_ros::ChangeBiasValue srvBiasValue;
 
 int change_pointcloud_color;
 int change_pointcloud_color_range_minimum;
 int change_pointcloud_color_range_maximum;
 int change_distance_range_minimum;
 int change_distance_range_maximum;
+bool enable_auto_bias;
+int change_bias_value_right;
+int change_bias_value_left;
 
 bool default_configured = false;
 
@@ -64,6 +73,9 @@ void configureDefault(l3cam_ros::PointcloudConfig &config)
     ros::param::param("/pointcloud_configuration/pointcloud_color_range_maximum", change_pointcloud_color_range_maximum, 400000);
     ros::param::param("/pointcloud_configuration/distance_range_minimum", change_distance_range_minimum, 0);
     ros::param::param("/pointcloud_configuration/distance_range_maximum", change_distance_range_maximum, 400000);
+    ros::param::param("/pointcloud_configuration/auto_bias", enable_auto_bias, true);
+    ros::param::param("/pointcloud_configuration/bias_value_right", change_bias_value_right, 1580);
+    ros::param::param("/pointcloud_configuration/bias_value_left", change_bias_value_left, 1380);
 
     if (change_pointcloud_color >= 0 && change_pointcloud_color <= 7 || change_pointcloud_color >= 12 && change_pointcloud_color <= 13)
         config.change_pointcloud_color = change_pointcloud_color;
@@ -85,6 +97,15 @@ void configureDefault(l3cam_ros::PointcloudConfig &config)
         config.change_distance_range_maximum = change_distance_range_maximum;
     else
         change_distance_range_maximum = config.change_distance_range_maximum;
+    config.enable_auto_bias = enable_auto_bias;
+    if (change_bias_value_right >= 700 && change_bias_value_right <= 3500)
+        config.change_bias_value_right = change_bias_value_right;
+    else
+        change_bias_value_right = config.change_bias_value_right;
+    if (change_bias_value_left >= 700 && change_bias_value_left <= 3500)
+        config.change_bias_value_left = change_bias_value_left;
+    else
+        change_bias_value_left = config.change_bias_value_left;
 
     default_configured = true;
 }
@@ -183,6 +204,44 @@ void callback(l3cam_ros::PointcloudConfig &config, uint32_t level)
                 config.change_distance_range_maximum = change_distance_range_maximum;
             }
             break;
+        case 5:
+            srvAutoBias.request.enabled = config.enable_auto_bias;
+            if (clientAutoBias.call(srvAutoBias))
+            {
+                enable_auto_bias = config.enable_auto_bias;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service enable_auto_bias");
+                config.enable_auto_bias = enable_auto_bias;
+            }
+            break;
+        case 6:
+            srvBiasValue.request.index = 1;
+            srvBiasValue.request.bias = config.change_bias_value_right;
+            if (clientBiasValue.call(srvBiasValue))
+            {
+                change_bias_value_right = config.change_bias_value_right;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service change_bias_value");
+                config.change_bias_value_right = change_bias_value_right;
+            }
+            break;
+        case 7:
+            srvBiasValue.request.index = 2;
+            srvBiasValue.request.bias = config.change_bias_value_left;
+            if (clientBiasValue.call(srvBiasValue))
+            {
+                change_bias_value_left = config.change_bias_value_left;
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service change_bias_value");
+                config.change_bias_value_left = change_bias_value_left;
+            }
+            break;
         }
     }
 
@@ -234,6 +293,8 @@ int main(int argc, char **argv)
     clientColor = nh.serviceClient<l3cam_ros::ChangePointcloudColor>("change_pointcloud_color");
     clientColorRange = nh.serviceClient<l3cam_ros::ChangePointcloudColorRange>("change_pointcloud_color_range");
     clientDistanceRange = nh.serviceClient<l3cam_ros::ChangeDistanceRange>("change_distance_range");
+    clientAutoBias = nh.serviceClient<l3cam_ros::EnableAutoBias>("enable_auto_bias");
+    clientBiasValue = nh.serviceClient<l3cam_ros::ChangeBiasValue>("change_bias_value");
 
     ros::Rate loop_rate(100);
     while (ros::ok())

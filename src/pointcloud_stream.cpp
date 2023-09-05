@@ -117,7 +117,7 @@ void *PointCloudThread(void *functionData)
         if (size_read == 17)
         {
             memcpy(&m_pointcloud_size, &buffer[1], 4);
-            m_pointcloud_data = (int32_t *)malloc(sizeof(int32_t) * (((m_pointcloud_size)*5) + 1));
+            m_pointcloud_data = (int32_t *)malloc(sizeof(int32_t) * (((m_pointcloud_size) * 5) + 1));
             memcpy(&m_pointcloud_data[0], &m_pointcloud_size, sizeof(int32_t));
             int32_t suma_1, suma_2;
             memcpy(&suma_1, &buffer[5], sizeof(int32_t));
@@ -140,6 +140,13 @@ void *PointCloudThread(void *functionData)
             cloud_.header.frame_id = "map";
             cloud_.header.stamp = ros::Time::now();
 
+            sensor_msgs::ChannelFloat32 intensity_channel;
+            intensity_channel.name = "intensity";
+            intensity_channel.values.resize(size_pc);
+            sensor_msgs::ChannelFloat32 rgb_channel;
+            rgb_channel.name = "rgb";
+            rgb_channel.values.resize(size_pc);
+
             for (int i = 0; i < size_pc; i++)
             {
                 cloud_.points[i].y = -(double)data_received[5 * i + 1] / 1000.0;
@@ -147,7 +154,14 @@ void *PointCloudThread(void *functionData)
                 cloud_.points[i].z = -(double)data_received[5 * i + 2] / 1000.0;
 
                 cloud_.points[i].x = (double)data_received[5 * i + 3] / 1000.0;
+
+                intensity_channel.values[i] = data_received[5 * i + 4];
+
+                rgb_channel.values[i] = data_received[5 * i + 5];
             }
+
+            cloud_.channels.push_back(intensity_channel);
+            cloud_.channels.push_back(rgb_channel);
 
             sensor_msgs::PointCloud2 PC2_msg;
             PC2_msg.header.frame_id = "lidar";

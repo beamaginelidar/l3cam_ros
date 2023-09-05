@@ -58,6 +58,8 @@
 #include "l3cam_ros/ChangePointcloudColor.h"
 #include "l3cam_ros/ChangePointcloudColorRange.h"
 #include "l3cam_ros/ChangeDistanceRange.h"
+#include "l3cam_ros/EnableAutoBias.h"
+#include "l3cam_ros/ChangeBiasValue.h"
 
 #include "l3cam_ros/SetPolarimetricCameraDefaultSettings.h"
 #include "l3cam_ros/ChangePolarimetricCameraBrightness.h"
@@ -336,6 +338,18 @@ bool changePointcloudColorRange(l3cam_ros::ChangePointcloudColorRange::Request &
 bool changeDistanceRange(l3cam_ros::ChangeDistanceRange::Request &req, l3cam_ros::ChangeDistanceRange::Response &res)
 {
     res.error = CHANGE_DISTANCE_RANGE(devices[0], req.min_value, req.max_value);
+    return true;
+}
+
+bool enableAutoBias(l3cam_ros::EnableAutoBias::Request &req, l3cam_ros::EnableAutoBias::Response &res)
+{
+    ENABLE_AUTO_BIAS(devices[0], req.enabled);
+    return true;
+}
+
+bool changeBiasValue(l3cam_ros::ChangeBiasValue::Request &req, l3cam_ros::ChangeBiasValue::Response &res)
+{
+    CHANGE_BIAS_VALUE(devices[0], req.index, req.bias);
     return true;
 }
 
@@ -755,7 +769,7 @@ bool changeAlliedCameraIntensityControllerTarget(l3cam_ros::ChangeAlliedCameraIn
 
 bool getAlliedCameraBlackLevel(l3cam_ros::GetAlliedCameraBlackLevel::Request &req, l3cam_ros::GetAlliedCameraBlackLevel::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_BLACK_LEVEL(devices[0], *m_allied_wide_sensor, &res.black_level);
@@ -770,7 +784,7 @@ bool getAlliedCameraBlackLevel(l3cam_ros::GetAlliedCameraBlackLevel::Request &re
 }
 bool getAlliedCameraExposureTime(l3cam_ros::GetAlliedCameraExposureTime::Request &req, l3cam_ros::GetAlliedCameraExposureTime::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_EXPOSURE_TIME_US(devices[0], *m_allied_wide_sensor, &res.exposure_time);
@@ -786,7 +800,7 @@ bool getAlliedCameraExposureTime(l3cam_ros::GetAlliedCameraExposureTime::Request
 bool getAlliedCameraAutoExposureTime(l3cam_ros::GetAlliedCameraAutoExposureTime::Request &req, l3cam_ros::GetAlliedCameraAutoExposureTime::Response &res)
 {
     bool enabled;
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(devices[0], *m_allied_wide_sensor, &enabled);
@@ -803,7 +817,7 @@ bool getAlliedCameraAutoExposureTime(l3cam_ros::GetAlliedCameraAutoExposureTime:
 }
 bool getAlliedCameraAutoExposureTimeRange(l3cam_ros::GetAlliedCameraAutoExposureTimeRange::Request &req, l3cam_ros::GetAlliedCameraAutoExposureTimeRange::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(devices[0], *m_allied_wide_sensor, &res.auto_exposure_time_range_min, &res.auto_exposure_time_range_max);
@@ -818,7 +832,7 @@ bool getAlliedCameraAutoExposureTimeRange(l3cam_ros::GetAlliedCameraAutoExposure
 }
 bool getAlliedCameraGain(l3cam_ros::GetAlliedCameraGain::Request &req, l3cam_ros::GetAlliedCameraGain::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_GAIN(devices[0], *m_allied_wide_sensor, &res.gain);
@@ -834,7 +848,7 @@ bool getAlliedCameraGain(l3cam_ros::GetAlliedCameraGain::Request &req, l3cam_ros
 bool getAlliedCameraAutoGain(l3cam_ros::GetAlliedCameraAutoGain::Request &req, l3cam_ros::GetAlliedCameraAutoGain::Response &res)
 {
     bool enabled;
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_AUTO_GAIN(devices[0], *m_allied_wide_sensor, &enabled);
@@ -851,7 +865,7 @@ bool getAlliedCameraAutoGain(l3cam_ros::GetAlliedCameraAutoGain::Request &req, l
 }
 bool getAlliedCameraAutoGainRange(l3cam_ros::GetAlliedCameraAutoGainRange::Request &req, l3cam_ros::GetAlliedCameraAutoGainRange::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_AUTO_GAIN_RANGE(devices[0], *m_allied_wide_sensor, &res.auto_gain_range_min, &res.auto_gain_range_max);
@@ -866,7 +880,7 @@ bool getAlliedCameraAutoGainRange(l3cam_ros::GetAlliedCameraAutoGainRange::Reque
 }
 bool getAlliedCameraGamma(l3cam_ros::GetAlliedCameraGamma::Request &req, l3cam_ros::GetAlliedCameraGamma::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_GAMMA(devices[0], *m_allied_wide_sensor, &res.gamma);
@@ -881,7 +895,7 @@ bool getAlliedCameraGamma(l3cam_ros::GetAlliedCameraGamma::Request &req, l3cam_r
 }
 bool getAlliedCameraSaturation(l3cam_ros::GetAlliedCameraSaturation::Request &req, l3cam_ros::GetAlliedCameraSaturation::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_SATURATION(devices[0], *m_allied_wide_sensor, &res.saturation);
@@ -896,7 +910,7 @@ bool getAlliedCameraSaturation(l3cam_ros::GetAlliedCameraSaturation::Request &re
 }
 bool getAlliedCameraSharpness(l3cam_ros::GetAlliedCameraSharpness::Request &req, l3cam_ros::GetAlliedCameraSharpness::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_SHARPNESS(devices[0], *m_allied_wide_sensor, &res.sharpness);
@@ -911,7 +925,7 @@ bool getAlliedCameraSharpness(l3cam_ros::GetAlliedCameraSharpness::Request &req,
 }
 bool getAlliedCameraHue(l3cam_ros::GetAlliedCameraHue::Request &req, l3cam_ros::GetAlliedCameraHue::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_HUE(devices[0], *m_allied_wide_sensor, &res.hue);
@@ -926,7 +940,7 @@ bool getAlliedCameraHue(l3cam_ros::GetAlliedCameraHue::Request &req, l3cam_ros::
 }
 bool getAlliedCameraIntensityAutoPrecedence(l3cam_ros::GetAlliedCameraIntensityAutoPrecedence::Request &req, l3cam_ros::GetAlliedCameraIntensityAutoPrecedence::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(devices[0], *m_allied_wide_sensor, &res.intensity_auto_precedence);
@@ -942,7 +956,7 @@ bool getAlliedCameraIntensityAutoPrecedence(l3cam_ros::GetAlliedCameraIntensityA
 bool getAlliedCameraAutoWhiteBalance(l3cam_ros::GetAlliedCameraAutoWhiteBalance::Request &req, l3cam_ros::GetAlliedCameraAutoWhiteBalance::Response &res)
 {
     bool enabled;
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_AUTO_WHITE_BALANCE(devices[0], *m_allied_wide_sensor, &enabled);
@@ -959,7 +973,7 @@ bool getAlliedCameraAutoWhiteBalance(l3cam_ros::GetAlliedCameraAutoWhiteBalance:
 }
 bool getAlliedCameraBalanceRatioSelector(l3cam_ros::GetAlliedCameraBalanceRatioSelector::Request &req, l3cam_ros::GetAlliedCameraBalanceRatioSelector::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(devices[0], *m_allied_wide_sensor, &res.white_balance_ratio_selector);
@@ -974,7 +988,7 @@ bool getAlliedCameraBalanceRatioSelector(l3cam_ros::GetAlliedCameraBalanceRatioS
 }
 bool getAlliedCameraBalanceRatio(l3cam_ros::GetAlliedCameraBalanceRatio::Request &req, l3cam_ros::GetAlliedCameraBalanceRatio::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_BALANCE_RATIO(devices[0], *m_allied_wide_sensor, &res.balance_ratio);
@@ -989,7 +1003,7 @@ bool getAlliedCameraBalanceRatio(l3cam_ros::GetAlliedCameraBalanceRatio::Request
 }
 bool getAlliedCameraBalanceWhiteAutoRate(l3cam_ros::GetAlliedCameraBalanceWhiteAutoRate::Request &req, l3cam_ros::GetAlliedCameraBalanceWhiteAutoRate::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(devices[0], *m_allied_wide_sensor, &res.white_balance_auto_rate);
@@ -1004,7 +1018,7 @@ bool getAlliedCameraBalanceWhiteAutoRate(l3cam_ros::GetAlliedCameraBalanceWhiteA
 }
 bool getAlliedCameraBalanceWhiteAutoTolerance(l3cam_ros::GetAlliedCameraBalanceWhiteAutoTolerance::Request &req, l3cam_ros::GetAlliedCameraBalanceWhiteAutoTolerance::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(devices[0], *m_allied_wide_sensor, &res.white_balance_auto_tolerance);
@@ -1019,7 +1033,7 @@ bool getAlliedCameraBalanceWhiteAutoTolerance(l3cam_ros::GetAlliedCameraBalanceW
 }
 bool getAlliedCameraAutoModeRegion(l3cam_ros::GetAlliedCameraAutoModeRegion::Request &req, l3cam_ros::GetAlliedCameraAutoModeRegion::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_AUTO_MODE_REGION(devices[0], *m_allied_wide_sensor, &res.width, &res.height);
@@ -1034,7 +1048,7 @@ bool getAlliedCameraAutoModeRegion(l3cam_ros::GetAlliedCameraAutoModeRegion::Req
 }
 bool getAlliedCameraIntensityControllerRegion(l3cam_ros::GetAlliedCameraIntensityControllerRegion::Request &req, l3cam_ros::GetAlliedCameraIntensityControllerRegion::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(devices[0], *m_allied_wide_sensor, &res.intensity_controller_region);
@@ -1049,7 +1063,7 @@ bool getAlliedCameraIntensityControllerRegion(l3cam_ros::GetAlliedCameraIntensit
 }
 bool getAlliedCameraIntensityControllerTarget(l3cam_ros::GetAlliedCameraIntensityControllerTarget::Request &req, l3cam_ros::GetAlliedCameraIntensityControllerTarget::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(devices[0], *m_allied_wide_sensor, &res.intensity_controller_target);
@@ -1064,7 +1078,7 @@ bool getAlliedCameraIntensityControllerTarget(l3cam_ros::GetAlliedCameraIntensit
 }
 bool getAlliedCameraMaxDriverBuffersCount(l3cam_ros::GetAlliedCameraMaxDriverBuffersCount::Request &req, l3cam_ros::GetAlliedCameraMaxDriverBuffersCount::Response &res)
 {
-    switch(req.allied_type)
+    switch (req.allied_type)
     {
     case 1:
         res.error = GET_ALLIED_CAMERA_MAX_DRIVER_BUFFERS_COUNT(devices[0], *m_allied_wide_sensor, &res.max_driver_buffers_count);
@@ -1103,6 +1117,18 @@ void loadDefaultParams(ros::NodeHandle nh)
         int distance_range_maximum;
         nh.param("/l3cam_ros_node/distance_range_maximum", distance_range_maximum, 400000);
         printDefaultError(CHANGE_DISTANCE_RANGE(devices[0], distance_range_minimum, distance_range_maximum));
+        bool auto_bias;
+        nh.param("/l3cam_ros_node/auto_bias", auto_bias, true);
+        ENABLE_AUTO_BIAS(devices[0], auto_bias);
+        if (!auto_bias)
+        {
+            int bias_value_right;
+            nh.param("/l3cam_ros_node/bias_value_right", bias_value_right, 1580);
+            CHANGE_BIAS_VALUE(devices[0], 1, bias_value_right);
+            int bias_value_left;
+            nh.param("/l3cam_ros_node/bias_value_left", bias_value_left, 1380);
+            CHANGE_BIAS_VALUE(devices[0], 2, bias_value_left);
+        }
     }
     if (m_polarimetric_sensor != NULL)
     {
@@ -1115,7 +1141,7 @@ void loadDefaultParams(ros::NodeHandle nh)
         bool polarimetric_camera_auto_gain;
         nh.param("/l3cam_ros_node/polarimetric_camera_auto_gain", polarimetric_camera_auto_gain, true);
         printDefaultError(ENABLE_POLARIMETRIC_CAMERA_AUTO_GAIN(devices[0], polarimetric_camera_auto_gain));
-        if(polarimetric_camera_auto_gain)
+        if (polarimetric_camera_auto_gain)
         { //! Values could not coincide when enabling polarimetric_camera_auto_gain
             double polarimetric_camera_auto_gain_range_minimum;
             nh.param("/l3cam_ros_node/polarimetric_camera_auto_gain_range_minimum", polarimetric_camera_auto_gain_range_minimum, 0.0);
@@ -1132,7 +1158,7 @@ void loadDefaultParams(ros::NodeHandle nh)
         bool polarimetric_camera_auto_exposure_time;
         nh.param("/l3cam_ros_node/polarimetric_camera_auto_exposure_time", polarimetric_camera_auto_exposure_time, true);
         printDefaultError(ENABLE_POLARIMETRIC_CAMERA_AUTO_EXPOSURE_TIME(devices[0], polarimetric_camera_auto_exposure_time));
-        if(polarimetric_camera_auto_exposure_time)
+        if (polarimetric_camera_auto_exposure_time)
         { //! Values could not coincide when enabling polarimetric_camera_auto_exposure_time
             double polarimetric_camera_auto_exposure_time_range_minimum;
             nh.param("/l3cam_ros_node/polarimetric_camera_auto_exposure_time_range_minimum", polarimetric_camera_auto_exposure_time_range_minimum, 33.456);
@@ -1171,7 +1197,7 @@ void loadDefaultParams(ros::NodeHandle nh)
         bool rgb_camera_auto_white_balance;
         nh.param("/l3cam_ros_node/rgb_camera_auto_white_balance", rgb_camera_auto_white_balance, true);
         printDefaultError(ENABLE_RGB_CAMERA_AUTO_WHITE_BALANCE(devices[0], rgb_camera_auto_white_balance));
-        if(!rgb_camera_auto_white_balance)
+        if (!rgb_camera_auto_white_balance)
         { //! Values could not coincide when disabling rgb_camera_auto_white_balance
             int rgb_camera_white_balance;
             nh.param("/l3cam_ros_node/rgb_camera_white_balance", rgb_camera_white_balance, 5000);
@@ -1180,7 +1206,7 @@ void loadDefaultParams(ros::NodeHandle nh)
         bool rgb_camera_auto_exposure_time;
         nh.param("/l3cam_ros_node/rgb_camera_auto_exposure_time", rgb_camera_auto_exposure_time, true);
         printDefaultError(ENABLE_RGB_CAMERA_AUTO_EXPOSURE_TIME(devices[0], rgb_camera_auto_exposure_time));
-        if(!rgb_camera_auto_exposure_time)
+        if (!rgb_camera_auto_exposure_time)
         { //! Values could not coincide when disabling rgb_camera_auto_exposure_time
             int rgb_camera_exposure_time;
             nh.param("/l3cam_ros_node/rgb_camera_exposure_time", rgb_camera_exposure_time, 156);
@@ -1209,7 +1235,6 @@ void loadDefaultParams(ros::NodeHandle nh)
         printDefaultError(CHANGE_THERMAL_CAMERA_TEMPERATURE_FILTER(devices[0], thermal_camera_temperature_filter_min, thermal_camera_temperature_filter_max));
     }
 
-
     if (m_allied_wide_sensor != NULL)
     {
         double allied_wide_camera_black_level;
@@ -1218,7 +1243,7 @@ void loadDefaultParams(ros::NodeHandle nh)
         bool allied_wide_camera_auto_exposure_time;
         nh.param("/l3cam_ros_node/allied_wide_camera_auto_exposure_time", allied_wide_camera_auto_exposure_time, false);
         printDefaultError(ENABLE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(devices[0], *m_allied_wide_sensor, allied_wide_camera_auto_exposure_time));
-        if(allied_wide_camera_auto_exposure_time)
+        if (allied_wide_camera_auto_exposure_time)
         { //! Values could not coincide when enabling allied_wide_camera_auto_exposure_time
             double allied_wide_camera_auto_exposure_time_range_min;
             nh.param("/l3cam_ros_node/allied_wide_camera_auto_exposure_time_range_min", allied_wide_camera_auto_exposure_time_range_min, 87.596);
@@ -1235,7 +1260,7 @@ void loadDefaultParams(ros::NodeHandle nh)
         bool allied_wide_camera_auto_gain;
         nh.param("/l3cam_ros_node/allied_wide_camera_auto_gain", allied_wide_camera_auto_gain, false);
         printDefaultError(ENABLE_ALLIED_CAMERA_AUTO_GAIN(devices[0], *m_allied_wide_sensor, allied_wide_camera_auto_gain));
-        if(allied_wide_camera_auto_gain)
+        if (allied_wide_camera_auto_gain)
         { //! Values could not coincide when enabling allied_wide_camera_auto_gain
             double allied_wide_camera_auto_gain_range_min;
             nh.param("/l3cam_ros_node/allied_wide_camera_auto_gain_range_min", allied_wide_camera_auto_gain_range_min, 0.);
@@ -1303,7 +1328,7 @@ void loadDefaultParams(ros::NodeHandle nh)
         bool allied_narrow_camera_auto_exposure_time;
         nh.param("/l3cam_ros_node/allied_narrow_camera_auto_exposure_time", allied_narrow_camera_auto_exposure_time, false);
         printDefaultError(ENABLE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(devices[0], *m_allied_narrow_sensor, allied_narrow_camera_auto_exposure_time));
-        if(allied_narrow_camera_auto_exposure_time)
+        if (allied_narrow_camera_auto_exposure_time)
         { //! Values could not coincide when enabling allied_narrow_camera_auto_exposure_time
             double allied_narrow_camera_auto_exposure_time_range_min;
             nh.param("/l3cam_ros_node/allied_narrow_camera_auto_exposure_time_range_min", allied_narrow_camera_auto_exposure_time_range_min, 87.596);
@@ -1320,7 +1345,7 @@ void loadDefaultParams(ros::NodeHandle nh)
         bool allied_narrow_camera_auto_gain;
         nh.param("/l3cam_ros_node/allied_narrow_camera_auto_gain", allied_narrow_camera_auto_gain, false);
         printDefaultError(ENABLE_ALLIED_CAMERA_AUTO_GAIN(devices[0], *m_allied_narrow_sensor, allied_narrow_camera_auto_gain));
-        if(allied_narrow_camera_auto_gain)
+        if (allied_narrow_camera_auto_gain)
         { //! Values could not coincide when enabling allied_narrow_camera_auto_gain
             double allied_narrow_camera_auto_gain_range_min;
             nh.param("/l3cam_ros_node/allied_narrow_camera_auto_gain_range_min", allied_narrow_camera_auto_gain_range_min, 0.);
@@ -1407,6 +1432,8 @@ int main(int argc, char **argv)
     ros::ServiceServer srvChangePointcloudColor = nh.advertiseService("change_pointcloud_color", changePointcloudColor);
     ros::ServiceServer srvChangePointcloudColorRange = nh.advertiseService("change_pointcloud_color_range", changePointcloudColorRange);
     ros::ServiceServer srvChangeDistanceRange = nh.advertiseService("change_distance_range", changeDistanceRange);
+    ros::ServiceServer srvEnableAutoBias = nh.advertiseService("enable_auto_bias", enableAutoBias);
+    ros::ServiceServer srvChangeBiasValue = nh.advertiseService("change_bias_value", changeBiasValue);
 
     ros::ServiceServer srvSetPolarimetricCameraDefaultSettings = nh.advertiseService("set_polarimetric_camera_default_settings", setPolarimetricCameraDefaultSettings);
     ros::ServiceServer srvChangePolarimetricCameraBrightness = nh.advertiseService("change_polarimetric_camera_brightness", changePolarimetricCameraBrightness);
