@@ -1,6 +1,6 @@
 # l3cam_ros
 
-This package is an ROS driver for the L3Cam device manufactured by [Beamagine](https://beamagine.com/). The driver relies on the library provided by Beamagine as part of the [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git). For more info on the L3Cam check the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf).
+This package is an ROS driver for the L3Cam device manufactured by [Beamagine](https://beamagine.com/). The driver relies on the library `libL3Cam 0.1.14` provided by Beamagine as part of the [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git). For more info on the L3Cam check the [L3Cam User Manual](https://github.com/beamaginelidar/libl3cam/blob/main/L3CAM%20User%20Manual.pdf).
 
 If you are looking for this package for ROS2, go to the [l3cam_ros2](https://github.com/beamaginelidar/l3cam_ros2) package.
 
@@ -12,21 +12,13 @@ This package is supported only on Linux systems and has only been tested with RO
 
 First, you will need to install the L3Cam SDK.
 
-Download the required package from Beamagine's [L3Cam SDK](https://github.com/beamaginelidar/libl3cam.git) repository depending on your hardware architecture and install:
+Download the package from Beamagine's [L3Cam SDK 0.1.14 release](https://github.com/beamaginelidar/libl3cam/releases/tag/0.1.14R) repository and install the required package depending on your hardware architecture:
 
 ```
 sudo dpkg -i <PACKAGE>
 ```
 
 ### ROS Driver
-
-<!-- Once the SDK is successfully installed, you can continue with the ROS driver install:
-
-```
-sudo apt install ros-<ROS_DISTRO>-l3cam-ros
-```
-
-Or clone this repository in your catkin workspace (e.g. catkin_ws): -->
 
 Clone this repository in your catkin workspace (e.g. catkin_ws) and build:
 
