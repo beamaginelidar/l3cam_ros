@@ -25,7 +25,7 @@
     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <ros/ros.h>
+#include "sensor_stream.hpp"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -33,37 +33,37 @@
 #include <stdio.h>
 #include <string.h>
 #include <arpa/inet.h>
-
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <pthread.h>
 
-#include <sensor_msgs/point_cloud_conversion.h>
 #include "sensor_msgs/PointCloud.h"
+#include "sensor_msgs/point_cloud_conversion.h"
 
 #include <libL3Cam.h>
 #include <beamagine.h>
 #include <beamErrors.h>
 
-#include "l3cam_ros/GetSensorsAvailable.h"
-
-pthread_t pointcloud_thread;
-
-ros::Publisher PC2_pub;
+pthread_t stream_thread;
 
 bool g_listening = false;
 
-ros::ServiceClient clientGetSensors;
-l3cam_ros::GetSensorsAvailable srvGetSensors;
+struct threadData
+{
+    ros::Publisher publisher;
+};
 
 void *PointCloudThread(void *functionData)
 {
+    threadData *data = (struct threadData *)functionData;
+
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
     std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
-    int m_udp_port = 6050;             // For the pointcloud it's 6050
+    int m_udp_port = 6050;             // For the lidar it's 6050
 
     socklen_t socket_len = sizeof(m_socket);
     char *buffer;
@@ -81,7 +81,8 @@ void *PointCloudThread(void *functionData)
         perror("Opening socket");
         return 0;
     }
-    // else ROS_INFO("Socket Pointcloud created");
+    // else ROS_INFO("Socket Lidar created");
+
     memset((char *)&m_socket, 0, sizeof(struct sockaddr_in));
     m_socket.sin_addr.s_addr = inet_addr((char *)m_address.c_str());
     m_socket.sin_family = AF_INET;
@@ -107,14 +108,19 @@ void *PointCloudThread(void *functionData)
         return 0;
     }
 
+    // 1 second timeout for socket
+    struct timeval read_timeout;
+    read_timeout.tv_sec = 1;
+    setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+
     g_listening = true;
-    ROS_INFO("Point cloud streaming...");
+    ROS_INFO("LiDAR streaming.");
 
     while (g_listening)
     {
         int size_read = recvfrom(m_socket_descriptor, buffer, 64004, 0, (struct sockaddr *)&m_socket, &socket_len);
 
-        if (size_read == 17)
+        if (size_read == 17) // Header
         {
             memcpy(&m_pointcloud_size, &buffer[1], 4);
             m_pointcloud_data = (int32_t *)malloc(sizeof(int32_t) * (((m_pointcloud_size) * 5) + 1));
@@ -127,7 +133,7 @@ void *PointCloudThread(void *functionData)
             points_received = 0;
             pointcloud_index = 1;
         }
-        else if (size_read == 1)
+        else if (size_read == 1) // End, send point cloud
         {
             m_is_reading_pointcloud = false;
             int32_t *data_received = (int32_t *)malloc(sizeof(int32_t) * (m_pointcloud_size * 5) + 1);
@@ -138,7 +144,6 @@ void *PointCloudThread(void *functionData)
             sensor_msgs::PointCloud cloud_;
             cloud_.points.resize(size_pc);
             cloud_.header.frame_id = "map";
-            cloud_.header.stamp = ros::Time::now();
 
             sensor_msgs::ChannelFloat32 intensity_channel;
             intensity_channel.name = "intensity";
@@ -164,17 +169,21 @@ void *PointCloudThread(void *functionData)
             cloud_.channels.push_back(rgb_channel);
 
             sensor_msgs::PointCloud2 PC2_msg;
-            PC2_msg.header.frame_id = "lidar";
-            PC2_msg.header.stamp = ros::Time::now();
-
             sensor_msgs::convertPointCloudToPointCloud2(cloud_, PC2_msg);
-            PC2_pub.publish(PC2_msg);
+            PC2_msg.header.frame_id = "lidar";
+            // m_timestamp format: hhmmsszzz
+            PC2_msg.header.stamp.sec = (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
+                                       (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
+                                       (uint32_t)((m_timestamp / 1000) % 100);         // ss
+            PC2_msg.header.stamp.nsec = (m_timestamp % 1000) * 10e6;                   // zzz
+
+            data->publisher.publish(PC2_msg);
 
             free(m_pointcloud_data);
             points_received = 0;
             pointcloud_index = 1;
         }
-        else if (size_read > 0)
+        else if (size_read > 0) // Data
         {
             if (m_is_reading_pointcloud)
             {
@@ -191,65 +200,106 @@ void *PointCloudThread(void *functionData)
                     m_is_reading_pointcloud = false;
             }
         }
+        // size_read == -1 --> timeout
     }
 
+    data->publisher.shutdown();
+    ROS_INFO("Exiting lidar streaming thread");
     free(buffer);
+    free(m_pointcloud_data);
+
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
+
     pthread_exit(0);
 }
 
-bool isLidarAvailable()
+namespace l3cam_ros
 {
-    int error = L3CAM_OK;
-
-    if (clientGetSensors.call(srvGetSensors))
+    class LidarStream : public SensorStream
     {
-        error = srvGetSensors.response.error;
+    public:
+        explicit LidarStream() : SensorStream()
+        {
+            declareServiceServers("lidar");
+        }
+
+        ros::Publisher publisher_;
+
+    private:
+        void stopListening()
+        {
+            g_listening = false;
+        }
+
+    }; // class LidarStream
+
+} // namespace l3cam_ros
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "lidar_stream");
+
+    l3cam_ros::LidarStream *node = new l3cam_ros::LidarStream();
+
+    // Check if service is available
+    ros::Duration timeout_duration(node->timeout_secs_);
+    if (!node->client_get_sensors_.waitForExistence(timeout_duration))
+    {
+        ROS_ERROR_STREAM(node->getNamespace() << " error: " << getErrorDescription(L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR) << ". Waited " << timeout_duration << " seconds");
+        return L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR;
+    }
+
+    int error = L3CAM_OK;
+    bool sensor_is_available = false;
+    // Shutdown if sensor is not available or if error returned
+    if (node->client_get_sensors_.call(node->srv_get_sensors_))
+    {
+        error = node->srv_get_sensors_.response.error;
 
         if (!error)
-            for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
+        {
+            for (int i = 0; i < node->srv_get_sensors_.response.num_sensors; ++i)
             {
-                if (srvGetSensors.response.sensors[i].sensor_type == sensor_lidar)
-                    return true;
+                if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_lidar && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                {
+                    sensor_is_available = true;
+                }
             }
+        }
         else
         {
-            ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
-            return false;
+            ROS_ERROR_STREAM(node->getNamespace() << " error " << error << " while checking sensor availability in " << __func__ << ": " << getErrorDescription(error));
+            return error;
         }
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_available");
-        return false;
+        ROS_ERROR_STREAM(node->getNamespace() << " error: Failed to call service get_sensors_available");
+        return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
     }
 
-    return false;
-}
-
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "pointcloud_stream");
-    ros::NodeHandle nh;
-
-    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
-
-    if (!isLidarAvailable())
-        return 0;
-
-    PC2_pub = nh.advertise<sensor_msgs::PointCloud2>("/PC2_lidar", 2);
-    pthread_create(&pointcloud_thread, NULL, &PointCloudThread, NULL);
-
-    ros::Rate loop_rate(1);
-    while (ros::ok() && isLidarAvailable())
+    if (sensor_is_available)
     {
-        ros::spinOnce();
-        loop_rate.sleep();
+        ROS_INFO("LiDAR available for streaming");
+    }
+    else
+    {
+        return 0;
     }
 
-    g_listening = false;
-    PC2_pub.shutdown();
+    node->publisher_ = node->advertise<sensor_msgs::PointCloud2>("/PC2_lidar", 10);
 
+    threadData *data = (struct threadData *)malloc(sizeof(struct threadData));
+    data->publisher = node->publisher_;
+    pthread_create(&stream_thread, NULL, &PointCloudThread, (void *)data);
+
+    node->spin();
+
+    node->publisher_.shutdown();
+    g_listening = false;
+    usleep(2000000);
+
+    ros::shutdown();
     return 0;
 }

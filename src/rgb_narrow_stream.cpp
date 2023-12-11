@@ -25,11 +25,7 @@
     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <ros/ros.h>
-
-#include <cv_bridge/cv_bridge.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include "sensor_stream.hpp"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,31 +36,36 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <pthread.h>
 
-#include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/image_encodings.h>
+
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <libL3Cam.h>
 #include <beamagine.h>
 #include <beamErrors.h>
 
-#include "l3cam_ros/GetSensorsAvailable.h"
-
 pthread_t stream_thread;
-
-ros::Publisher pub;
 
 bool g_listening = false;
 
-ros::ServiceClient clientGetSensors;
-l3cam_ros::GetSensorsAvailable srvGetSensors;
+bool g_rgb = false; // true if rgb available, false if narrow available
 
-bool rgb = false; // true if rgb available, false if narrow available
+struct threadData
+{
+    ros::Publisher publisher;
+};
 
 void *ImageThread(void *functionData)
 {
+    threadData *data = (struct threadData *)functionData;
+
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
     std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
@@ -89,6 +90,7 @@ void *ImageThread(void *functionData)
         return 0;
     }
     // else ROS_INFO("Socket RGB created");
+
     memset((char *)&m_socket, 0, sizeof(struct sockaddr_in));
     m_socket.sin_addr.s_addr = inet_addr((char *)m_address.c_str());
     m_socket.sin_family = AF_INET;
@@ -114,8 +116,13 @@ void *ImageThread(void *functionData)
         return 0;
     }
 
+    // 1 second timeout for socket
+    struct timeval read_timeout;
+    read_timeout.tv_sec = 1;
+    setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+
     g_listening = true;
-    if (rgb)
+    if (g_rgb)
         ROS_INFO("RGB streaming");
     else
         ROS_INFO("Allied Narrow streaming");
@@ -125,7 +132,7 @@ void *ImageThread(void *functionData)
     while (g_listening)
     {
         int size_read = recvfrom(m_socket_descriptor, buffer, 64004, 0, (struct sockaddr *)&m_socket, &socket_len);
-        if (size_read == 11)
+        if (size_read == 11) // Header
         {
             memcpy(&m_image_height, &buffer[1], 2);
             memcpy(&m_image_width, &buffer[3], 2);
@@ -150,25 +157,39 @@ void *ImageThread(void *functionData)
             m_is_reading_image = true;
             bytes_count = 0;
         }
-        else if (size_read == 1)
+        else if (size_read == 1) // End, send image
         {
             m_is_reading_image = false;
             bytes_count = 0;
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
 
-            cv::Mat img_data(m_image_height, m_image_width, CV_8UC3, image_pointer);
+            cv::Mat img_data;
+            if (m_image_channels == 1)
+            {
+                img_data = cv::Mat(m_image_height, m_image_width, CV_8UC1, image_pointer);
+            }
+            else if (m_image_channels == 3)
+            {
+                img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
+            }
 
             cv_bridge::CvImage img_bridge;
             sensor_msgs::Image img_msg; // message to be sent
 
-            std_msgs::Header header;         // empty header
-            header.stamp = ros::Time::now(); // time
-            header.frame_id = rgb ? "rgb" : "allied_narrow";
-            img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_data);
+            std_msgs::Header header;
+            header.frame_id = g_rgb ? "rgb" : "allied_narrow";
+            // m_timestamp format: hhmmsszzz
+            header.stamp.sec = (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
+                               (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
+                               (uint32_t)((m_timestamp / 1000) % 100);         // ss
+            header.stamp.nsec = (m_timestamp % 1000) * 10e6;                   // zzz
+
+            img_bridge = cv_bridge::CvImage(header, m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8, img_data);
             img_bridge.toImageMsg(img_msg); // from cv_bridge to sensor_msgs::Image
-            pub.publish(img_msg);
+
+            data->publisher.publish(img_msg);
         }
-        else if (size_read > 0 && m_is_reading_image)
+        else if (size_read > 0) // Data
         {
             if (m_is_reading_image)
             {
@@ -180,9 +201,13 @@ void *ImageThread(void *functionData)
                     m_is_reading_image = false;
             }
         }
+        // size_read == -1 --> timeout
     }
 
+    data->publisher.shutdown();
+    ROS_INFO_STREAM("Exiting " << (g_rgb ? "RGB" : "Allied Narrow") << " streaming thread");
     free(buffer);
+    free(m_image_buffer);
 
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
@@ -190,62 +215,98 @@ void *ImageThread(void *functionData)
     pthread_exit(0);
 }
 
-bool isSensorAvailable(sensorTypes sensor_type)
+namespace l3cam_ros
 {
-    int error = L3CAM_OK;
-
-    if (clientGetSensors.call(srvGetSensors))
+    class RgbNarrowStream : public SensorStream
     {
-        error = srvGetSensors.response.error;
+    public:
+        explicit RgbNarrowStream() : SensorStream()
+        {
+        }
+
+        ros::Publisher publisher_;
+
+    private:
+        void stopListening()
+        {
+            g_listening = false;
+        }
+
+    }; // class RgbNarrowStream
+
+} // namespace l3cam_ros
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "rgb_narrow_stream");
+
+    l3cam_ros::RgbNarrowStream *node = new l3cam_ros::RgbNarrowStream();
+
+    // Check if service is available
+    ros::Duration timeout_duration(node->timeout_secs_);
+    if (!node->client_get_sensors_.waitForExistence(timeout_duration))
+    {
+        ROS_ERROR_STREAM(node->getNamespace() << " error: " << getErrorDescription(L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR) << ". Waited " << timeout_duration << " seconds");
+        return L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR;
+    }
+
+    int error = L3CAM_OK;
+    bool sensor_is_available = false;
+    // Shutdown if sensor is not available or if error returned
+    if (node->client_get_sensors_.call(node->srv_get_sensors_))
+    {
+        error = node->srv_get_sensors_.response.error;
 
         if (!error)
-            for (int i = 0; i < srvGetSensors.response.num_sensors; ++i)
+        {
+            for (int i = 0; i < node->srv_get_sensors_.response.num_sensors; ++i)
             {
-                if (srvGetSensors.response.sensors[i].sensor_type == sensor_type)
-                    return true;
+                if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_econ_rgb && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                {
+                    sensor_is_available = true;
+                    g_rgb = true;
+                }
+                else if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_allied_narrow && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                {
+                    sensor_is_available = true;
+                    g_rgb = false;
+                }
             }
+        }
         else
         {
-            ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
-            return false;
+            ROS_ERROR_STREAM(node->getNamespace() << " error " << error << " while checking sensor availability in " << __func__ << ": " << getErrorDescription(error));
+            return error;
         }
     }
     else
     {
-        ROS_ERROR("Failed to call service get_sensors_available");
-        return false;
+        ROS_ERROR_STREAM(node->getNamespace() << " error: Failed to call service get_sensors_available");
+        return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
     }
 
-    return false;
-}
-
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "rgb_stream");
-    ros::NodeHandle nh;
-
-    clientGetSensors = nh.serviceClient<l3cam_ros::GetSensorsAvailable>("get_sensors_available");
-
-    if (isSensorAvailable(sensor_econ_rgb))
+    if (sensor_is_available)
     {
-        rgb = true;
+        ROS_INFO_STREAM((g_rgb ? "RGB" : "Allied Narrow") << " camera available for streaming");
+        node->declareServiceServers((g_rgb ? "rgb" : "allied_narrow"));
     }
-    else if (!isSensorAvailable(sensor_allied_narrow))
+    else
+    {
         return 0;
-
-    pub = nh.advertise<sensor_msgs::Image>(rgb ? "/img_rgb" : "/img_narrow", 2);
-    pthread_create(&stream_thread, NULL, &ImageThread, NULL);
-
-    ros::Rate loop_rate(1);
-
-    while (ros::ok() && isSensorAvailable(rgb ? sensor_econ_rgb : sensor_allied_narrow))
-    {
-        ros::spinOnce();
-        loop_rate.sleep();
     }
 
-    g_listening = false;
-    pub.shutdown();
+    node->publisher_ = node->advertise<sensor_msgs::Image>(g_rgb ? "/img_rgb" : "/img_narrow", 10);
 
+    threadData *data = (struct threadData *)malloc(sizeof(struct threadData));
+    data->publisher = node->publisher_;
+    pthread_create(&stream_thread, NULL, &ImageThread, (void *)data);
+
+    node->spin();
+
+    node->publisher_.shutdown();
+    g_listening = false;
+    usleep(2000000);
+
+    ros::shutdown();
     return 0;
 }

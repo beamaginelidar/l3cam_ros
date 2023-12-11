@@ -2,6 +2,11 @@
 Changelog for package l3cam_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2023-12-01)
+-----------
+* Updated package to libL3Cam 0.1.15
+* Contributors: Adrià Subirana
+
 0.0.3 (2023-03-23)
 -----------
 * Added allied Wide and Narrow cameras

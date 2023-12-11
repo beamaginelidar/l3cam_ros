@@ -26,6 +26,7 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
+  LibL3camStatus.srv
   GetVersion.srv
   Initialize.srv
   Terminate.srv
@@ -33,6 +34,8 @@ add_service_files(
   GetLocalServerAddress.srv
   GetDeviceStatus.srv
   GetSensorsAvailable.srv
+  ChangeStreamingProtocol.srv
+  GetRtspPipeline.srv
   GetNetworkConfiguration.srv
   ChangeNetworkConfiguration.srv
   PowerOffDevice.srv
@@ -40,6 +43,7 @@ add_service_files(
   StopDevice.srv
   StartStream.srv
   StopStream.srv
+  GetDeviceTemperatures.srv
   ChangePointcloudColor.srv
   ChangePointcloudColorRange.srv
   ChangeDistanceRange.srv
@@ -106,6 +110,7 @@ add_service_files(
   GetAlliedCameraIntensityControllerRegion.srv
   GetAlliedCameraIntensityControllerTarget.srv
   GetAlliedCameraMaxDriverBuffersCount.srv
+  SensorDisconnected.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -121,12 +126,12 @@ generate_messages(
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
   cfg/Network.cfg
-  cfg/Pointcloud.cfg
-  cfg/PolarimetricCamera.cfg
-  cfg/RgbCamera.cfg
-  cfg/ThermalCamera.cfg
-  cfg/AlliedWideCamera.cfg
-  cfg/AlliedNarrowCamera.cfg
+  cfg/Lidar.cfg
+  cfg/Polarimetric.cfg
+  cfg/Rgb.cfg
+  cfg/Thermal.cfg
+  cfg/AlliedWide.cfg
+  cfg/AlliedNarrow.cfg
 )
 
 ###################################
@@ -149,42 +154,42 @@ include_directories(
 ## Declare C++ executables
 add_executable(${PROJECT_NAME}_node src/l3cam_ros_node.cpp)
 add_executable(network_configuration src/network_configuration.cpp)
-add_executable(pointcloud_configuration src/pointcloud_configuration.cpp)
-add_executable(polarimetric_camera_configuration src/polarimetric_camera_configuration.cpp)
-add_executable(rgb_camera_configuration src/rgb_camera_configuration.cpp)
-add_executable(thermal_camera_configuration src/thermal_camera_configuration.cpp)
-add_executable(allied_wide_camera_configuration src/allied_wide_camera_configuration.cpp)
-add_executable(allied_narrow_camera_configuration src/allied_narrow_camera_configuration.cpp)
-add_executable(pointcloud_stream src/pointcloud_stream.cpp)
-add_executable(polarimetric_stream src/polarimetric_stream.cpp)
-add_executable(rgb_stream src/rgb_stream.cpp)
-add_executable(thermal_stream src/thermal_stream.cpp)
+add_executable(lidar_configuration src/lidar_configuration.cpp)
+add_executable(polarimetric_configuration src/polarimetric_configuration.cpp)
+add_executable(rgb_configuration src/rgb_configuration.cpp)
+add_executable(thermal_configuration src/thermal_configuration.cpp)
+add_executable(allied_wide_configuration src/allied_wide_configuration.cpp)
+add_executable(allied_narrow_configuration src/allied_narrow_configuration.cpp)
+add_executable(lidar_stream src/lidar_stream.cpp src/sensor_stream.cpp)
+add_executable(polarimetric_wide_stream src/polarimetric_wide_stream.cpp src/sensor_stream.cpp)
+add_executable(rgb_narrow_stream src/rgb_narrow_stream.cpp src/sensor_stream.cpp)
+add_executable(thermal_stream src/thermal_stream.cpp src/sensor_stream.cpp)
 
 ## Add cmake target dependencies of the executable
 add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_gencpp)
 add_dependencies(network_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
-add_dependencies(pointcloud_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
-add_dependencies(polarimetric_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
-add_dependencies(rgb_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
-add_dependencies(thermal_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
-add_dependencies(allied_wide_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
-add_dependencies(allied_narrow_camera_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
-add_dependencies(pointcloud_stream ${PROJECT_NAME}_gencpp) 
-add_dependencies(polarimetric_stream ${PROJECT_NAME}_gencpp) 
-add_dependencies(rgb_stream ${PROJECT_NAME}_gencpp) 
+add_dependencies(lidar_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(polarimetric_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(rgb_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(thermal_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(allied_wide_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(allied_narrow_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+add_dependencies(lidar_stream ${PROJECT_NAME}_gencpp) 
+add_dependencies(polarimetric_wide_stream ${PROJECT_NAME}_gencpp) 
+add_dependencies(rgb_narrow_stream ${PROJECT_NAME}_gencpp) 
 add_dependencies(thermal_stream ${PROJECT_NAME}_gencpp) 
 
 ## Specify libraries to link a library or executable target against
 FIND_LIBRARY(l3cam_LIBRARIES libL3Cam.a /usr/local/lib/libl3cam/)
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(network_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(pointcloud_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(polarimetric_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(rgb_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(thermal_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(allied_wide_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(allied_narrow_camera_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(pointcloud_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(polarimetric_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
-target_link_libraries(rgb_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(lidar_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(polarimetric_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(rgb_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(thermal_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(allied_wide_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(allied_narrow_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(lidar_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(polarimetric_wide_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(rgb_narrow_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(thermal_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})

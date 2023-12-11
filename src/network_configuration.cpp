@@ -35,138 +35,232 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
+#include "l3cam_ros/GetNetworkConfiguration.h"
 #include "l3cam_ros/ChangeNetworkConfiguration.h"
 
-ros::ServiceClient client;
-l3cam_ros::ChangeNetworkConfiguration srv;
+#include "l3cam_ros/SensorDisconnected.h"
 
-std::string change_network_configuration_ip_address;
-std::string change_network_configuration_netmask;
-std::string change_network_configuration_gateway;
-bool enable_network_configuration_dhcp;
+#include "l3cam_ros_utils.hpp"
 
-bool default_configured = false;
-
-void callback(l3cam_ros::NetworkConfig &config, uint32_t level)
+namespace l3cam_ros
 {
-    int error = L3CAM_OK;
-
-    if (!default_configured)
+    class NetworkConfiguration : public ros::NodeHandle
     {
-        config.change_network_configuration_ip_address = change_network_configuration_ip_address;
-        config.change_network_configuration_netmask = change_network_configuration_netmask;
-        config.change_network_configuration_gateway = change_network_configuration_gateway;
-        config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
-
-        default_configured = true;
-    }
-    else
-    {
-        switch (level)
+    public:
+        explicit NetworkConfiguration() : ros::NodeHandle("~")
         {
-        case 0:
-            srv.request.ip_address = config.change_network_configuration_ip_address;
-            srv.request.netmask = change_network_configuration_netmask;
-            srv.request.gateway = change_network_configuration_gateway;
-            srv.request.enable_dhcp = enable_network_configuration_dhcp;
-            if (client.call(srv))
-            {
-                error = srv.response.error;
-                if (!error)
-                    change_network_configuration_ip_address = config.change_network_configuration_ip_address;
-                else
-                    config.change_network_configuration_ip_address = change_network_configuration_ip_address;
-            }
-            else
-            {
-                ROS_ERROR("Failed to call service change_network_configuration");
-                config.change_network_configuration_ip_address = change_network_configuration_ip_address;
-            }
-            break;
-        case 1:
-            srv.request.ip_address = change_network_configuration_ip_address;
-            srv.request.netmask = config.change_network_configuration_netmask;
-            srv.request.gateway = change_network_configuration_gateway;
-            srv.request.enable_dhcp = enable_network_configuration_dhcp;
-            if (client.call(srv))
-            {
-                error = srv.response.error;
-                if (!error)
-                    change_network_configuration_netmask = config.change_network_configuration_netmask;
-                else
-                    config.change_network_configuration_netmask = change_network_configuration_netmask;
-            }
-            else
-            {
-                ROS_ERROR("Failed to call service change_network_configuration");
-                config.change_network_configuration_netmask = change_network_configuration_netmask;
-            }
-            break;
-        case 2:
-            srv.request.ip_address = change_network_configuration_ip_address;
-            srv.request.netmask = change_network_configuration_netmask;
-            srv.request.gateway = config.change_network_configuration_gateway;
-            srv.request.enable_dhcp = enable_network_configuration_dhcp;
-            if (client.call(srv))
-            {
-                error = srv.response.error;
-                if (!error)
-                    change_network_configuration_gateway = config.change_network_configuration_gateway;
-                else
-                    config.change_network_configuration_gateway = change_network_configuration_gateway;
-            }
-            else
-            {
-                ROS_ERROR("Failed to call service change_network_configuration");
-                config.change_network_configuration_gateway = change_network_configuration_gateway;
-            }
-            break;
-        case 3:
-            srv.request.ip_address = change_network_configuration_ip_address;
-            srv.request.netmask = change_network_configuration_netmask;
-            srv.request.gateway = change_network_configuration_gateway;
-            srv.request.enable_dhcp = config.enable_network_configuration_dhcp;
-            if (client.call(srv))
-            {
-                error = srv.response.error;
-                if (!error)
-                    enable_network_configuration_dhcp = config.enable_network_configuration_dhcp;
-                else
-                    config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
-            }
-            else
-            {
-                ROS_ERROR("Failed to call service change_network_configuration");
-                config.enable_network_configuration_dhcp = enable_network_configuration_dhcp;
-            }
-            break;
-        }
-    }
+            // Create service clients
+            client_get_ = serviceClient<l3cam_ros::GetNetworkConfiguration>("/L3Cam/l3cam_ros_node/get_network_configuration");
+            client_change_ = serviceClient<l3cam_ros::ChangeNetworkConfiguration>("/L3Cam/l3cam_ros_node/change_network_configuration");
 
-    if (error)
-        ROS_ERROR_STREAM('(' << error << ") " << getBeamErrorDescription(error));
-}
+            // Create service server
+            srv_sensor_disconnected_ = advertiseService("network_configuration_disconnected", &NetworkConfiguration::sensorDisconnectedCallback, this);
+
+            loadParam("timeout_secs", timeout_secs_, 60);
+
+            m_default_configured = false;
+            m_shutdown_requested = false;
+        }
+
+        void spin()
+        {
+            while (ros::ok() && !m_shutdown_requested)
+            {
+                ros::spinOnce();
+                ros::Duration(0.1).sleep();
+            }
+
+            ros::shutdown();
+        }
+
+        int getNetworkConfiguration()
+        {
+            // Check if service is available
+            ros::Duration timeout_duration(timeout_secs_);
+            if (!client_get_.waitForExistence(timeout_duration))
+            {
+                ROS_ERROR_STREAM(this->getNamespace() << " error: " << getErrorDescription(L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR) << ". Waited " << timeout_duration << " seconds");
+                return L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR;
+            }
+
+            int error = L3CAM_OK;
+            if (client_get_.call(srv_get_))
+            {
+                error = srv_get_.response.error;
+
+                if (!error)
+                {
+                    ip_address_ = srv_get_.response.ip_address;
+                    netmask_ = srv_get_.response.netmask;
+                    gateway_ = srv_get_.response.gateway;
+                    dhcp_ = false;
+
+                    setDynamicReconfigure();
+                }
+                else
+                {
+                    ROS_ERROR_STREAM(this->getNamespace() << " error " << error << " while getting network configuration in " << __func__ << ": " << getErrorDescription(error));
+                    return error;
+                }
+            }
+            else
+            {
+                ROS_ERROR_STREAM(this->getNamespace() << " error: Failed to call service get_network_configuration");
+                return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
+            }
+
+            return error;
+        }
+
+        ros::ServiceClient client_get_;
+        l3cam_ros::GetNetworkConfiguration srv_get_;
+
+    private:
+        void setDynamicReconfigure()
+        {
+            // Dynamic reconfigure callback
+            server_.setCallback(std::bind(&NetworkConfiguration::parametersCallback, this, std::placeholders::_1, std::placeholders::_2));
+        }
+
+        template <typename T>
+        void loadParam(const std::string &param_name, T &param_var, const T &default_val)
+        {
+            std::string full_param_name;
+
+            if (searchParam(param_name, full_param_name))
+            {
+                if(!getParam(full_param_name, param_var))
+            {
+                ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+            }
+            }
+            else
+            {
+                ROS_WARN_STREAM("Parameter '" << param_name << "' not defined");
+                param_var = default_val;
+            }
+        }
+
+        void parametersCallback(l3cam_ros::NetworkConfig &config, uint32_t level)
+        {
+            int error = L3CAM_OK;
+
+            if (!m_default_configured)
+            {
+                config.ip_address = ip_address_;
+                config.netmask = netmask_;
+                config.gateway = gateway_;
+                config.dhcp = dhcp_;
+
+                m_default_configured = true;
+            }
+            else
+            {
+                error = callNetwork(config);
+            }
+
+            if (error)
+            {
+                ROS_ERROR_STREAM(this->getNamespace() << " error " << error << " while changing parameter: " << getErrorDescription(error));
+            }
+        }
+
+        // Sensor calls
+        int callNetwork(l3cam_ros::NetworkConfig &config)
+        {
+            int error = L3CAM_OK;
+
+            srv_change_.request.ip_address = config.ip_address;
+            srv_change_.request.netmask = config.netmask;
+            srv_change_.request.gateway = config.gateway;
+            srv_change_.request.enable_dhcp = config.dhcp;
+            if (client_change_.call(srv_change_))
+            {
+                error = srv_change_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    ip_address_ = config.ip_address;
+                    netmask_ = config.netmask;
+                    gateway_ = config.gateway;
+                    dhcp_ = config.dhcp;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.ip_address = ip_address_;
+                    config.netmask = netmask_;
+                    config.gateway = gateway_;
+                    config.dhcp = dhcp_;
+                }
+            }
+            else
+            {
+                // Service could not be called, reset parameter to value before change
+                config.ip_address = ip_address_;
+                config.netmask = netmask_;
+                config.gateway = gateway_;
+                config.dhcp = dhcp_;
+                return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
+            }
+
+            return error;
+        }
+
+        bool sensorDisconnectedCallback(l3cam_ros::SensorDisconnected::Request &req, l3cam_ros::SensorDisconnected::Response &res)
+        {
+            ROS_BMG_UNUSED(res);
+            if (req.code == 0)
+            {
+                ROS_INFO_STREAM("Exiting " << this->getNamespace() << " cleanly.");
+            }
+            else
+            {
+                ROS_WARN_STREAM("Exiting " << this->getNamespace() << ". Sensor got disconnected with error " << req.code << ": " << getErrorDescription(req.code));
+            }
+
+            m_shutdown_requested = true;
+            return true;
+        }
+
+        dynamic_reconfigure::Server<l3cam_ros::NetworkConfig> server_;
+
+        ros::ServiceClient client_change_;
+        l3cam_ros::ChangeNetworkConfiguration srv_change_;
+
+        ros::ServiceServer srv_sensor_disconnected_;
+
+        std::string ip_address_;
+        std::string netmask_;
+        std::string gateway_;
+        bool dhcp_;
+
+        int timeout_secs_;
+
+        bool m_default_configured;
+        bool m_shutdown_requested;
+
+    }; // class NetworkConfiguration
+
+} // namespace l3cam_ros
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "network_configuration");
-    ros::NodeHandle nh;
 
-    // TODO: GET_NETWORK_CONFIGURATION and use as default
+    l3cam_ros::NetworkConfiguration *node = new l3cam_ros::NetworkConfiguration();
 
-    dynamic_reconfigure::Server<l3cam_ros::NetworkConfig> server;
-    dynamic_reconfigure::Server<l3cam_ros::NetworkConfig>::CallbackType f;
-    f = boost::bind(&callback, _1, _2);
-    server.setCallback(f);
-
-    client = nh.serviceClient<l3cam_ros::ChangeNetworkConfiguration>("change_network_configuration");
-
-    ros::Rate loop_rate(100);
-    while (ros::ok())
+    // Shutdown if error returned
+    int error = node->getNetworkConfiguration();
+    if (error)
     {
-        ros::spinOnce();
-        loop_rate.sleep();
+        return error;
     }
 
+    ROS_INFO("Network configuration is available");
+
+    node->spin();
+
+    ros::shutdown();
     return 0;
 }
