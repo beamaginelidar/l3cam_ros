@@ -27,6 +27,15 @@ cd ~/catkin_ws/src && git clone https://github.com/beamaginelidar/l3cam_ros
 catkin_make
 ```
 
+### Access Permission
+
+You will need to give permission to the cfg files.
+
+```
+cd ~/catkin_ws/src/l3cam_ros/cfg
+chmod a+x Network.cfg Lidar.cfg Polarimetric.cfg Rgb.cfg Thermal.cfg AlliedWide.cfg AlliedNarrow.cfg
+```
+
 ## Operational Advice
 
 ### Jumbo frames
