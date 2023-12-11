@@ -2,7 +2,7 @@
 Changelog for package l3cam_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.0.0 (2023-12-01)
+1.0.0 (2023-12-11)
 -----------
 * Updated package to libL3Cam 0.1.15
 * Contributors: Adrià Subirana
