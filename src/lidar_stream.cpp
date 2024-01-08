@@ -172,29 +172,29 @@ void *PointCloudThread(void *functionData)
                                           "rgb", 1, sensor_msgs::PointField::UINT32);
 
             // Iterators for PointCloud msg
-            sensor_msgs::PointCloud2Iterator<float> iterX(pcl_msg, pcl_msg.fields[0].name);
-            sensor_msgs::PointCloud2Iterator<float> iterY(pcl_msg, pcl_msg.fields[1].name);
-            sensor_msgs::PointCloud2Iterator<float> iterZ(pcl_msg, pcl_msg.fields[2].name);
-            sensor_msgs::PointCloud2Iterator<uint16_t> iterIntensity(pcl_msg, pcl_msg.fields[3].name);
-            sensor_msgs::PointCloud2Iterator<uint32_t> iterRgb(pcl_msg, pcl_msg.fields[4].name);
+            sensor_msgs::PointCloud2Iterator<float> iter_x(pcl_msg, pcl_msg.fields[0].name);
+            sensor_msgs::PointCloud2Iterator<float> iter_y(pcl_msg, pcl_msg.fields[1].name);
+            sensor_msgs::PointCloud2Iterator<float> iter_z(pcl_msg, pcl_msg.fields[2].name);
+            sensor_msgs::PointCloud2Iterator<uint16_t> iter_intensity(pcl_msg, pcl_msg.fields[3].name);
+            sensor_msgs::PointCloud2Iterator<uint32_t> iter_rgb(pcl_msg, pcl_msg.fields[4].name);
 
             for (int i = 0; i < size_pc; ++i)
             {
-                *iterY = -(float)data_received[5 * i + 1] / 1000.0;
+                *iter_y = -(float)data_received[5 * i + 1] / 1000.0;
 
-                *iterZ = -(float)data_received[5 * i + 2] / 1000.0;
+                *iter_z = -(float)data_received[5 * i + 2] / 1000.0;
 
-                *iterX = (float)data_received[5 * i + 3] / 1000.0;
+                *iter_x = (float)data_received[5 * i + 3] / 1000.0;
 
-                *iterIntensity = (uint16_t)data_received[5 * i + 4];
+                *iter_intensity = (uint16_t)data_received[5 * i + 4];
 
-                *iterRgb = (uint32_t)data_received[5 * i + 5];
+                *iter_rgb = (uint32_t)data_received[5 * i + 5];
 
-                ++iterY;
-                ++iterZ;
-                ++iterX;
-                ++iterIntensity;
-                ++iterRgb;
+                ++iter_y;
+                ++iter_z;
+                ++iter_x;
+                ++iter_intensity;
+                ++iter_rgb;
             }
 
             data->publisher.publish(pcl_msg);
