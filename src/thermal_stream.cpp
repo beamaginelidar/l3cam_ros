@@ -56,8 +56,6 @@ pthread_t stream_f_thread;
 
 bool g_listening = false;
 
-int utc = 1; // UTC +1
-
 struct threadData
 {
     ros::Publisher publisher;
@@ -187,7 +185,7 @@ void *ImageThread(void *functionData)
             header.stamp.sec = (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
                                (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
-            header.stamp.nsec = (m_timestamp % 1000) * 10e6;                   // zzz
+            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                   // zzz
 
             const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
             sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
@@ -286,12 +284,12 @@ void *FloatImageThread(void *functionData)
             std::tm *time_info = std::localtime(&raw_time);
             time_info->tm_sec = 0;
             time_info->tm_min = 0;
-            time_info->tm_hour = utc;
+            time_info->tm_hour = 0;
             header.stamp.sec = std::mktime(time_info) +
                                (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
                                (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
-            header.stamp.nsec = (m_timestamp % 1000) * 10e6;                   // zzz
+            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                   // zzz
 
             sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_32FC1, float_image).toImageMsg();
 
