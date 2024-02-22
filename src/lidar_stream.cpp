@@ -52,6 +52,8 @@ pthread_t stream_thread;
 
 bool g_listening = false;
 
+int utc = 1; // UTC +1
+
 struct threadData
 {
     ros::Publisher publisher;
@@ -148,7 +150,13 @@ void *PointCloudThread(void *functionData)
             pcl_msg.header = std_msgs::Header();
             pcl_msg.header.frame_id = "lidar";
             // m_timestamp format: hhmmsszzz
-            pcl_msg.header.stamp.sec = (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
+            time_t raw_time = ros::Time::now().toSec();
+            std::tm *time_info = std::localtime(&raw_time);
+            time_info->tm_sec = 0;
+            time_info->tm_min = 0;
+            time_info->tm_hour = utc;
+            pcl_msg.header.stamp.sec = std::mktime(time_info) +
+                                       (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
                                        (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                        (uint32_t)((m_timestamp / 1000) % 100);         // ss
             pcl_msg.header.stamp.nsec = (m_timestamp % 1000) * 10e6;                   // zzz

@@ -56,6 +56,8 @@ pthread_t stream_f_thread;
 
 bool g_listening = false;
 
+int utc = 1; // UTC +1
+
 struct threadData
 {
     ros::Publisher publisher;
@@ -280,7 +282,13 @@ void *FloatImageThread(void *functionData)
             std_msgs::Header header;
             header.frame_id = "f_thermal";
             // m_timestamp format: hhmmsszzz
-            header.stamp.sec = (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
+            time_t raw_time = ros::Time::now().toSec();
+            std::tm *time_info = std::localtime(&raw_time);
+            time_info->tm_sec = 0;
+            time_info->tm_min = 0;
+            time_info->tm_hour = utc;
+            header.stamp.sec = std::mktime(time_info) +
+                               (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
                                (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 10e6;                   // zzz
