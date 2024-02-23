@@ -125,7 +125,7 @@ void *ImageThread(void *functionData)
     char *m_image_buffer = NULL;
     int bytes_count = 0;
 
-    if(!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
+    if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
     {
         return 0;
     }
@@ -185,7 +185,7 @@ void *ImageThread(void *functionData)
             header.stamp.sec = (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
                                (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
-            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                   // zzz
+            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
             const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
             sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
@@ -234,7 +234,7 @@ void *FloatImageThread(void *functionData)
     bool m_is_reading_image = false;
     int bytes_count = 0;
 
-    if(!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
+    if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
     {
         return 0;
     }
@@ -275,7 +275,7 @@ void *FloatImageThread(void *functionData)
             float_pointer_cnt = 0;
 
             cv::Mat float_image = cv::Mat(m_image_height, m_image_width, CV_32FC1, thermal_data_pointer);
-            
+
             // publish float image
             std_msgs::Header header;
             header.frame_id = "f_thermal";
@@ -289,12 +289,11 @@ void *FloatImageThread(void *functionData)
                                (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
                                (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
-            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                   // zzz
+            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
             sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_32FC1, float_image).toImageMsg();
 
             data->publisher.publish(img_msg);
-
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {

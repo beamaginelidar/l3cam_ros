@@ -157,7 +157,7 @@ void *PointCloudThread(void *functionData)
                                        (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
                                        (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                        (uint32_t)((m_timestamp / 1000) % 100);         // ss
-            pcl_msg.header.stamp.nsec = (m_timestamp % 1000) * 1e6;                   // zzz
+            pcl_msg.header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
             pcl_msg.height = 1;
             pcl_msg.width = size_pc;
