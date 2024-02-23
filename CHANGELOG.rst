@@ -2,6 +2,9 @@
 Changelog for package l3cam_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Changed sensors header stamps to unix epoch timestamp
+- Added topic for thermal float (pixels with temperature values)
+
 1.0.0 (2023-12-11)
 -----------
 * Updated package to libL3Cam 0.1.15
