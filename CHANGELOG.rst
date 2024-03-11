@@ -3,7 +3,10 @@ Changelog for package l3cam_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Changed sensors header stamps to unix epoch timestamp
+- Allied cameras stream in YUV
 - Added topic for thermal float (pixels with temperature values)
+- New libl3cam thermal camera functionalities
+- Added device info service
 
 1.0.0 (2023-12-11)
 -----------
