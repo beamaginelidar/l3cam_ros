@@ -32,6 +32,7 @@ add_service_files(
   Terminate.srv
   FindDevices.srv
   GetLocalServerAddress.srv
+  GetDeviceInfo.srv
   GetDeviceStatus.srv
   GetSensorsAvailable.srv
   ChangeStreamingProtocol.srv
@@ -70,8 +71,10 @@ add_service_files(
   EnableRgbCameraAutoExposureTime.srv
   ChangeRgbCameraExposureTime.srv
   ChangeThermalCameraColormap.srv
-  ChangeThermalCameraTemperatureFilter.srv
   EnableThermalCameraTemperatureFilter.srv
+  ChangeThermalCameraTemperatureFilter.srv
+  ChangeThermalCameraPipeline.srv
+  EnableThermalCameraTemperatureDataUdp.srv
   ChangeAlliedCameraExposureTime.srv
   EnableAlliedCameraAutoExposureTime.srv
   ChangeAlliedCameraAutoExposureTimeRange.srv
