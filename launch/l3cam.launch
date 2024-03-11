@@ -61,10 +61,12 @@
         <arg name="rgb_rtsp_pipeline" default="" />
 
         <!-- Thermal configuration -->
-        <arg name="thermal_colormap" default="1" /> <!-- see thermalTypes -->
+        <arg name="thermal_colormap" default="1" /> <!-- see newThermalTypes -->
         <arg name="thermal_temperature_filter" default="false" />
         <arg name="thermal_temperature_filter_min" default="0" /> <!-- -40 - 200 -->
         <arg name="thermal_temperature_filter_max" default="50" /> <!-- -40 - 200 -->
+        <arg name="thermal_pipeline" default="0" /> <!-- see thermalPipelines -->
+        <arg name="thermal_temperature_data_udp" default="false" />
         <arg name="thermal_streaming_protocol" default="0" /> <!-- 0(protocol_raw_udp), 1(protocol_gstreamer) -->
         <arg name="thermal_rtsp_pipeline" default="" />
 
@@ -173,6 +175,8 @@
             <param name="thermal_temperature_filter" value="$(arg thermal_temperature_filter)" type="bool" />
             <param name="thermal_temperature_filter_min" value="$(arg thermal_temperature_filter_min)" type="int" />
             <param name="thermal_temperature_filter_max" value="$(arg thermal_temperature_filter_max)" type="int" />
+            <param name="thermal_pipeline" value="$(arg thermal_pipeline)" type="int" />
+            <param name="thermal_temperature_data_udp" value="$(arg thermal_temperature_data_udp)" type="bool" />
             <param name="thermal_streaming_protocol" value="$(arg thermal_streaming_protocol)" type="int" />
             <param name="thermal_rtsp_pipeline" value="$(arg thermal_rtsp_pipeline)" type="str" />
             
@@ -270,6 +274,8 @@
             <arg name="thermal_temperature_filter" value="$(arg thermal_temperature_filter)" />
             <arg name="thermal_temperature_filter_min" value="$(arg thermal_temperature_filter_min)" />
             <arg name="thermal_temperature_filter_max" value="$(arg thermal_temperature_filter_max)" />
+            <arg name="thermal_pipeline" value="$(arg thermal_pipeline)" />
+            <arg name="thermal_temperature_data_udp" value="$(arg thermal_temperature_data_udp)" />
             <arg name="thermal_streaming_protocol" value="$(arg thermal_streaming_protocol)" />
 
             <arg name="allied_wide_exposure_time" value="$(arg allied_wide_exposure_time)" />

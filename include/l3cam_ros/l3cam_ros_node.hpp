@@ -37,6 +37,7 @@
 #include "l3cam_ros/Terminate.h"
 #include "l3cam_ros/FindDevices.h"
 #include "l3cam_ros/GetLocalServerAddress.h"
+#include "l3cam_ros/GetDeviceInfo.h"
 #include "l3cam_ros/GetDeviceStatus.h"
 #include "l3cam_ros/GetSensorsAvailable.h"
 #include "l3cam_ros/ChangeStreamingProtocol.h"
@@ -79,8 +80,10 @@
 #include "l3cam_ros/ChangeRgbCameraExposureTime.h"
 
 #include "l3cam_ros/ChangeThermalCameraColormap.h"
-#include "l3cam_ros/ChangeThermalCameraTemperatureFilter.h"
 #include "l3cam_ros/EnableThermalCameraTemperatureFilter.h"
+#include "l3cam_ros/ChangeThermalCameraTemperatureFilter.h"
+#include "l3cam_ros/ChangeThermalCameraPipeline.h"
+#include "l3cam_ros/EnableThermalCameraTemperatureDataUdp.h"
 
 #include "l3cam_ros/ChangeAlliedCameraExposureTime.h"
 #include "l3cam_ros/EnableAlliedCameraAutoExposureTime.h"
@@ -169,6 +172,7 @@ namespace l3cam_ros
         bool terminate(l3cam_ros::Terminate::Request &req, l3cam_ros::Terminate::Response &res);
         bool findDevices(l3cam_ros::FindDevices::Request &req, l3cam_ros::FindDevices::Response &res);
         bool getLocalServerAddress(l3cam_ros::GetLocalServerAddress::Request &req, l3cam_ros::GetLocalServerAddress::Response &res);
+        bool getDeviceInfo(l3cam_ros::GetDeviceInfo::Request &req, l3cam_ros::GetDeviceInfo::Response &res);
         bool getDeviceStatus(l3cam_ros::GetDeviceStatus::Request &req, l3cam_ros::GetDeviceStatus::Response &res);
         bool getSensorsAvailable(l3cam_ros::GetSensorsAvailable::Request &req, l3cam_ros::GetSensorsAvailable::Response &res);
         bool changeStreamingProtocol(l3cam_ros::ChangeStreamingProtocol::Request &req, l3cam_ros::ChangeStreamingProtocol::Response &res);
@@ -207,8 +211,10 @@ namespace l3cam_ros
         bool enableRgbCameraAutoExposureTime(l3cam_ros::EnableRgbCameraAutoExposureTime::Request &req, l3cam_ros::EnableRgbCameraAutoExposureTime::Response &res);
         bool changeRgbCameraExposureTime(l3cam_ros::ChangeRgbCameraExposureTime::Request &req, l3cam_ros::ChangeRgbCameraExposureTime::Response &res);
         bool changeThermalCameraColormap(l3cam_ros::ChangeThermalCameraColormap::Request &req, l3cam_ros::ChangeThermalCameraColormap::Response &res);
-        bool changeThermalCameraTemperatureFilter(l3cam_ros::ChangeThermalCameraTemperatureFilter::Request &req, l3cam_ros::ChangeThermalCameraTemperatureFilter::Response &res);
         bool enableThermalCameraTemperatureFilter(l3cam_ros::EnableThermalCameraTemperatureFilter::Request &req, l3cam_ros::EnableThermalCameraTemperatureFilter::Response &res);
+        bool changeThermalCameraTemperatureFilter(l3cam_ros::ChangeThermalCameraTemperatureFilter::Request &req, l3cam_ros::ChangeThermalCameraTemperatureFilter::Response &res);
+        bool changeThermalCameraPipeline(l3cam_ros::ChangeThermalCameraPipeline::Request &req, l3cam_ros::ChangeThermalCameraPipeline::Response &res);
+        bool enableThermalCameraTemperatureDataUdp(l3cam_ros::EnableThermalCameraTemperatureDataUdp::Request &req, l3cam_ros::EnableThermalCameraTemperatureDataUdp::Response &res);
         bool changeAlliedCameraExposureTime(l3cam_ros::ChangeAlliedCameraExposureTime::Request &req, l3cam_ros::ChangeAlliedCameraExposureTime::Response &res);
         bool enableAlliedCameraAutoExposureTime(l3cam_ros::EnableAlliedCameraAutoExposureTime::Request &req, l3cam_ros::EnableAlliedCameraAutoExposureTime::Response &res);
         bool changeAlliedCameraAutoExposureTimeRange(l3cam_ros::ChangeAlliedCameraAutoExposureTimeRange::Request &req, l3cam_ros::ChangeAlliedCameraAutoExposureTimeRange::Response &res);
@@ -264,6 +270,7 @@ namespace l3cam_ros
         ros::ServiceServer srv_terminate_;
         ros::ServiceServer srv_find_devices_;
         ros::ServiceServer srv_get_local_server_address_;
+        ros::ServiceServer srv_get_device_info_;
         ros::ServiceServer srv_get_device_status_;
         ros::ServiceServer srv_get_sensors_available_;
         ros::ServiceServer srv_change_streaming_protocol_;
@@ -306,8 +313,10 @@ namespace l3cam_ros
         ros::ServiceServer srv_change_rgb_exposure_time_;
 
         ros::ServiceServer srv_change_thermal_colormap_;
-        ros::ServiceServer srv_change_thermal_temperature_filter_;
         ros::ServiceServer srv_enable_thermal_temperature_filter_;
+        ros::ServiceServer srv_change_thermal_temperature_filter_;
+        ros::ServiceServer srv_change_thermal_pipeline_;
+        ros::ServiceServer srv_enable_thermal_temperature_data_udp_;
 
         ros::ServiceServer srv_change_allied_exposure_time_;
         ros::ServiceServer srv_enable_allied_auto_exposure_time_;
