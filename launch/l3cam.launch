@@ -65,7 +65,7 @@
         <arg name="thermal_temperature_filter" default="false" />
         <arg name="thermal_temperature_filter_min" default="0" /> <!-- -40 - 200 -->
         <arg name="thermal_temperature_filter_max" default="50" /> <!-- -40 - 200 -->
-        <arg name="thermal_pipeline" default="0" /> <!-- see thermalPipelines -->
+        <arg name="thermal_pipeline" default="1" /> <!-- see thermalPipelines -->
         <arg name="thermal_temperature_data_udp" default="false" />
         <arg name="thermal_streaming_protocol" default="0" /> <!-- 0(protocol_raw_udp), 1(protocol_gstreamer) -->
         <arg name="thermal_rtsp_pipeline" default="" />

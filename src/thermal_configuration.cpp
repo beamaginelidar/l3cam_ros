@@ -60,7 +60,7 @@ namespace l3cam_ros
             client_enable_temperature_filter_ = serviceClient<l3cam_ros::EnableThermalCameraTemperatureFilter>("/L3Cam/l3cam_ros_node/enable_thermal_temperature_filter");
             client_temperature_filter_ = serviceClient<l3cam_ros::ChangeThermalCameraTemperatureFilter>("/L3Cam/l3cam_ros_node/change_thermal_temperature_filter");
             client_pipeline_ = serviceClient<l3cam_ros::ChangeThermalCameraPipeline>("/L3Cam/l3cam_ros_node/change_thermal_pipeline");
-            client_temperature_data_udp_ = serviceClient<l3cam_ros::EnableThermalCameraTemperatureDataUdp>("/L3Cam/l3cam_ros_node/change_thermal_temperature_data_udp");
+            client_temperature_data_udp_ = serviceClient<l3cam_ros::EnableThermalCameraTemperatureDataUdp>("/L3Cam/l3cam_ros_node/enable_thermal_temperature_data_udp");
             client_change_streaming_protocol_ = serviceClient<l3cam_ros::ChangeStreamingProtocol>("/L3Cam/l3cam_ros_node/change_streaming_protocol");
             client_get_rtsp_pipeline_ = serviceClient<l3cam_ros::GetRtspPipeline>("/L3Cam/l3cam_ros_node/get_rtsp_pipeline");
 
