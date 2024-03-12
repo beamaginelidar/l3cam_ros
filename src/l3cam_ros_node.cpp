@@ -329,7 +329,7 @@ namespace l3cam_ros
         srv_change_thermal_colormap_ = advertiseService("change_thermal_colormap", &L3Cam::changeThermalCameraColormap, this);
         srv_enable_thermal_temperature_filter_ = advertiseService("enable_thermal_temperature_filter", &L3Cam::enableThermalCameraTemperatureFilter, this);
         srv_change_thermal_temperature_filter_ = advertiseService("change_thermal_temperature_filter", &L3Cam::changeThermalCameraTemperatureFilter, this);
-        srv_change_thermal_pipeline_ = advertiseService("change_thermal_pipeline", &L3Cam::changeThermalCameraPipeline, this);
+        srv_change_thermal_processing_pipeline_ = advertiseService("change_thermal_processing_pipeline", &L3Cam::changeThermalCameraProcessingPipeline, this);
         srv_enable_thermal_temperature_data_udp_ = advertiseService("enable_thermal_temperature_data_udp", &L3Cam::enableThermalCameraTemperatureDataUdp, this);
 
         client_thermal_stream_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/thermal_stream/thermal_stream_disconnected");
@@ -718,12 +718,12 @@ namespace l3cam_ros
         int thermal_temperature_filter_max;
         loadParam("thermal_temperature_filter_max", thermal_temperature_filter_max, 50);
         printDefaultError(CHANGE_THERMAL_CAMERA_TEMPERATURE_FILTER(m_devices[0], thermal_temperature_filter_min, thermal_temperature_filter_max), "thermal_temperature_filter_max");
-        int thermal_pipeline;
-        loadParam("thermal_pipeline", thermal_pipeline, 1);
-        printDefaultError(CHANGE_THERMAL_PIPELINE(m_devices[0], thermal_pipeline), "thermal_pipeline");
+        int thermal_processing_pipeline;
+        loadParam("thermal_processing_pipeline", thermal_processing_pipeline, 1);
+        printDefaultError(CHANGE_THERMAL_CAMERA_PROCESSING_PIPELINE(m_devices[0], thermal_processing_pipeline), "thermal_processing_pipeline");
         bool thermal_temperature_data_udp;
         loadParam("thermal_temperature_data_udp", thermal_temperature_data_udp, false);
-        printDefaultError(ENABLE_THERMAL_TEMPERATURE_DATA_UDP(m_devices[0], thermal_temperature_data_udp), "thermal_temperature_data_udp");
+        printDefaultError(ENABLE_THERMAL_CAMERA_TEMPERATURE_DATA_UDP(m_devices[0], thermal_temperature_data_udp), "thermal_temperature_data_udp");
         int thermal_streaming_protocol;
         loadParam("thermal_streaming_protocol", thermal_streaming_protocol, 0);
         if (thermal_streaming_protocol == 1)
@@ -1419,15 +1419,15 @@ namespace l3cam_ros
         return true;
     }
 
-    bool L3Cam::changeThermalCameraPipeline(l3cam_ros::ChangeThermalCameraPipeline::Request &req, l3cam_ros::ChangeThermalCameraPipeline::Response &res)
+    bool L3Cam::changeThermalCameraProcessingPipeline(l3cam_ros::ChangeThermalCameraProcessingPipeline::Request &req, l3cam_ros::ChangeThermalCameraProcessingPipeline::Response &res)
     {
-        res.error = CHANGE_THERMAL_PIPELINE(m_devices[0], req.pipeline);
+        res.error = CHANGE_THERMAL_CAMERA_PROCESSING_PIPELINE(m_devices[0], req.pipeline);
         return true;
     }
 
     bool L3Cam::enableThermalCameraTemperatureDataUdp(l3cam_ros::EnableThermalCameraTemperatureDataUdp::Request &req, l3cam_ros::EnableThermalCameraTemperatureDataUdp::Response &res)
     {
-        res.error = ENABLE_THERMAL_TEMPERATURE_DATA_UDP(m_devices[0], req.enabled);
+        res.error = ENABLE_THERMAL_CAMERA_TEMPERATURE_DATA_UDP(m_devices[0], req.enabled);
         return true;
     }
 

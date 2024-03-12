@@ -73,7 +73,7 @@ add_service_files(
   ChangeThermalCameraColormap.srv
   EnableThermalCameraTemperatureFilter.srv
   ChangeThermalCameraTemperatureFilter.srv
-  ChangeThermalCameraPipeline.srv
+  ChangeThermalCameraProcessingPipeline.srv
   EnableThermalCameraTemperatureDataUdp.srv
   ChangeAlliedCameraExposureTime.srv
   EnableAlliedCameraAutoExposureTime.srv

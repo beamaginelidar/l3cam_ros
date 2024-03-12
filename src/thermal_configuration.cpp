@@ -39,7 +39,7 @@
 #include "l3cam_ros/ChangeThermalCameraColormap.h"
 #include "l3cam_ros/EnableThermalCameraTemperatureFilter.h"
 #include "l3cam_ros/ChangeThermalCameraTemperatureFilter.h"
-#include "l3cam_ros/ChangeThermalCameraPipeline.h"
+#include "l3cam_ros/ChangeThermalCameraProcessingPipeline.h"
 #include "l3cam_ros/EnableThermalCameraTemperatureDataUdp.h"
 #include "l3cam_ros/ChangeStreamingProtocol.h"
 #include "l3cam_ros/GetRtspPipeline.h"
@@ -59,7 +59,7 @@ namespace l3cam_ros
             client_colormap_ = serviceClient<l3cam_ros::ChangeThermalCameraColormap>("/L3Cam/l3cam_ros_node/change_thermal_colormap");
             client_enable_temperature_filter_ = serviceClient<l3cam_ros::EnableThermalCameraTemperatureFilter>("/L3Cam/l3cam_ros_node/enable_thermal_temperature_filter");
             client_temperature_filter_ = serviceClient<l3cam_ros::ChangeThermalCameraTemperatureFilter>("/L3Cam/l3cam_ros_node/change_thermal_temperature_filter");
-            client_pipeline_ = serviceClient<l3cam_ros::ChangeThermalCameraPipeline>("/L3Cam/l3cam_ros_node/change_thermal_pipeline");
+            client_processing_pipeline_ = serviceClient<l3cam_ros::ChangeThermalCameraProcessingPipeline>("/L3Cam/l3cam_ros_node/change_thermal_processing_pipeline");
             client_temperature_data_udp_ = serviceClient<l3cam_ros::EnableThermalCameraTemperatureDataUdp>("/L3Cam/l3cam_ros_node/enable_thermal_temperature_data_udp");
             client_change_streaming_protocol_ = serviceClient<l3cam_ros::ChangeStreamingProtocol>("/L3Cam/l3cam_ros_node/change_streaming_protocol");
             client_get_rtsp_pipeline_ = serviceClient<l3cam_ros::GetRtspPipeline>("/L3Cam/l3cam_ros_node/get_rtsp_pipeline");
@@ -125,7 +125,7 @@ namespace l3cam_ros
             loadParam("thermal_temperature_filter", thermal_temperature_filter_, false);
             loadParam("thermal_temperature_filter_min", thermal_temperature_filter_min_, 0);
             loadParam("thermal_temperature_filter_max", thermal_temperature_filter_max_, 50);
-            loadParam("thermal_pipeline", thermal_pipeline_, 1);
+            loadParam("thermal_processing_pipeline", thermal_processing_pipeline_, 1);
             loadParam("thermal_temperature_data_udp", thermal_temperature_data_udp_, false);
             loadParam("thermal_streaming_protocol", thermal_streaming_protocol_, 0);
         }
@@ -164,13 +164,13 @@ namespace l3cam_ros
                 thermal_temperature_filter_max_ = config.thermal_temperature_filter_max;
             }
 
-            if (thermal_pipeline_ >= 0 && thermal_pipeline_ <= 2)
+            if (thermal_processing_pipeline_ >= 0 && thermal_processing_pipeline_ <= 2)
             {
-                config.thermal_pipeline = thermal_pipeline_;
+                config.thermal_processing_pipeline = thermal_processing_pipeline_;
             }
             else
             {
-                thermal_pipeline_ = config.thermal_pipeline;
+                thermal_processing_pipeline_ = config.thermal_processing_pipeline;
             }
 
             if (thermal_streaming_protocol_ == 0 || thermal_streaming_protocol_ == 1)
@@ -243,8 +243,8 @@ namespace l3cam_ros
                 case 3: // thermal_temperature_filter_max
                     error = callThermalTemperatureFilterRange(config);
                     break;
-                case 4: // thermal_pipeline
-                    error = callThermalPipeline(config);
+                case 4: // thermal_processing_pipeline
+                    error = callThermalProcessingPipeline(config);
                     break;
                 case 5: // thermal_temperature_data_udp
                     error = callThermalTemperatureDataUdp(config);
@@ -356,29 +356,29 @@ namespace l3cam_ros
             return error;
         }
 
-        int callThermalPipeline(l3cam_ros::ThermalConfig &config)
+        int callThermalProcessingPipeline(l3cam_ros::ThermalConfig &config)
         {
             int error = L3CAM_OK;
 
-            srv_pipeline_.request.pipeline = config.thermal_pipeline;
-            if (client_pipeline_.call(srv_pipeline_))
+            srv_processing_pipeline_.request.pipeline = config.thermal_processing_pipeline;
+            if (client_processing_pipeline_.call(srv_processing_pipeline_))
             {
-                error = srv_pipeline_.response.error;
+                error = srv_processing_pipeline_.response.error;
                 if (!error)
                 {
                     // Parameter changed successfully, save value
-                    thermal_pipeline_ = config.thermal_pipeline;
+                    thermal_processing_pipeline_ = config.thermal_processing_pipeline;
                 }
                 else
                 {
                     // Parameter could not be changed, reset parameter to value before change
-                    config.thermal_pipeline = thermal_pipeline_;
+                    config.thermal_processing_pipeline = thermal_processing_pipeline_;
                 }
             }
             else
             {
                 // Service could not be called, reset parameter to value before change
-                config.thermal_pipeline = thermal_pipeline_;
+                config.thermal_processing_pipeline = thermal_processing_pipeline_;
                 return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
             }
 
@@ -478,8 +478,8 @@ namespace l3cam_ros
         l3cam_ros::EnableThermalCameraTemperatureFilter srv_enable_temperature_filter_;
         ros::ServiceClient client_temperature_filter_;
         l3cam_ros::ChangeThermalCameraTemperatureFilter srv_temperature_filter_;
-        ros::ServiceClient client_pipeline_;
-        l3cam_ros::ChangeThermalCameraPipeline srv_pipeline_;
+        ros::ServiceClient client_processing_pipeline_;
+        l3cam_ros::ChangeThermalCameraProcessingPipeline srv_processing_pipeline_;
         ros::ServiceClient client_temperature_data_udp_;
         l3cam_ros::EnableThermalCameraTemperatureDataUdp srv_temperature_data_udp_;
         ros::ServiceClient client_change_streaming_protocol_;
@@ -493,7 +493,7 @@ namespace l3cam_ros
         bool thermal_temperature_filter_;
         int thermal_temperature_filter_min_;
         int thermal_temperature_filter_max_;
-        int thermal_pipeline_;
+        int thermal_processing_pipeline_;
         bool thermal_temperature_data_udp_;
         int thermal_streaming_protocol_;
         std::string thermal_rtsp_pipeline_;

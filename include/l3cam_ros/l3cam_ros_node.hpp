@@ -82,7 +82,7 @@
 #include "l3cam_ros/ChangeThermalCameraColormap.h"
 #include "l3cam_ros/EnableThermalCameraTemperatureFilter.h"
 #include "l3cam_ros/ChangeThermalCameraTemperatureFilter.h"
-#include "l3cam_ros/ChangeThermalCameraPipeline.h"
+#include "l3cam_ros/ChangeThermalCameraProcessingPipeline.h"
 #include "l3cam_ros/EnableThermalCameraTemperatureDataUdp.h"
 
 #include "l3cam_ros/ChangeAlliedCameraExposureTime.h"
@@ -213,7 +213,7 @@ namespace l3cam_ros
         bool changeThermalCameraColormap(l3cam_ros::ChangeThermalCameraColormap::Request &req, l3cam_ros::ChangeThermalCameraColormap::Response &res);
         bool enableThermalCameraTemperatureFilter(l3cam_ros::EnableThermalCameraTemperatureFilter::Request &req, l3cam_ros::EnableThermalCameraTemperatureFilter::Response &res);
         bool changeThermalCameraTemperatureFilter(l3cam_ros::ChangeThermalCameraTemperatureFilter::Request &req, l3cam_ros::ChangeThermalCameraTemperatureFilter::Response &res);
-        bool changeThermalCameraPipeline(l3cam_ros::ChangeThermalCameraPipeline::Request &req, l3cam_ros::ChangeThermalCameraPipeline::Response &res);
+        bool changeThermalCameraProcessingPipeline(l3cam_ros::ChangeThermalCameraProcessingPipeline::Request &req, l3cam_ros::ChangeThermalCameraProcessingPipeline::Response &res);
         bool enableThermalCameraTemperatureDataUdp(l3cam_ros::EnableThermalCameraTemperatureDataUdp::Request &req, l3cam_ros::EnableThermalCameraTemperatureDataUdp::Response &res);
         bool changeAlliedCameraExposureTime(l3cam_ros::ChangeAlliedCameraExposureTime::Request &req, l3cam_ros::ChangeAlliedCameraExposureTime::Response &res);
         bool enableAlliedCameraAutoExposureTime(l3cam_ros::EnableAlliedCameraAutoExposureTime::Request &req, l3cam_ros::EnableAlliedCameraAutoExposureTime::Response &res);
@@ -315,7 +315,7 @@ namespace l3cam_ros
         ros::ServiceServer srv_change_thermal_colormap_;
         ros::ServiceServer srv_enable_thermal_temperature_filter_;
         ros::ServiceServer srv_change_thermal_temperature_filter_;
-        ros::ServiceServer srv_change_thermal_pipeline_;
+        ros::ServiceServer srv_change_thermal_processing_pipeline_;
         ros::ServiceServer srv_enable_thermal_temperature_data_udp_;
 
         ros::ServiceServer srv_change_allied_exposure_time_;
