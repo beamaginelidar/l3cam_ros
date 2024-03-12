@@ -552,12 +552,12 @@ namespace l3cam_ros
         int pointcloud_color_range_minimum;
         loadParam("pointcloud_color_range_minimum", pointcloud_color_range_minimum, 0);
         int pointcloud_color_range_maximum;
-        loadParam("pointcloud_color_range_maximum", pointcloud_color_range_maximum, 400000);
+        loadParam("pointcloud_color_range_maximum", pointcloud_color_range_maximum, 300000);
         printDefaultError(CHANGE_POINT_CLOUD_COLOR_RANGE(m_devices[0], pointcloud_color_range_minimum, pointcloud_color_range_maximum), "pointcloud_color_range");
         int distance_range_minimum;
         loadParam("distance_range_minimum", distance_range_minimum, 0);
         int distance_range_maximum;
-        loadParam("distance_range_maximum", distance_range_maximum, 400000);
+        loadParam("distance_range_maximum", distance_range_maximum, 300000);
         printDefaultError(CHANGE_DISTANCE_RANGE(m_devices[0], distance_range_minimum, distance_range_maximum), "distance_range");
         bool auto_bias;
         loadParam("auto_bias", auto_bias, true);

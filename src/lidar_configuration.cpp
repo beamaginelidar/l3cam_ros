@@ -124,9 +124,9 @@ namespace l3cam_ros
             loadParam("timeout_secs", timeout_secs_, 60);
             loadParam("pointcloud_color", pointcloud_color_, 0);
             loadParam("pointcloud_color_range_minimum", pointcloud_color_range_minimum_, 0);
-            loadParam("pointcloud_color_range_maximum", pointcloud_color_range_maximum_, 400000);
+            loadParam("pointcloud_color_range_maximum", pointcloud_color_range_maximum_, 300000);
             loadParam("distance_range_minimum", distance_range_minimum_, 0);
-            loadParam("distance_range_maximum", distance_range_maximum_, 400000);
+            loadParam("distance_range_maximum", distance_range_maximum_, 300000);
             loadParam("auto_bias", auto_bias_, true);
             loadParam("bias_value_right", bias_value_right_, 1580);
             loadParam("bias_value_left", bias_value_left_, 1380);
@@ -145,7 +145,7 @@ namespace l3cam_ros
                 pointcloud_color_ = config.pointcloud_color;
             }
 
-            if (pointcloud_color_range_minimum_ >= 0 && pointcloud_color_range_minimum_ <= 400000)
+            if (pointcloud_color_range_minimum_ >= 0 && pointcloud_color_range_minimum_ <= 300000)
             {
                 config.pointcloud_color_range_minimum = pointcloud_color_range_minimum_;
             }
@@ -154,7 +154,7 @@ namespace l3cam_ros
                 pointcloud_color_range_minimum_ = config.pointcloud_color_range_minimum;
             }
 
-            if (pointcloud_color_range_maximum_ >= 0 && pointcloud_color_range_maximum_ <= 400000)
+            if (pointcloud_color_range_maximum_ >= 0 && pointcloud_color_range_maximum_ <= 300000)
             {
                 config.pointcloud_color_range_maximum = pointcloud_color_range_maximum_;
             }
@@ -163,7 +163,7 @@ namespace l3cam_ros
                 pointcloud_color_range_maximum_ = config.pointcloud_color_range_maximum;
             }
 
-            if (distance_range_minimum_ >= 0 && distance_range_minimum_ <= 400000)
+            if (distance_range_minimum_ >= 0 && distance_range_minimum_ <= 300000)
             {
                 config.distance_range_minimum = distance_range_minimum_;
             }
@@ -172,7 +172,7 @@ namespace l3cam_ros
                 distance_range_minimum_ = config.distance_range_minimum;
             }
 
-            if (distance_range_maximum_ >= 0 && distance_range_maximum_ <= 400000)
+            if (distance_range_maximum_ >= 0 && distance_range_maximum_ <= 300000)
             {
                 config.distance_range_maximum = distance_range_maximum_;
             }
