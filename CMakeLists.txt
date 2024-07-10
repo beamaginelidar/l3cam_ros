@@ -26,94 +26,97 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  LibL3camStatus.srv
-  GetVersion.srv
-  Initialize.srv
-  Terminate.srv
-  FindDevices.srv
-  GetLocalServerAddress.srv
-  GetDeviceInfo.srv
-  GetDeviceStatus.srv
-  GetSensorsAvailable.srv
-  ChangeStreamingProtocol.srv
-  GetRtspPipeline.srv
-  GetNetworkConfiguration.srv
-  ChangeNetworkConfiguration.srv
-  PowerOffDevice.srv
-  StartDevice.srv
-  StopDevice.srv
-  StartStream.srv
-  StopStream.srv
-  GetDeviceTemperatures.srv
-  ChangePointcloudColor.srv
-  ChangePointcloudColorRange.srv
-  ChangeDistanceRange.srv
-  EnableAutoBias.srv
-  ChangeBiasValue.srv
-  SetPolarimetricCameraDefaultSettings.srv
-  ChangePolarimetricCameraBrightness.srv
-  ChangePolarimetricCameraBlackLevel.srv
-  EnablePolarimetricCameraAutoGain.srv
-  ChangePolarimetricCameraAutoGainRange.srv
-  ChangePolarimetricCameraGain.srv
-  EnablePolarimetricCameraAutoExposureTime.srv
-  ChangePolarimetricCameraAutoExposureTimeRange.srv
-  ChangePolarimetricCameraExposureTime.srv
-  SetRgbCameraDefaultSettings.srv
-  ChangeRgbCameraBrightness.srv
-  ChangeRgbCameraContrast.srv
-  ChangeRgbCameraSaturation.srv
-  ChangeRgbCameraSharpness.srv
-  ChangeRgbCameraGamma.srv
-  ChangeRgbCameraGain.srv
-  EnableRgbCameraAutoWhiteBalance.srv
-  ChangeRgbCameraWhiteBalance.srv
-  EnableRgbCameraAutoExposureTime.srv
-  ChangeRgbCameraExposureTime.srv
-  ChangeThermalCameraColormap.srv
-  EnableThermalCameraTemperatureFilter.srv
-  ChangeThermalCameraTemperatureFilter.srv
-  ChangeThermalCameraProcessingPipeline.srv
-  EnableThermalCameraTemperatureDataUdp.srv
-  ChangeAlliedCameraExposureTime.srv
-  EnableAlliedCameraAutoExposureTime.srv
   ChangeAlliedCameraAutoExposureTimeRange.srv
-  ChangeAlliedCameraGain.srv
-  EnableAlliedCameraAutoGain.srv
   ChangeAlliedCameraAutoGainRange.srv
-  ChangeAlliedCameraGamma.srv
-  ChangeAlliedCameraSaturation.srv
-  ChangeAlliedCameraHue.srv
-  ChangeAlliedCameraIntensityAutoPrecedence.srv
-  EnableAlliedCameraAutoWhiteBalance.srv
   ChangeAlliedCameraBalanceRatioSelector.srv
   ChangeAlliedCameraBalanceRatio.srv
   ChangeAlliedCameraBalanceWhiteAutoRate.srv
   ChangeAlliedCameraBalanceWhiteAutoTolerance.srv
+  ChangeAlliedCameraExposureTime.srv
+  ChangeAlliedCameraGain.srv
+  ChangeAlliedCameraGamma.srv
+  ChangeAlliedCameraHue.srv
+  ChangeAlliedCameraIntensityAutoPrecedence.srv
   ChangeAlliedCameraIntensityControllerRegion.srv
   ChangeAlliedCameraIntensityControllerTarget.srv
-  GetAlliedCameraBlackLevel.srv
-  GetAlliedCameraExposureTime.srv
-  GetAlliedCameraAutoExposureTime.srv
+  ChangeAlliedCameraSaturation.srv
+  ChangeAutobiasValue.srv
+  ChangeBiasValue.srv
+  ChangeDistanceRange.srv
+  ChangeNetworkConfiguration.srv
+  ChangePointcloudColorRange.srv
+  ChangePointcloudColor.srv
+  ChangePolarimetricCameraAutoExposureTimeRange.srv
+  ChangePolarimetricCameraAutoGainRange.srv
+  ChangePolarimetricCameraBlackLevel.srv
+  ChangePolarimetricCameraBrightness.srv
+  ChangePolarimetricCameraExposureTime.srv
+  ChangePolarimetricCameraGain.srv
+  ChangeRgbCameraBrightness.srv
+  ChangeRgbCameraContrast.srv
+  ChangeRgbCameraExposureTime.srv
+  ChangeRgbCameraGain.srv
+  ChangeRgbCameraGamma.srv
+  ChangeRgbCameraSaturation.srv
+  ChangeRgbCameraSharpness.srv
+  ChangeRgbCameraWhiteBalance.srv
+  ChangeStreamingProtocol.srv
+  ChangeThermalCameraColormap.srv
+  ChangeThermalCameraProcessingPipeline.srv
+  ChangeThermalCameraTemperatureFilter.srv
+  EnableAlliedCameraAutoExposureTime.srv
+  EnableAlliedCameraAutoGain.srv
+  EnableAlliedCameraAutoWhiteBalance.srv
+  EnableAutoBias.srv
+  EnablePolarimetricCameraAutoExposureTime.srv
+  EnablePolarimetricCameraAutoGain.srv
+  EnableRgbCameraAutoExposureTime.srv
+  EnableRgbCameraAutoWhiteBalance.srv
+  EnableThermalCameraTemperatureDataUdp.srv
+  EnableThermalCameraTemperatureFilter.srv
+  FindDevices.srv
   GetAlliedCameraAutoExposureTimeRange.srv
-  GetAlliedCameraGain.srv
-  GetAlliedCameraAutoGain.srv
+  GetAlliedCameraAutoExposureTime.srv
   GetAlliedCameraAutoGainRange.srv
-  GetAlliedCameraGamma.srv
-  GetAlliedCameraSaturation.srv
-  GetAlliedCameraSharpness.srv
-  GetAlliedCameraHue.srv
-  GetAlliedCameraIntensityAutoPrecedence.srv
+  GetAlliedCameraAutoGain.srv
+  GetAlliedCameraAutoModeRegion.srv
   GetAlliedCameraAutoWhiteBalance.srv
   GetAlliedCameraBalanceRatioSelector.srv
   GetAlliedCameraBalanceRatio.srv
   GetAlliedCameraBalanceWhiteAutoRate.srv
   GetAlliedCameraBalanceWhiteAutoTolerance.srv
-  GetAlliedCameraAutoModeRegion.srv
+  GetAlliedCameraBlackLevel.srv
+  GetAlliedCameraExposureTime.srv
+  GetAlliedCameraGain.srv
+  GetAlliedCameraGamma.srv
+  GetAlliedCameraHue.srv
+  GetAlliedCameraIntensityAutoPrecedence.srv
   GetAlliedCameraIntensityControllerRegion.srv
   GetAlliedCameraIntensityControllerTarget.srv
   GetAlliedCameraMaxDriverBuffersCount.srv
+  GetAlliedCameraSaturation.srv
+  GetAlliedCameraSharpness.srv
+  GetAutobiasValue.srv
+  GetDeviceInfo.srv
+  GetDeviceStatus.srv
+  GetDeviceTemperatures.srv
+  GetLocalServerAddress.srv
+  GetNetworkConfiguration.srv
+  GetRtspPipeline.srv
+  GetSensorsAvailable.srv
+  GetVersion.srv
+  Initialize.srv
+  LibL3camStatus.srv
+  PowerOffDevice.srv
   SensorDisconnected.srv
+  SetBiasShortRange.srv
+  SetPolarimetricCameraDefaultSettings.srv
+  SetRgbCameraDefaultSettings.srv
+  StartDevice.srv
+  StartStream.srv
+  StopDevice.srv
+  StopStream.srv
+  Terminate.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

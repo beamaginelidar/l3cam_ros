@@ -122,7 +122,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN_STREAM("Parameter '" << param_name << "' not defined");
+                ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
                 param_var = default_val;
             }
         }
@@ -560,7 +560,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("RGB camera auto white balance must be disabled to change white balance");
+                ROS_WARN_STREAM(this->getNamespace() << " RGB camera auto white balance must be disabled to change white balance");
                 config.rgb_white_balance = rgb_white_balance_;
             }
 
@@ -626,7 +626,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("RGB camera auto exposure time must be disabled to change exposure time");
+                ROS_WARN_STREAM(this->getNamespace() << " RGB camera auto exposure time must be disabled to change exposure time");
                 config.rgb_exposure_time = rgb_exposure_time_;
             }
 
@@ -666,7 +666,7 @@ namespace l3cam_ros
         int callRgbRtspPipeline(l3cam_ros::RgbConfig &config)
         {
             // Read-only
-            ROS_WARN("The RTSP Pipeline parameter is read-only, only changeable at launch");
+            ROS_WARN_STREAM(this->getNamespace() << " The RTSP Pipeline parameter is read-only, only changeable at launch");
             config.rgb_rtsp_pipeline = rgb_rtsp_pipeline_;
 
             return L3CAM_OK;

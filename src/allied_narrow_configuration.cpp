@@ -141,7 +141,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN_STREAM("Parameter '" << param_name << "' not defined");
+                ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
                 param_var = default_val;
             }
         }
@@ -494,7 +494,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("Allied Narrow camera auto exposure time must be disabled to change exposure time");
+                ROS_WARN_STREAM(this->getNamespace() << " Allied Narrow camera auto exposure time must be disabled to change exposure time");
                 config.allied_narrow_exposure_time = allied_narrow_exposure_time_;
             }
 
@@ -587,7 +587,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("Allied Narrow camera auto exposure time must be enabled to change auto exposure time range");
+                ROS_WARN_STREAM(this->getNamespace() << " Allied Narrow camera auto exposure time must be enabled to change auto exposure time range");
                 config.allied_narrow_auto_exposure_time_range_min = allied_narrow_auto_exposure_time_range_min_;
                 config.allied_narrow_auto_exposure_time_range_max = allied_narrow_auto_exposure_time_range_max_;
             }
@@ -626,7 +626,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("Allied Narrow camera auto gain must be disabled to change gain");
+                ROS_WARN_STREAM(this->getNamespace() << " Allied Narrow camera auto gain must be disabled to change gain");
                 config.allied_narrow_gain = allied_narrow_gain_;
             }
 
@@ -719,7 +719,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("Allied Narrow camera auto gain must be enabled to change auto gain range");
+                ROS_WARN_STREAM(this->getNamespace() << " Allied Narrow camera auto gain must be enabled to change auto gain range");
                 config.allied_narrow_auto_gain_range_min = allied_narrow_auto_gain_range_min_;
                 config.allied_narrow_auto_gain_range_max = allied_narrow_auto_gain_range_max_;
             }
@@ -1090,7 +1090,7 @@ namespace l3cam_ros
         int callRtspPipeline(l3cam_ros::AlliedNarrowConfig &config)
         {
             // Read-only
-            ROS_WARN("The RTSP Pipeline parameter is read-only, only changeable at launch");
+            ROS_WARN_STREAM(this->getNamespace() << " The RTSP Pipeline parameter is read-only, only changeable at launch");
             config.allied_narrow_rtsp_pipeline = allied_narrow_rtsp_pipeline_;
 
             return L3CAM_OK;

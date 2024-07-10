@@ -119,7 +119,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN_STREAM("Parameter '" << param_name << "' not defined");
+                ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
                 param_var = default_val;
             }
         }
@@ -445,7 +445,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("Polarimetric camera auto gain must be enabled to change auto gain range");
+                ROS_WARN_STREAM(this->getNamespace() << " Polarimetric camera auto gain must be enabled to change auto gain range");
                 config.polarimetric_auto_gain_range_minimum = polarimetric_auto_gain_range_minimum_;
                 config.polarimetric_auto_gain_range_maximum = polarimetric_auto_gain_range_maximum_;
             }
@@ -483,7 +483,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("Polarimetric camera auto gain must be disabled to change gain");
+                ROS_WARN_STREAM(this->getNamespace() << " Polarimetric camera auto gain must be disabled to change gain");
                 config.polarimetric_gain = polarimetric_gain_;
             }
 
@@ -553,7 +553,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("Polarimetric camera auto exposure time must be enabled to change auto exposure time range");
+                ROS_WARN_STREAM(this->getNamespace() << " Polarimetric camera auto exposure time must be enabled to change auto exposure time range");
                 config.polarimetric_auto_exposure_time_range_minimum = polarimetric_auto_exposure_time_range_minimum_;
                 config.polarimetric_auto_exposure_time_range_maximum = polarimetric_auto_exposure_time_range_maximum_;
             }
@@ -591,7 +591,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN("Polarimetric camera auto exposure time must be disabled to change exposure time");
+                ROS_WARN_STREAM(this->getNamespace() << " Polarimetric camera auto exposure time must be disabled to change exposure time");
                 config.polarimetric_exposure_time = polarimetric_exposure_time_;
             }
 
@@ -631,7 +631,7 @@ namespace l3cam_ros
         int callPolarimetricRtspPipeline(l3cam_ros::PolarimetricConfig &config)
         {
             // Read-only
-            ROS_WARN("The RTSP Pipeline parameter is read-only, only changeable at launch");
+            ROS_WARN_STREAM(this->getNamespace() << " The RTSP Pipeline parameter is read-only, only changeable at launch");
             config.polarimetric_rtsp_pipeline = polarimetric_rtsp_pipeline_;
 
             return L3CAM_OK;

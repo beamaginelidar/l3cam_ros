@@ -39,8 +39,10 @@
 #include "l3cam_ros/ChangePointcloudColor.h"
 #include "l3cam_ros/ChangePointcloudColorRange.h"
 #include "l3cam_ros/ChangeDistanceRange.h"
+#include "l3cam_ros/SetBiasShortRange.h"
 #include "l3cam_ros/EnableAutoBias.h"
 #include "l3cam_ros/ChangeBiasValue.h"
+#include "l3cam_ros/ChangeAutobiasValue.h"
 #include "l3cam_ros/ChangeStreamingProtocol.h"
 #include "l3cam_ros/GetRtspPipeline.h"
 
@@ -60,8 +62,10 @@ namespace l3cam_ros
             client_color_ = serviceClient<l3cam_ros::ChangePointcloudColor>("/L3Cam/l3cam_ros_node/change_pointcloud_color");
             client_color_range_ = serviceClient<l3cam_ros::ChangePointcloudColorRange>("/L3Cam/l3cam_ros_node/change_pointcloud_color_range");
             client_distance_range_ = serviceClient<l3cam_ros::ChangeDistanceRange>("/L3Cam/l3cam_ros_node/change_distance_range");
+            client_bias_short_range_ = serviceClient<l3cam_ros::SetBiasShortRange>("/L3Cam/l3cam_ros_node/set_bias_short_range");
             client_auto_bias_ = serviceClient<l3cam_ros::EnableAutoBias>("/L3Cam/l3cam_ros_node/enable_auto_bias");
             client_bias_value_ = serviceClient<l3cam_ros::ChangeBiasValue>("/L3Cam/l3cam_ros_node/change_bias_value");
+            client_autobias_value_ = serviceClient<l3cam_ros::ChangeAutobiasValue>("/L3Cam/l3cam_ros_node/change_autobias_value");
             client_change_streaming_protocol_ = serviceClient<l3cam_ros::ChangeStreamingProtocol>("/L3Cam/l3cam_ros_node/change_streaming_protocol");
             client_get_rtsp_pipeline_ = serviceClient<l3cam_ros::GetRtspPipeline>("/L3Cam/l3cam_ros_node/get_rtsp_pipeline");
 
@@ -113,7 +117,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN_STREAM("Parameter '" << param_name << "' not defined");
+                ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
                 param_var = default_val;
             }
         }
@@ -127,16 +131,19 @@ namespace l3cam_ros
             loadParam("pointcloud_color_range_maximum", pointcloud_color_range_maximum_, 300000);
             loadParam("distance_range_minimum", distance_range_minimum_, 0);
             loadParam("distance_range_maximum", distance_range_maximum_, 300000);
+            loadParam("bias_short_range", bias_short_range_, false);
             loadParam("auto_bias", auto_bias_, true);
             loadParam("bias_value_right", bias_value_right_, 1580);
             loadParam("bias_value_left", bias_value_left_, 1380);
+            loadParam("autobias_value_right", autobias_value_right_, 50);
+            loadParam("autobias_value_left", autobias_value_left_, 50);
             loadParam("lidar_streaming_protocol", lidar_streaming_protocol_, 0);
         }
 
         void configureDefault(l3cam_ros::LidarConfig &config)
         {
             // Configure default params to dynamix reconfigure if inside range
-            if (pointcloud_color_ >= 0 && pointcloud_color_ <= 7 || pointcloud_color_ >= 12 && pointcloud_color_ <= 13)
+            if (pointcloud_color_ >= 0 && pointcloud_color_ <= 7 || pointcloud_color_ >= 12 && pointcloud_color_ <= 15)
             {
                 config.pointcloud_color = pointcloud_color_;
             }
@@ -181,6 +188,8 @@ namespace l3cam_ros
                 distance_range_maximum_ = config.distance_range_maximum;
             }
 
+            config.bias_short_range = bias_short_range_;
+
             config.auto_bias = auto_bias_;
             if (bias_value_right_ >= 700 && bias_value_right_ <= 3500)
             {
@@ -198,6 +207,24 @@ namespace l3cam_ros
             else
             {
                 bias_value_left_ = config.bias_value_left;
+            }
+
+            if (autobias_value_right_ >= 0 && autobias_value_right_ <= 100)
+            {
+                config.autobias_value_right = autobias_value_right_;
+            }
+            else
+            {
+                autobias_value_right_ = config.autobias_value_right;
+            }
+
+            if (autobias_value_left_ >= 0 && autobias_value_left_ <= 100)
+            {
+                config.autobias_value_left = autobias_value_left_;
+            }
+            else
+            {
+                autobias_value_left_ = config.autobias_value_left;
             }
 
             if (lidar_streaming_protocol_ == 0 || lidar_streaming_protocol_ == 1)
@@ -259,34 +286,43 @@ namespace l3cam_ros
                 switch (level)
                 {
                 case 0: // pointcloud_color
-                    callColor(config);
+                    error = callColor(config);
                     break;
                 case 1: // pointcloud_color_range_minimum
-                    callColorRange(config);
+                    error = callColorRange(config);
                     break;
                 case 2: // pointcloud_color_range_maximum
-                    callColorRange(config);
+                    error = callColorRange(config);
                     break;
                 case 3: // distance_range_minimum
-                    callDistanceRange(config);
+                    error = callDistanceRange(config);
                     break;
                 case 4: // distance_range_maximum
-                    callDistanceRange(config);
+                    error = callDistanceRange(config);
                     break;
-                case 5: // auto_bias
-                    callAutoBias(config);
+                case 5: // bias_short_range
+                    error = callBiasShortRange(config);
                     break;
-                case 6: // bias_value_right
-                    callBiasValueRight(config);
+                case 6: // auto_bias
+                    error = callAutoBias(config);
                     break;
-                case 7: // bias_value_left
-                    callBiasValueLeft(config);
+                case 7: // bias_value_right
+                    error = callBiasValueRight(config);
                     break;
-                case 8: // lidar_streaming_protocol
-                    callStreamingProtocol(config);
+                case 8: // bias_value_left
+                    error = callBiasValueLeft(config);
                     break;
-                case 9: // lidar_rtsp_pipeline
-                    callRtspPipeline(config);
+                case 9: // autobias_value_right
+                    error = callAutobiasValueRight(config);
+                    break;
+                case 10: // autobias_value_left
+                    error = callAutobiasValueLeft(config);
+                    break;
+                case 11: // lidar_streaming_protocol
+                    error = callStreamingProtocol(config);
+                    break;
+                case 12: // lidar_rtsp_pipeline
+                    error = callRtspPipeline(config);
                     break;
                 }
             }
@@ -393,13 +429,53 @@ namespace l3cam_ros
             return error;
         }
 
+        int callBiasShortRange(l3cam_ros::LidarConfig &config)
+        {
+            int error = L3CAM_OK;
+
+            srv_bias_short_range_.request.enabled = config.bias_short_range;
+            if (client_bias_short_range_.call(srv_bias_short_range_))
+            {
+                error = srv_bias_short_range_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    bias_short_range_ = config.bias_short_range;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.bias_short_range = bias_short_range_;
+                }
+            }
+            else
+            {
+                // Service could not be called, reset parameter to value before change
+                config.bias_short_range = bias_short_range_;
+                return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
+            }
+
+            return error;
+        }
+
         int callAutoBias(l3cam_ros::LidarConfig &config)
         {
+            int error = L3CAM_OK;
+
             srv_auto_bias_.request.enabled = config.auto_bias;
             if (client_auto_bias_.call(srv_auto_bias_))
             {
-                // Parameter changed successfully, save value
-                auto_bias_ = config.auto_bias;
+                error = srv_bias_short_range_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    auto_bias_ = config.auto_bias;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.auto_bias = auto_bias_;
+                }
             }
             else
             {
@@ -413,12 +489,23 @@ namespace l3cam_ros
 
         int callBiasValueRight(l3cam_ros::LidarConfig &config)
         {
+            int error = L3CAM_OK;
+
             srv_bias_value_.request.index = 1;
             srv_bias_value_.request.bias = config.bias_value_right;
             if (client_bias_value_.call(srv_bias_value_))
             {
-                // Parameter changed successfully, save value
-                bias_value_right_ = config.bias_value_right;
+                error = srv_bias_value_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    bias_value_right_ = config.bias_value_right;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.bias_value_right = bias_value_right_;
+                }
             }
             else
             {
@@ -432,17 +519,88 @@ namespace l3cam_ros
 
         int callBiasValueLeft(l3cam_ros::LidarConfig &config)
         {
-            srv_bias_value_.request.index = 1;
+            int error = L3CAM_OK;
+
+            srv_bias_value_.request.index = 2;
             srv_bias_value_.request.bias = config.bias_value_left;
             if (client_bias_value_.call(srv_bias_value_))
             {
-                // Parameter changed successfully, save value
-                bias_value_left_ = config.bias_value_left;
+                error = srv_bias_value_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    bias_value_left_ = config.bias_value_left;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.bias_value_left = bias_value_left_;
+                }
             }
             else
             {
                 // Service could not be called, reset parameter to value before change
                 config.bias_value_left = bias_value_left_;
+                return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
+            }
+
+            return error;
+        }
+
+        int callAutobiasValueRight(l3cam_ros::LidarConfig &config)
+        {
+            int error = L3CAM_OK;
+
+            srv_autobias_value_.request.index = 1;
+            srv_autobias_value_.request.autobias = config.autobias_value_right;
+            if (client_autobias_value_.call(srv_autobias_value_))
+            {
+                error = srv_autobias_value_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    autobias_value_right_ = config.autobias_value_right;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.autobias_value_right = autobias_value_right_;
+                }
+            }
+            else
+            {
+                // Service could not be called, reset parameter to value before change
+                config.autobias_value_right = autobias_value_right_;
+                return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
+            }
+
+            return error;
+        }
+
+        int callAutobiasValueLeft(l3cam_ros::LidarConfig &config)
+        {
+            int error = L3CAM_OK;
+
+            srv_autobias_value_.request.index = 2;
+            srv_autobias_value_.request.autobias = config.autobias_value_left;
+            if (client_autobias_value_.call(srv_autobias_value_))
+            {
+                error = srv_autobias_value_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    autobias_value_left_ = config.autobias_value_left;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.autobias_value_left = autobias_value_left_;
+                }
+            }
+            else
+            {
+                // Service could not be called, reset parameter to value before change
+                config.autobias_value_left = autobias_value_left_;
                 return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
             }
 
@@ -482,7 +640,7 @@ namespace l3cam_ros
         int callRtspPipeline(l3cam_ros::LidarConfig &config)
         {
             // Read-only
-            ROS_WARN("The RTSP Pipeline parameter is read-only, only changeable at launch");
+            ROS_WARN_STREAM(this->getNamespace() << " The RTSP Pipeline parameter is read-only, only changeable at launch");
             config.lidar_rtsp_pipeline = lidar_rtsp_pipeline_;
 
             return L3CAM_OK;
@@ -493,11 +651,11 @@ namespace l3cam_ros
             ROS_BMG_UNUSED(res);
             if (req.code == 0)
             {
-                ROS_INFO_STREAM("Exiting " << this->getNamespace() << " cleanly.");
+                ROS_INFO_STREAM(this->getNamespace() << " Exiting " << this->getNamespace() << " cleanly.");
             }
             else
             {
-                ROS_WARN_STREAM("Exiting " << this->getNamespace() << ". Sensor got disconnected with error " << req.code << ": " << getErrorDescription(req.code));
+                ROS_WARN_STREAM(this->getNamespace() << " Exiting " << this->getNamespace() << ". Sensor got disconnected with error " << req.code << ": " << getErrorDescription(req.code));
             }
 
             m_shutdown_requested = true;
@@ -512,10 +670,14 @@ namespace l3cam_ros
         l3cam_ros::ChangePointcloudColorRange srv_color_range_;
         ros::ServiceClient client_distance_range_;
         l3cam_ros::ChangeDistanceRange srv_distance_range_;
+        ros::ServiceClient client_bias_short_range_;
+        l3cam_ros::SetBiasShortRange srv_bias_short_range_;
         ros::ServiceClient client_auto_bias_;
         l3cam_ros::EnableAutoBias srv_auto_bias_;
         ros::ServiceClient client_bias_value_;
         l3cam_ros::ChangeBiasValue srv_bias_value_;
+        ros::ServiceClient client_autobias_value_;
+        l3cam_ros::ChangeAutobiasValue srv_autobias_value_;
         ros::ServiceClient client_change_streaming_protocol_;
         l3cam_ros::ChangeStreamingProtocol srv_change_streaming_protocol_;
         ros::ServiceClient client_get_rtsp_pipeline_;
@@ -528,9 +690,12 @@ namespace l3cam_ros
         int pointcloud_color_range_maximum_;
         int distance_range_minimum_;
         int distance_range_maximum_;
+        bool bias_short_range_;
         bool auto_bias_;
         int bias_value_right_;
         int bias_value_left_;
+        int autobias_value_right_;
+        int autobias_value_left_;
         int lidar_streaming_protocol_;
         std::string lidar_rtsp_pipeline_;
 

@@ -112,7 +112,7 @@ namespace l3cam_ros
             }
             else
             {
-                ROS_WARN_STREAM("Parameter '" << param_name << "' not defined");
+                ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
                 param_var = default_val;
             }
         }
@@ -448,7 +448,7 @@ namespace l3cam_ros
         int callThermalRtspPipeline(l3cam_ros::ThermalConfig &config)
         {
             // Read-only
-            ROS_WARN("The RTSP Pipeline parameter is read-only, only changeable at launch");
+            ROS_WARN_STREAM(this->getNamespace() << " The RTSP Pipeline parameter is read-only, only changeable at launch");
             config.thermal_rtsp_pipeline = thermal_rtsp_pipeline_;
 
             return L3CAM_OK;

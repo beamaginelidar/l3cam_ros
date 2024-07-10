@@ -67,7 +67,7 @@ namespace l3cam_ros
         }
         else
         {
-            ROS_WARN_STREAM("Parameter '" << param_name << "' not defined");
+            ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
             param_var = default_val;
         }
     }

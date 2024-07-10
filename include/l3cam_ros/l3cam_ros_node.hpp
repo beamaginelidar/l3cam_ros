@@ -54,8 +54,11 @@
 #include "l3cam_ros/ChangePointcloudColor.h"
 #include "l3cam_ros/ChangePointcloudColorRange.h"
 #include "l3cam_ros/ChangeDistanceRange.h"
+#include "l3cam_ros/SetBiasShortRange.h"
 #include "l3cam_ros/EnableAutoBias.h"
 #include "l3cam_ros/ChangeBiasValue.h"
+#include "l3cam_ros/ChangeAutobiasValue.h"
+#include "l3cam_ros/GetAutobiasValue.h"
 
 #include "l3cam_ros/SetPolarimetricCameraDefaultSettings.h"
 #include "l3cam_ros/ChangePolarimetricCameraBrightness.h"
@@ -158,7 +161,7 @@ namespace l3cam_ros
         void loadParam(const std::string &param_name, T &param_var, const T &default_val);
         void loadDefaultParams();
         void loadNetworkDefaultParams();
-        void loadPointcloudDefaultParams();
+        void loadLidarDefaultParams();
         void loadPolarimetricDefaultParams();
         void loadRgbDefaultParams();
         void loadThermalDefaultParams();
@@ -188,8 +191,11 @@ namespace l3cam_ros
         bool changePointcloudColor(l3cam_ros::ChangePointcloudColor::Request &req, l3cam_ros::ChangePointcloudColor::Response &res);
         bool changePointcloudColorRange(l3cam_ros::ChangePointcloudColorRange::Request &req, l3cam_ros::ChangePointcloudColorRange::Response &res);
         bool changeDistanceRange(l3cam_ros::ChangeDistanceRange::Request &req, l3cam_ros::ChangeDistanceRange::Response &res);
+        bool setBiasShortRange(l3cam_ros::SetBiasShortRange::Request &req, l3cam_ros::SetBiasShortRange::Response &res);
         bool enableAutoBias(l3cam_ros::EnableAutoBias::Request &req, l3cam_ros::EnableAutoBias::Response &res);
         bool changeBiasValue(l3cam_ros::ChangeBiasValue::Request &req, l3cam_ros::ChangeBiasValue::Response &res);
+        bool changeAutobiasValue(l3cam_ros::ChangeAutobiasValue::Request &req, l3cam_ros::ChangeAutobiasValue::Response &res);
+        bool getAutobiasValue(l3cam_ros::GetAutobiasValue::Request &req, l3cam_ros::GetAutobiasValue::Response &res);
         bool setPolarimetricCameraDefaultSettings(l3cam_ros::SetPolarimetricCameraDefaultSettings::Request &req, l3cam_ros::SetPolarimetricCameraDefaultSettings::Response &res);
         bool changePolarimetricCameraBrightness(l3cam_ros::ChangePolarimetricCameraBrightness::Request &req, l3cam_ros::ChangePolarimetricCameraBrightness::Response &res);
         bool changePolarimetricCameraBlackLevel(l3cam_ros::ChangePolarimetricCameraBlackLevel::Request &req, l3cam_ros::ChangePolarimetricCameraBlackLevel::Response &res);
@@ -287,8 +293,11 @@ namespace l3cam_ros
         ros::ServiceServer srv_change_pointcloud_color_;
         ros::ServiceServer srv_change_pointcloud_color_range_;
         ros::ServiceServer srv_change_distance_range_;
+        ros::ServiceServer srv_set_bias_short_range_;
         ros::ServiceServer srv_enable_auto_bias_;
         ros::ServiceServer srv_change_bias_value_;
+        ros::ServiceServer srv_change_autobias_value_;
+        ros::ServiceServer srv_get_autobias_value_;
 
         ros::ServiceServer srv_set_polarimetric_default_settings_;
         ros::ServiceServer srv_change_polarimetric_brightness_;
