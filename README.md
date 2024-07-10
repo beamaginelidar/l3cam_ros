@@ -222,11 +222,14 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 | `pointcloud_color`               | enum   | 0       | see `pointCloudColor`    |
 | `pointcloud_color_range_minimum` | int    | 0       | [0, 300000]              |
 | `pointcloud_color_range_maximum` | int    | 300000  | [0, 300000]              |
-| `distance_range_minimum`         | int    | 0       | [0, 300000]              |
+| `distance_range_minimum`         | int    | 1500    | [0, 300000]              |
 | `distance_range_maximum`         | int    | 300000  | [0, 300000]              |
+| `bias_short_range`               | bool   | false   |                          |
 | `auto_bias`                      | bool   | true    |                          |
 | `bias_value_right`               | int    | 1580    | [700, 3500]              |
-| `bias_value_left`                | int    | 1380    | [700, 3500]              |
+| `autobias_value_left`            | int    | 1380    | [700, 3500]              |
+| `autobias_value_right`           | int    | 50      | [0, 100]                 |
+| `bias_value_left`                | int    | 50      | [0, 100]                 |
 | `lidar_streaming_protocol`       | int    | 0       | see `streamingProtocols` |
 | `lidar_rtsp_pipeline`            | string |         |                          |
 
@@ -394,8 +397,11 @@ The ranges shown in the [parameters](#parameters) section also apply to the serv
 | `/change_pointcloud_color`                      | int visualization_color                                                                 | int error                                                                                                                                                                                      |
 | `/change_pointcloud_color_range`                | int max_value, int min_value                                                            | int error                                                                                                                                                                                      |
 | `/change_distance_range`                        | int max_value, int min_value                                                            | int error                                                                                                                                                                                      |
-| `/enable_auto_bias`                             | bool enabled                                                                            | -                                                                                                                                                                                              |
-| `/change_bias_value`                            | int index, int bias                                                                     | -                                                                                                                                                                                              |
+| `/set_bias_short_range`                         | bool enabled                                                                            | int error                                                                                                                                                                                      |
+| `/enable_auto_bias`                             | bool enabled                                                                            | int error                                                                                                                                                                                      |
+| `/change_bias_value`                            | int index, int bias                                                                     | int error                                                                                                                                                                                      |
+| `/change_autobias_value`                        | int index, int autobias                                                                 | int error                                                                                                                                                                                      |
+| `/get_autobias_value`                           | int index                                                                               | float gain, int error                                                                                                                                                                          |
 | `/set_polarimetric_default_settings`            | -                                                                                       | int error                                                                                                                                                                                      |
 | `/change_polarimetric_brightness`               | int brightness                                                                          | int error                                                                                                                                                                                      |
 | `/change_polarimetric_black_level`              | float black_level                                                                       | int error                                                                                                                                                                                      |
@@ -489,11 +495,12 @@ Being protocol a number contained in the enum `streamingProtocols` and sensor_ty
 
 All sensors stream their data to each topic:
 
-| Sensor        | Topic                     | Data type                  |
-| ------------- | ------------------------- | -------------------------- |
-| Lidar         | `/L3Cam/PC2_lidar`        | `sensor_msgs::PointCloud2` |
-| Polarimetric  | `/L3Cam/img_polarimetric` | `sensor_msgs::Image`       |
-| RGB           | `/L3Cam/img_rgb`          | `sensor_msgs::Image`       |
-| Thermal       | `/L3Cam/img_thermal`      | `sensor_msgs::Image`       |
-| Allied Wide   | `/L3Cam/img_wide`         | `sensor_msgs::Image`       |
-| Allied Narrow | `/L3Cam/img_narrow`       | `sensor_msgs::Image`       |
+| Sensor                         | Topic                     | Data type                  |
+| ------------------------------ | ------------------------- | -------------------------- |
+| Lidar                          | `/L3Cam/PC2_lidar`        | `sensor_msgs::PointCloud2` |
+| Polarimetric                   | `/L3Cam/img_polarimetric` | `sensor_msgs::Image`       |
+| RGB                            | `/L3Cam/img_rgb`          | `sensor_msgs::Image`       |
+| Thermal                        | `/L3Cam/img_thermal`      | `sensor_msgs::Image`       |
+| Thermal (raw temperature data) | `/L3Cam/img_f_thermal`    | `sensor_msgs::Image`       |
+| Allied Wide                    | `/L3Cam/img_wide`         | `sensor_msgs::Image`       |
+| Allied Narrow                  | `/L3Cam/img_narrow`       | `sensor_msgs::Image`       |
