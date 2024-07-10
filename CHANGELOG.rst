@@ -10,6 +10,7 @@ Changelog for package l3cam_ros
 - Added missing namespace prefix on messages.
 - Fixed no error on lidar configuration bug.
 - Bias value left and right bug.
+- Added econ wide implementation
 
 1.0.1 (2024-03-15)
 -----------

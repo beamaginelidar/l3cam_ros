@@ -8,6 +8,7 @@ All notable changes to the l3cam_ros package will be documented in this file.
 
 - thermalTypes changed for newThermalTypes.
 - LibL3CamStatus status types with '_status' suffix to avoid errors.
+- Econ wide implementation
 
 ### Added
 
