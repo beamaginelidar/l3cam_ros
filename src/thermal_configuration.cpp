@@ -133,10 +133,7 @@ namespace l3cam_ros
         void configureDefault(l3cam_ros::ThermalConfig &config)
         {
             // Configure default params to dynamix reconfigure if inside range
-            if (thermal_colormap_ == 1 || thermal_colormap_ == 2 ||
-                thermal_colormap_ >= 8 && thermal_colormap_ <= 10 ||
-                thermal_colormap_ == 16 || thermal_colormap_ == 17 || thermal_colormap_ == 20 ||
-                thermal_colormap_ >= 100 && thermal_colormap_ <= 108)
+            if (thermal_colormap_ >= 0 || thermal_colormap_ <= 8)
             {
                 config.thermal_colormap = thermal_colormap_;
             }
