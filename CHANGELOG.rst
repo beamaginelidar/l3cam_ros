@@ -2,6 +2,22 @@
 Changelog for package l3cam_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2024-07-10)
+-----------
+- thermalTypes changed for newThermalTypes.
+- LibL3CamStatus status types with '_status' suffix to avoid errors.
+- libl3cam 0.1.18 new functionalities.
+- Added missing namespace prefix on messages.
+- Fixed no error on lidar configuration bug.
+- Bias value left and right bug.
+
+1.0.1 (2024-03-15)
+-----------
+- Sensors header stamps with unix epoch timestamp
+- Allied cameras stream in YUV
+- Topic for thermal float (pixels with temperature values)
+- New libl3cam thermal camera functionalities
+- Device info service
 - Changed sensors header stamps to unix epoch timestamp
 - Allied cameras stream in YUV
 - Added topic for thermal float (pixels with temperature values)
