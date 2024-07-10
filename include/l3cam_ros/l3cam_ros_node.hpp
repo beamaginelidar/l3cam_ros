@@ -394,6 +394,7 @@ namespace l3cam_ros
 
         sensor *m_lidar_sensor = NULL;
         sensor *m_rgb_sensor = NULL;
+        sensor *m_econ_wide_sensor = NULL;
         sensor *m_thermal_sensor = NULL;
         sensor *m_polarimetric_sensor = NULL;
         sensor *m_allied_wide_sensor = NULL;

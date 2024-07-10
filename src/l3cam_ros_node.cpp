@@ -1075,6 +1075,9 @@ namespace l3cam_ros
             res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_polarimetric_sensor);
             break;
         case (int)sensorTypes::sensor_econ_wide:
+            m_econ_wide_sensor->protocol = protocol;
+            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_econ_wide_sensor);
+            break;
         case (int)sensorTypes::sensor_econ_rgb:
             m_rgb_sensor->protocol = protocol;
             res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_rgb_sensor);
@@ -1112,8 +1115,11 @@ namespace l3cam_ros
             res.error = GET_RTSP_PIPELINE(m_devices[0], *m_polarimetric_sensor, &pipeline);
             res.pipeline = std::string(pipeline);
             break;
-        case (int)sensorTypes::sensor_econ_rgb:
         case (int)sensorTypes::sensor_econ_wide:
+            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_econ_wide_sensor, &pipeline);
+            res.pipeline = std::string(pipeline);
+            break;
+        case (int)sensorTypes::sensor_econ_rgb:
             res.error = GET_RTSP_PIPELINE(m_devices[0], *m_rgb_sensor, &pipeline);
             res.pipeline = std::string(pipeline);
             break;
@@ -1259,7 +1265,7 @@ namespace l3cam_ros
         return true;
     }
 
-    // Point Cloud
+    // LiDAR
     bool L3Cam::changePointcloudColor(l3cam_ros::ChangePointcloudColor::Request &req, l3cam_ros::ChangePointcloudColor::Response &res)
     {
         res.error = CHANGE_POINT_CLOUD_COLOR(m_devices[0], req.visualization_color);
