@@ -1437,7 +1437,7 @@ namespace l3cam_ros
     // Thermal
     bool L3Cam::changeThermalCameraColormap(l3cam_ros::ChangeThermalCameraColormap::Request &req, l3cam_ros::ChangeThermalCameraColormap::Response &res)
     {
-        res.error = CHANGE_THERMAL_CAMERA_COLORMAP(m_devices[0], (thermalTypes)req.colormap);
+        res.error = CHANGE_THERMAL_CAMERA_COLORMAP(m_devices[0], (newThermalTypes)req.colormap);
         return true;
     }
 
