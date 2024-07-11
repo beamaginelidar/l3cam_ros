@@ -227,9 +227,9 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 | `bias_short_range`               | bool   | false   |                          |
 | `auto_bias`                      | bool   | true    |                          |
 | `bias_value_right`               | int    | 1580    | [700, 3500]              |
-| `autobias_value_left`            | int    | 1380    | [700, 3500]              |
+| `bias_value_left`                | int    | 1380    | [700, 3500]              |
+| `autobias_value_left`            | int    | 50      | [0, 100]                 |
 | `autobias_value_right`           | int    | 50      | [0, 100]                 |
-| `bias_value_left`                | int    | 50      | [0, 100]                 |
 | `lidar_streaming_protocol`       | int    | 0       | see `streamingProtocols` |
 | `lidar_rtsp_pipeline`            | string |         |                          |
 
