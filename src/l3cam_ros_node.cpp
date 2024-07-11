@@ -157,6 +157,9 @@ namespace l3cam_ros
             case sensor_allied_narrow:
                 m_allied_narrow_sensor = &m_av_sensors[i];
                 break;
+            case sensor_econ_wide:
+                m_econ_wide_sensor = &m_av_sensors[i];
+                break;
             }
         }
 
@@ -1074,10 +1077,6 @@ namespace l3cam_ros
             m_polarimetric_sensor->protocol = protocol;
             res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_polarimetric_sensor);
             break;
-        case (int)sensorTypes::sensor_econ_wide:
-            m_econ_wide_sensor->protocol = protocol;
-            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_econ_wide_sensor);
-            break;
         case (int)sensorTypes::sensor_econ_rgb:
             m_rgb_sensor->protocol = protocol;
             res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_rgb_sensor);
@@ -1093,6 +1092,10 @@ namespace l3cam_ros
         case (int)sensorTypes::sensor_allied_narrow:
             m_allied_narrow_sensor->protocol = protocol;
             res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_allied_narrow_sensor);
+            break;
+        case (int)sensorTypes::sensor_econ_wide:
+            m_econ_wide_sensor->protocol = protocol;
+            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_econ_wide_sensor);
             break;
         }
 
@@ -1119,10 +1122,6 @@ namespace l3cam_ros
             res.error = GET_RTSP_PIPELINE(m_devices[0], *m_econ_wide_sensor, &pipeline);
             res.pipeline = std::string(pipeline);
             break;
-        case (int)sensorTypes::sensor_econ_rgb:
-            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_rgb_sensor, &pipeline);
-            res.pipeline = std::string(pipeline);
-            break;
         case (int)sensorTypes::sensor_thermal:
             res.error = GET_RTSP_PIPELINE(m_devices[0], *m_thermal_sensor, &pipeline);
             res.pipeline = std::string(pipeline);
@@ -1133,6 +1132,10 @@ namespace l3cam_ros
             break;
         case (int)sensorTypes::sensor_allied_narrow:
             res.error = GET_RTSP_PIPELINE(m_devices[0], *m_allied_narrow_sensor, &pipeline);
+            res.pipeline = std::string(pipeline);
+            break;
+        case (int)sensorTypes::sensor_econ_rgb:
+            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_rgb_sensor, &pipeline);
             res.pipeline = std::string(pipeline);
             break;
         }
