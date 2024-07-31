@@ -157,8 +157,14 @@ void *ImageThread(void *functionData)
             m_is_reading_image = true;
             bytes_count = 0;
         }
-        else if (size_read == 1 && bytes_count == m_image_data_size) // End, send image
+        else if (size_read == 1) // End, send image
         {
+            if(bytes_count != m_image_data_size)
+            {
+                ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size");
+                continue;
+            }
+
             m_is_reading_image = false;
             bytes_count = 0;
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
@@ -203,8 +209,8 @@ void *ImageThread(void *functionData)
             bytes_count += size_read;
 
             // check if under size
-            if (bytes_count >= m_image_data_size)
-                m_is_reading_image = false;
+            //if (bytes_count >= m_image_data_size)
+            //    m_is_reading_image = false;
         }
         // size_read == -1 --> timeout
     }

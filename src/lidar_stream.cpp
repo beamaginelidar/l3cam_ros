@@ -134,8 +134,14 @@ void *PointCloudThread(void *functionData)
             points_received = 0;
             pointcloud_index = 1;
         }
-        else if (size_read == 1 && points_received == m_pointcloud_size) // End, send point cloud
+        else if (size_read == 1) // End, send point cloud
         {
+            if(points_received != m_pointcloud_size)
+            {
+                ROS_WARN("lidar NET PROBLEM: points_received != m_pointcloud_size");
+                continue;
+            }
+
             m_is_reading_pointcloud = false;
             int32_t *data_received = (int32_t *)malloc(sizeof(int32_t) * (m_pointcloud_size * 5) + 1);
             memcpy(&data_received[0], &m_pointcloud_data[0], sizeof(int32_t) * ((m_pointcloud_size * 5) + 1));
@@ -220,8 +226,8 @@ void *PointCloudThread(void *functionData)
             points_received += points;
 
             // check if under size
-            if (points_received >= m_pointcloud_size)
-                m_is_reading_pointcloud = false;
+            //if (points_received >= m_pointcloud_size)
+            //    m_is_reading_pointcloud = false;
         }
         // size_read == -1 --> timeout
     }
