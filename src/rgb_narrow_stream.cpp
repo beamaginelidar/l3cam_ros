@@ -39,6 +39,7 @@
 #include <unistd.h>
 
 #include <pthread.h>
+#include <thread>
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
@@ -58,15 +59,8 @@ bool g_listening = false;
 bool g_rgb = false; // true if rgb available, false if narrow available
 bool g_wide = false;
 
-struct threadData
+void ImageThread(ros::Publisher publisher)
 {
-    ros::Publisher publisher;
-};
-
-void *ImageThread(void *functionData)
-{
-    threadData *data = (struct threadData *)functionData;
-
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
     std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
@@ -88,7 +82,7 @@ void *ImageThread(void *functionData)
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
         perror("Opening socket");
-        return 0;
+        return;
     }
     // else ROS_INFO("Socket RGB created");
 
@@ -100,21 +94,21 @@ void *ImageThread(void *functionData)
     if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
     {
         perror("inet_aton() failed");
-        return 0;
+        return;
     }
 
     if (bind(m_socket_descriptor, (struct sockaddr *)&m_socket, sizeof(struct sockaddr_in)) == -1)
     {
         perror("Could not bind name to socket");
         close(m_socket_descriptor);
-        return 0;
+        return;
     }
 
     int rcvbufsize = 134217728;
     if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
     {
         perror("Error setting size to socket");
-        return 0;
+        return;
     }
 
     // 1 second timeout for socket
@@ -209,7 +203,7 @@ void *ImageThread(void *functionData)
             const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
             sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
 
-            data->publisher.publish(img_msg);
+            publisher.publish(img_msg);
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
@@ -223,7 +217,7 @@ void *ImageThread(void *functionData)
         // size_read == -1 --> timeout
     }
 
-    data->publisher.shutdown();
+    publisher.shutdown();
     ROS_INFO_STREAM("Exiting " << (g_rgb ? "RGB" : "Allied Narrow") << " streaming thread");
     free(buffer);
     free(m_image_buffer);
@@ -322,10 +316,8 @@ int main(int argc, char **argv)
     }
 
     node->publisher_ = node->advertise<sensor_msgs::Image>(g_rgb ? "/img_rgb" : "/img_narrow", 10);
-
-    threadData *data = (struct threadData *)malloc(sizeof(struct threadData));
-    data->publisher = node->publisher_;
-    pthread_create(&stream_thread, NULL, &ImageThread, (void *)data);
+    std::thread thread(ImageThread, node->publisher_);
+    thread.detach();
 
     node->spin();
 

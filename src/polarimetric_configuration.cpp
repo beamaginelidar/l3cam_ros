@@ -36,6 +36,8 @@
 #include <beamErrors.h>
 
 #include "l3cam_ros/GetSensorsAvailable.h"
+#include "l3cam_ros/EnablePolarimetricCameraStreamProcessedImage.h"
+#include "l3cam_ros/ChangePolarimetricCameraProcessType.h"
 #include "l3cam_ros/ChangePolarimetricCameraBrightness.h"
 #include "l3cam_ros/ChangePolarimetricCameraBlackLevel.h"
 #include "l3cam_ros/EnablePolarimetricCameraAutoGain.h"
@@ -60,6 +62,8 @@ namespace l3cam_ros
         {
             // Create service clients
             client_get_sensors_ = serviceClient<l3cam_ros::GetSensorsAvailable>("/L3Cam/l3cam_ros_node/get_sensors_available");
+            client_stream_processed_ = serviceClient<l3cam_ros::EnablePolarimetricCameraStreamProcessedImage>("/L3Cam/polarimetric_wide_stream/enable_polarimetric_stream_processed_image");
+            client_process_type_ = serviceClient<l3cam_ros::ChangePolarimetricCameraProcessType>("/L3Cam/polarimetric_wide_stream/change_polarimetric_process_type");
             client_brightness_ = serviceClient<l3cam_ros::ChangePolarimetricCameraBrightness>("/L3Cam/l3cam_ros_node/change_polarimetric_brightness");
             client_black_level_ = serviceClient<l3cam_ros::ChangePolarimetricCameraBlackLevel>("/L3Cam/l3cam_ros_node/change_polarimetric_black_level");
             client_enable_auto_gain_ = serviceClient<l3cam_ros::EnablePolarimetricCameraAutoGain>("/L3Cam/l3cam_ros_node/enable_polarimetric_auto_gain");
@@ -128,6 +132,8 @@ namespace l3cam_ros
         {
             // Get and save parameters
             loadParam("timeout_secs", timeout_secs_, 60);
+            loadParam("polarimetric_stream_processed_image", polarimetric_stream_processed_, true);
+            loadParam("polarimetric_process_type", polarimetric_process_type_, 4);
             loadParam("polarimetric_brightness", polarimetric_brightness_, 127);
             loadParam("polarimetric_black_level", polarimetric_black_level_, 6.0);
             loadParam("polarimetric_auto_gain", polarimetric_auto_gain_, true);
@@ -144,6 +150,17 @@ namespace l3cam_ros
         void configureDefault(l3cam_ros::PolarimetricConfig &config)
         {
             // Configure default params to dynamix reconfigure if inside range
+            config.polarimetric_stream_processed_image = polarimetric_stream_processed_;
+
+            if (polarimetric_process_type_ >= 0 && polarimetric_process_type_ <= 4)
+            {
+                config.polarimetric_process_type = polarimetric_process_type_;
+            }
+            else
+            {
+                polarimetric_process_type_ = config.polarimetric_process_type;
+            }
+
             if (polarimetric_brightness_ >= 0 && polarimetric_brightness_ <= 255)
             {
                 config.polarimetric_brightness = polarimetric_brightness_;
@@ -278,40 +295,46 @@ namespace l3cam_ros
                 // Filter by parameter and call service
                 switch (level)
                 {
-                case 0: // polarimetric_brightness
+                case 0: // polarimetric_stream_processed_image
+                    error = callPolarimetricStreamProcessedImage(config);
+                    break;
+                case 1: // polarimetric_process_type
+                    error = callPolarimetricProcessType(config);
+                    break;
+                case 2: // polarimetric_brightness
                     error = callPolarimetricBrightness(config);
                     break;
-                case 1: // polarimetric_black_level
+                case 3: // polarimetric_black_level
                     error = callPolarimetricBlackLevel(config);
                     break;
-                case 2: // polarimetric_auto_gain
+                case 4: // polarimetric_auto_gain
                     error = callPolarimetricAutoGain(config);
                     break;
-                case 3: // polarimetric_auto_gain_range_minimum
+                case 5: // polarimetric_auto_gain_range_minimum
                     error = callPolarimetricAutoGainRange(config);
                     break;
-                case 4: // polarimetric_auto_gain_range_maximum
+                case 6: // polarimetric_auto_gain_range_maximum
                     error = callPolarimetricAutoGainRange(config);
                     break;
-                case 5: // polarimetric_gain
+                case 7: // polarimetric_gain
                     error = callPolarimetricGain(config);
                     break;
-                case 6: // polarimetric_auto_exposure_time
+                case 8: // polarimetric_auto_exposure_time
                     error = callPolarimetricAutoExposureTime(config);
                     break;
-                case 7: // polarimetric_auto_exposure_time_range_minimum
+                case 9: // polarimetric_auto_exposure_time_range_minimum
                     error = callPolarimetricAutoExposureTimeRange(config);
                     break;
-                case 8: // polarimetric_auto_exposure_time_range_maximum
+                case 10: // polarimetric_auto_exposure_time_range_maximum
                     error = callPolarimetricAutoExposureTimeRange(config);
                     break;
-                case 9: // polarimetric_exposure_time
+                case 11: // polarimetric_exposure_time
                     error = callPolarimetricExposureTime(config);
                     break;
-                case 10: // polarimetric_streaming_protocol
+                case 12: // polarimetric_streaming_protocol
                     error = callPolarimetricStreamingProtocol(config);
                     break;
-                case 11: // polarimetric_rtsp_pipeline
+                case 13: // polarimetric_rtsp_pipeline
                     error = callPolarimetricRtspPipeline(config);
                     break;
                 }
@@ -324,6 +347,64 @@ namespace l3cam_ros
         }
 
         // Service calls
+        int callPolarimetricStreamProcessedImage(l3cam_ros::PolarimetricConfig &config)
+        {
+            int error = L3CAM_OK;
+
+            srv_stream_processed_.request.enabled = config.polarimetric_stream_processed_image;
+            if (client_stream_processed_.call(srv_stream_processed_))
+            {
+                error = srv_stream_processed_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    polarimetric_stream_processed_ = config.polarimetric_stream_processed_image;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.polarimetric_stream_processed_image = polarimetric_stream_processed_;
+                }
+            }
+            else
+            {
+                // Service could not be called, reset parameter to value before change
+                config.polarimetric_stream_processed_image = polarimetric_stream_processed_;
+                return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
+            }
+
+            return error;
+        }
+
+        int callPolarimetricProcessType(l3cam_ros::PolarimetricConfig &config)
+        {
+            int error = L3CAM_OK;
+
+            srv_process_type_.request.type = config.polarimetric_process_type;
+            if (client_process_type_.call(srv_process_type_))
+            {
+                error = srv_process_type_.response.error;
+                if (!error)
+                {
+                    // Parameter changed successfully, save value
+                    polarimetric_process_type_ = config.polarimetric_process_type;
+                }
+                else
+                {
+                    // Parameter could not be changed, reset parameter to value before change
+                    config.polarimetric_process_type = polarimetric_process_type_;
+                }
+            }
+            else
+            {
+                // Service could not be called, reset parameter to value before change
+                config.polarimetric_process_type = polarimetric_process_type_;
+                return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
+            }
+
+            return error;
+        }
+
         int callPolarimetricBrightness(l3cam_ros::PolarimetricConfig &config)
         {
             int error = L3CAM_OK;
@@ -656,6 +737,10 @@ namespace l3cam_ros
 
         dynamic_reconfigure::Server<l3cam_ros::PolarimetricConfig> *server_;
 
+        ros::ServiceClient client_stream_processed_;
+        l3cam_ros::EnablePolarimetricCameraStreamProcessedImage srv_stream_processed_;
+        ros::ServiceClient client_process_type_;
+        l3cam_ros::ChangePolarimetricCameraProcessType srv_process_type_;
         ros::ServiceClient client_brightness_;
         l3cam_ros::ChangePolarimetricCameraBrightness srv_brightness_;
         ros::ServiceClient client_black_level_;
@@ -679,6 +764,8 @@ namespace l3cam_ros
 
         ros::ServiceServer srv_sensor_disconnected_;
 
+        bool polarimetric_stream_processed_;
+        int polarimetric_process_type_;
         int polarimetric_brightness_;
         double polarimetric_black_level_;
         bool polarimetric_auto_gain_;

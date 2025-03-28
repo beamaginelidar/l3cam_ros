@@ -34,7 +34,7 @@
 typedef enum LibL3CamStatus
 {
     undefined_status = 0, // default status
-    error_status,  // error status
+    error_status,         // error status
     connected_status,     // after FIND_DEVICE
     disconnected_status,  //! (TBD) after notification
     started_status,       // after START_DEVICE
@@ -42,10 +42,20 @@ typedef enum LibL3CamStatus
     terminated_status     // after TERMINATE
 } LibL3CamStatus;
 
+typedef enum polAngle
+{
+    angle_0 = 0,
+    angle_45,
+    angle_90,
+    angle_135,
+    no_angle
+} polAngle;
+
 static const char *bmg_ros_error_find_devices_timeout = "Timeout error while finding devices\0";
 static const char *bmg_ros_error_failed_to_call_service = "Failed to call service\0";
 static const char *bmg_ros_error_interrupted = "RCLCPP interrupted\0";
 static const char *bmg_ros_error_service_availability_timeout = "Timeout error while looking for service availability\0";
+static const char *bmg_ros_error_invalid_polarimetric_process_type = "Invalid polarimetric process type\0";
 static const char *bmg_ros_error_undefined_error = "UNDEFINED L3CAM ERROR\0";
 
 static const char *getBeamRosErrorDescription(int error_code)
@@ -63,6 +73,9 @@ static const char *getBeamRosErrorDescription(int error_code)
         break;
     case L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR:
         return bmg_ros_error_service_availability_timeout;
+        break;
+    case L3CAM_ROS_INVALID_POLARIMETRIC_PROCESS_TYPE:
+        return bmg_ros_error_invalid_polarimetric_process_type;
         break;
     default:
         return bmg_ros_error_undefined_error;

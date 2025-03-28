@@ -17,6 +17,8 @@
     <arg name="lidar_streaming_protocol" default="0" />
 
     <!-- Polarimetric configuration -->
+    <arg name="polarimetric_stream_processed_image" default="true" />
+    <arg name="polarimetric_process_type" default="4" />
     <arg name="polarimetric_brightness" default="127" />
     <arg name="polarimetric_black_level" default="6.0" />
     <arg name="polarimetric_auto_gain" default="true" />
@@ -118,6 +120,8 @@
 
     <node pkg="l3cam_ros" type="polarimetric_configuration" name="polarimetric_configuration" output="screen">
         <param name="timeout_secs" value="$(arg timeout_secs)" />
+        <param name="polarimetric_stream_processed_image" value="$(arg polarimetric_stream_processed_image)" type="bool" />
+        <param name="polarimetric_process_type" value="$(arg polarimetric_process_type)" type="int" />
         <param name="polarimetric_brightness" value="$(arg polarimetric_brightness)" type="int" />
         <param name="polarimetric_black_level" value="$(arg polarimetric_black_level)" type="double" />
         <param name="polarimetric_auto_gain" value="$(arg polarimetric_auto_gain)" type="bool" />

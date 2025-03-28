@@ -39,6 +39,7 @@
 #include <unistd.h>
 
 #include <pthread.h>
+#include <thread>
 
 #include "sensor_msgs/PointCloud2.h"
 #include <sensor_msgs/PointField.h>
@@ -52,15 +53,8 @@ pthread_t stream_thread;
 
 bool g_listening = false;
 
-struct threadData
+void PointCloudThread(ros::Publisher publisher)
 {
-    ros::Publisher publisher;
-};
-
-void *PointCloudThread(void *functionData)
-{
-    threadData *data = (struct threadData *)functionData;
-
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
     std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
@@ -80,7 +74,7 @@ void *PointCloudThread(void *functionData)
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
         perror("Opening socket");
-        return 0;
+        return;
     }
     // else ROS_INFO("Socket Lidar created");
 
@@ -92,21 +86,21 @@ void *PointCloudThread(void *functionData)
     if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
     {
         perror("inet_aton() failed");
-        return 0;
+        return;
     }
 
     if (bind(m_socket_descriptor, (struct sockaddr *)&m_socket, sizeof(struct sockaddr_in)) == -1)
     {
         perror("Could not bind name to socket");
         close(m_socket_descriptor);
-        return 0;
+        return;
     }
 
     int rcvbufsize = 134217728;
     if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
     {
         perror("Error setting size to socket");
-        return 0;
+        return;
     }
 
     // 1 second timeout for socket
@@ -209,7 +203,7 @@ void *PointCloudThread(void *functionData)
                 ++iter_rgb;
             }
 
-            data->publisher.publish(pcl_msg);
+            publisher.publish(pcl_msg);
 
             free(m_pointcloud_data);
             points_received = 0;
@@ -232,7 +226,7 @@ void *PointCloudThread(void *functionData)
         // size_read == -1 --> timeout
     }
 
-    data->publisher.shutdown();
+    publisher.shutdown();
     ROS_INFO("Exiting lidar streaming thread");
     free(buffer);
     free(m_pointcloud_data);
@@ -318,10 +312,8 @@ int main(int argc, char **argv)
     }
 
     node->publisher_ = node->advertise<sensor_msgs::PointCloud2>("/PC2_lidar", 10);
-
-    threadData *data = (struct threadData *)malloc(sizeof(struct threadData));
-    data->publisher = node->publisher_;
-    pthread_create(&stream_thread, NULL, &PointCloudThread, (void *)data);
+    std::thread thread(PointCloudThread, node->publisher_);
+    thread.detach();
 
     node->spin();
 

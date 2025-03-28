@@ -52,6 +52,7 @@ add_service_files(
   ChangePolarimetricCameraBrightness.srv
   ChangePolarimetricCameraExposureTime.srv
   ChangePolarimetricCameraGain.srv
+  ChangePolarimetricCameraProcessType.srv
   ChangeRgbCameraBrightness.srv
   ChangeRgbCameraContrast.srv
   ChangeRgbCameraExposureTime.srv
@@ -68,6 +69,7 @@ add_service_files(
   EnableAlliedCameraAutoGain.srv
   EnableAlliedCameraAutoWhiteBalance.srv
   EnableAutoBias.srv
+  EnablePolarimetricCameraStreamProcessedImage.srv
   EnablePolarimetricCameraAutoExposureTime.srv
   EnablePolarimetricCameraAutoGain.srv
   EnableRgbCameraAutoExposureTime.srv
