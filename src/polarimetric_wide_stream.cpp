@@ -64,7 +64,7 @@ bool g_listening = false;
 bool g_pol = false; // true if polarimetric available, false if wide available
 bool g_stream_processed = true;
 
-cv::Mat rgbpol2rgb(cv::Mat img, polAngle angle = no_angle)
+cv::Mat rgbpol2rgb(const cv::Mat img, polAngle angle = no_angle)
 {
     /*
     0       1       2       3
