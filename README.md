@@ -237,6 +237,8 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 
 | Parameter                                       | Type   | Default   | Range                    |
 | ----------------------------------------------- | ------ | --------- | ------------------------ |
+| `polarimetric_stream_processed_image`           | bool   | true      |                          |
+| `polarimetric_process_type`                     | int    | 4         | see `polAngle`           |
 | `polarimetric_brightness`                       | int    | 127       | [0, 255]                 |
 | `polarimetric_black_level`                      | double | 6.0       | [0, 12.5]                |
 | `polarimetric_auto_gain`                        | bool   | true      |                          |
@@ -278,7 +280,7 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 | `thermal_temperature_filter_min`      | int    | 0       | [-40, 200]               |
 | `thermal_temperature_filter_max`      | int    | 50      | [-40, 200]               |
 | `thermal_camera_processing_pipeline`  | int    | 1       | see `thermalPipelines`   |
-| `thermal_camera_temperature_data_udp` | bool   | false   |                          |
+| `thermal_camera_temperature_data_udp` | bool   | true    |                          |
 | `thermal_streaming_protocol`          | int    | 0       | see `streamingProtocols` |
 | `thermal_rtsp_pipeline`               | string |         |                          |
 
@@ -407,6 +409,8 @@ The ranges shown in the [parameters](#parameters) section also apply to the serv
 | `/change_autobias_value`                        | int index, int autobias                                                                 | int error                                                                                                                                                                                      |
 | `/get_autobias_value`                           | int index                                                                               | float gain, int error                                                                                                                                                                          |
 | `/set_polarimetric_default_settings`            | -                                                                                       | int error                                                                                                                                                                                      |
+| `/enable_polarimetric_stream_processed_image`   | bool enabled                                                                            | int error                                                                                                                                                                                      |
+| `/change_polarimetric_process_type`             | int type                                                                                | int error                                                                                                                                                                                      |
 | `/change_polarimetric_brightness`               | int brightness                                                                          | int error                                                                                                                                                                                      |
 | `/change_polarimetric_black_level`              | float black_level                                                                       | int error                                                                                                                                                                                      |
 | `/enable_polarimetric_auto_gain`                | bool enabled                                                                            | int error                                                                                                                                                                                      |
@@ -499,12 +503,13 @@ Being protocol a number contained in the enum `streamingProtocols` and sensor_ty
 
 All sensors stream their data to each topic:
 
-| Sensor                         | Topic                     | Data type                  |
-| ------------------------------ | ------------------------- | -------------------------- |
-| Lidar                          | `/L3Cam/PC2_lidar`        | `sensor_msgs::PointCloud2` |
-| Polarimetric                   | `/L3Cam/img_polarimetric` | `sensor_msgs::Image`       |
-| RGB                            | `/L3Cam/img_rgb`          | `sensor_msgs::Image`       |
-| Thermal                        | `/L3Cam/img_thermal`      | `sensor_msgs::Image`       |
-| Thermal (raw temperature data) | `/L3Cam/img_f_thermal`    | `sensor_msgs::Image`       |
-| Allied Wide                    | `/L3Cam/img_wide`         | `sensor_msgs::Image`       |
-| Allied Narrow                  | `/L3Cam/img_narrow`       | `sensor_msgs::Image`       |
+| Sensor                         | Topic                               | Data type                  |
+| ------------------------------ | ----------------------------------- | -------------------------- |
+| Lidar                          | `/L3Cam/PC2_lidar`                  | `sensor_msgs::PointCloud2` |
+| Polarimetric                   | `/L3Cam/img_polarimetric`           | `sensor_msgs::Image`       |
+| Polarimetric (processed)       | `/L3Cam/img_polarimetric_processed` | `sensor_msgs::Image`       |
+| RGB                            | `/L3Cam/img_rgb`                    | `sensor_msgs::Image`       |
+| Thermal                        | `/L3Cam/img_thermal`                | `sensor_msgs::Image`       |
+| Thermal (raw temperature data) | `/L3Cam/img_f_thermal`              | `sensor_msgs::Image`       |
+| Allied Wide                    | `/L3Cam/img_wide`                   | `sensor_msgs::Image`       |
+| Allied Narrow                  | `/L3Cam/img_narrow`                 | `sensor_msgs::Image`       |
