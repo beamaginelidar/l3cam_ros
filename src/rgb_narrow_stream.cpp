@@ -43,6 +43,8 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/image_encodings.h>
+#include <image_transport/image_transport.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -52,14 +54,12 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-pthread_t stream_thread;
-
 bool g_listening = false;
 
 bool g_rgb = false; // true if rgb available, false if narrow available
 bool g_wide = false;
 
-void ImageThread(ros::Publisher publisher)
+void ImageThread(image_transport::Publisher publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -237,7 +237,7 @@ namespace l3cam_ros
         {
         }
 
-        ros::Publisher publisher_;
+        image_transport::Publisher publisher_;
 
     private:
         void stopListening()
@@ -315,7 +315,8 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::Image>(g_rgb ? "/img_rgb" : "/img_narrow", 10);
+    image_transport::ImageTransport it(*node);
+    node->publisher_ = it.advertise(g_rgb ? "/img_rgb" : "/img_narrow", 10);
     std::thread thread(ImageThread, node->publisher_);
     thread.detach();
 

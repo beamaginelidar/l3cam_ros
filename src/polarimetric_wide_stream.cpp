@@ -43,6 +43,8 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/image_encodings.h>
+#include <image_transport/image_transport.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -54,8 +56,6 @@
 
 #include "l3cam_ros/EnablePolarimetricCameraStreamProcessedImage.h"
 #include "l3cam_ros/ChangePolarimetricCameraProcessType.h"
-
-pthread_t stream_thread;
 
 int g_angle = no_angle;
 
@@ -146,7 +146,7 @@ cv::Mat rgbpol2rgb(const cv::Mat img, polAngle angle = no_angle)
     return rgb;
 }
 
-void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher)
+void ImageThread(image_transport::Publisher publisher, image_transport::Publisher extra_publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -336,7 +336,7 @@ namespace l3cam_ros
             srv_process_type_ = this->advertiseService("change_polarimetric_process_type", &PolarimetricWideStream::changeProcessType, this);
         }
 
-        ros::Publisher publisher_, extra_publisher_;
+        image_transport::Publisher publisher_, extra_publisher_;
 
     private:
         template <typename T>
@@ -452,10 +452,11 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::Image>(g_pol ? "/img_polarimetric" : "/img_wide", 10);
+    image_transport::ImageTransport it(*node);
+    node->publisher_ = it.advertise(g_pol ? "/img_polarimetric" : "/img_wide", 10);
     if(g_pol)
     {
-        node->extra_publisher_ = node->advertise<sensor_msgs::Image>("/img_polarimetric_processed", 10);
+        node->extra_publisher_ = it.advertise("/img_polarimetric_processed", 10);
     }
     std::thread thread(ImageThread, node->publisher_, node->extra_publisher_);
     thread.detach();

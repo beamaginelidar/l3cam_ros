@@ -49,8 +49,6 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-pthread_t stream_thread;
-
 bool g_listening = false;
 
 void PointCloudThread(ros::Publisher publisher)

@@ -43,6 +43,8 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/image_encodings.h>
+#include <image_transport/image_transport.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -51,9 +53,6 @@
 #include <libL3Cam.h>
 #include <beamagine.h>
 #include <beamErrors.h>
-
-pthread_t stream_thread;
-pthread_t stream_f_thread;
 
 bool g_listening = false;
 
@@ -99,7 +98,7 @@ bool openSocket(int &m_socket_descriptor, sockaddr_in &m_socket, std::string &m_
     return true;
 }
 
-void ImageThread(ros::Publisher publisher)
+void ImageThread(image_transport::Publisher publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -208,7 +207,7 @@ void ImageThread(ros::Publisher publisher)
     pthread_exit(0);
 }
 
-void FloatImageThread(ros::Publisher publisher)
+void FloatImageThread(image_transport::Publisher publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -322,8 +321,8 @@ namespace l3cam_ros
             declareServiceServers("thermal");
         }
 
-        ros::Publisher publisher_;
-        ros::Publisher f_publisher_;
+        image_transport::Publisher publisher_;
+        image_transport::Publisher f_publisher_;
 
     private:
         void stopListening()
@@ -387,10 +386,11 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::Image>("/img_thermal", 10);
+    image_transport::ImageTransport it(*node);
+    node->publisher_ = it.advertise("/img_thermal", 10);
     std::thread thread(ImageThread, node->publisher_);
     thread.detach();
-    node->f_publisher_ = node->advertise<sensor_msgs::Image>("/img_f_thermal", 10);
+    node->f_publisher_ = it.advertise("/img_f_thermal", 10);
     std::thread thread_f(FloatImageThread, node->f_publisher_);
     thread_f.detach();
 
