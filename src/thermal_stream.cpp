@@ -213,7 +213,7 @@ void ImageThread(image_transport::Publisher publisher)
     pthread_exit(0);
 }
 
-void FloatImageThread(image_transport::Publisher publisher)
+void FloatImageThread(ros::Publisher publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -328,7 +328,7 @@ namespace l3cam_ros
         }
 
         image_transport::Publisher publisher_;
-        image_transport::Publisher f_publisher_;
+        ros::Publisher f_publisher_;
 
     private:
         void stopListening()
@@ -396,7 +396,7 @@ int main(int argc, char **argv)
     node->publisher_ = it.advertise("/img_thermal", 10);
     std::thread thread(ImageThread, node->publisher_);
     thread.detach();
-    node->f_publisher_ = it.advertise("/img_f_thermal", 10);
+    node->f_publisher_ = node->advertise<sensor_msgs::Image>("/img_f_thermal", 10);
     std::thread thread_f(FloatImageThread, node->f_publisher_);
     thread_f.detach();
 
