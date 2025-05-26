@@ -175,7 +175,13 @@ void ImageThread(image_transport::Publisher publisher)
             std_msgs::Header header;
             header.frame_id = "thermal";
             // m_timestamp format: hhmmsszzz
-            header.stamp.sec = (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
+            time_t raw_time = ros::Time::now().toSec();
+            std::tm *time_info = std::localtime(&raw_time);
+            time_info->tm_sec = 0;
+            time_info->tm_min = 0;
+            time_info->tm_hour = 0;
+            header.stamp.sec = std::mktime(time_info) +
+                               (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
                                (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
