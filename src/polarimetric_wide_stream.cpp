@@ -398,58 +398,61 @@ int main(int argc, char **argv)
 
     l3cam_ros::PolarimetricWideStream *node = new l3cam_ros::PolarimetricWideStream();
 
-    // Check if service is available
-    ros::Duration timeout_duration(node->timeout_secs_);
-    if (!node->client_get_sensors_.waitForExistence(timeout_duration))
+    if (!node->simulator_)
     {
-        ROS_ERROR_STREAM(node->getNamespace() << " error: " << getErrorDescription(L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR) << ". Waited " << timeout_duration << " seconds");
-        return L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR;
-    }
-
-    int error = L3CAM_OK;
-    bool sensor_is_available = false;
-    // Shutdown if sensor is not available or if error returned
-    if (node->client_get_sensors_.call(node->srv_get_sensors_))
-    {
-        error = node->srv_get_sensors_.response.error;
-
-        if (!error)
+        // Check if service is available
+        ros::Duration timeout_duration(node->timeout_secs_);
+        if (!node->client_get_sensors_.waitForExistence(timeout_duration))
         {
-            for (int i = 0; i < node->srv_get_sensors_.response.num_sensors; ++i)
+            ROS_ERROR_STREAM(node->getNamespace() << " error: " << getErrorDescription(L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR) << ". Waited " << timeout_duration << " seconds");
+            return L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR;
+        }
+
+        int error = L3CAM_OK;
+        bool sensor_is_available = false;
+        // Shutdown if sensor is not available or if error returned
+        if (node->client_get_sensors_.call(node->srv_get_sensors_))
+        {
+            error = node->srv_get_sensors_.response.error;
+
+            if (!error)
             {
-                if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_pol && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                for (int i = 0; i < node->srv_get_sensors_.response.num_sensors; ++i)
                 {
-                    sensor_is_available = true;
-                    g_pol = true;
+                    if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_pol && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                    {
+                        sensor_is_available = true;
+                        g_pol = true;
+                    }
+                    else if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_allied_wide && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                    {
+                        sensor_is_available = true;
+                        g_pol = false;
+                    }
                 }
-                else if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_allied_wide && node->srv_get_sensors_.response.sensors[i].sensor_available)
-                {
-                    sensor_is_available = true;
-                    g_pol = false;
-                }
+            }
+            else
+            {
+                ROS_ERROR_STREAM(node->getNamespace() << " error " << error << " while checking sensor availability in " << __func__ << ": " << getErrorDescription(error));
+                return error;
             }
         }
         else
         {
-            ROS_ERROR_STREAM(node->getNamespace() << " error " << error << " while checking sensor availability in " << __func__ << ": " << getErrorDescription(error));
-            return error;
+            ROS_ERROR_STREAM(node->getNamespace() << "_error: Failed to call service get_sensors_available");
+            return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
         }
-    }
-    else
-    {
-        ROS_ERROR_STREAM(node->getNamespace() << "_error: Failed to call service get_sensors_available");
-        return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
-    }
 
-    if (sensor_is_available)
-    {
-        ROS_INFO_STREAM((g_pol ? "Polarimetric" : "Allied Wide") << " camera available for streaming");
-        node->declareServiceServers(g_pol ? "polarimetric" : "allied_wide");
-        if(g_pol) node->declareExtraService();
-    }
-    else
-    {
-        return 0;
+        if (sensor_is_available)
+        {
+            ROS_INFO_STREAM((g_pol ? "Polarimetric" : "Allied Wide") << " camera available for streaming");
+            node->declareServiceServers(g_pol ? "polarimetric" : "allied_wide");
+            if(g_pol) node->declareExtraService();
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     image_transport::ImageTransport it(*node);

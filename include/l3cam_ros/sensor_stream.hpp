@@ -51,6 +51,7 @@ namespace l3cam_ros
         l3cam_ros::GetSensorsAvailable srv_get_sensors_;
 
         int timeout_secs_;
+        bool simulator_;
 
     private:
         template <typename T>

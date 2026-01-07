@@ -1,4 +1,5 @@
 <launch>
+    <arg name="simulator" default="false" />
     <arg name="timeout_secs" default="60" />
     <arg name="lidar_topic" default="/PC2_lidar" />
     <arg name="polarimetric_topic" default="/img_polarimetric" />
@@ -12,10 +13,12 @@
 
     <!-- Stream -->
     <node pkg="l3cam_ros" type="lidar_stream" name="lidar_stream" output="screen">
+        <param name="simulator" value="$(arg simulator)" />
         <param name="timeout_secs" value="$(arg timeout_secs)" />
         <remap from="/PC2_lidar" to="$(arg lidar_topic)" />
     </node>
     <node pkg="l3cam_ros" type="polarimetric_wide_stream" name="polarimetric_wide_stream" output="screen">
+        <param name="simulator" value="$(arg simulator)" />
         <param name="timeout_secs" value="$(arg timeout_secs)" />
         <remap from="/img_polarimetric" to="$(arg polarimetric_topic)" />
         <remap from="/img_wide" to="$(arg allied_wide_topic)" />
@@ -24,11 +27,13 @@
         <param name="polarimetric_process_type" value="$(arg polarimetric_process_type)" />
     </node>
     <node pkg="l3cam_ros" type="rgb_narrow_stream" name="rgb_narrow_stream" output="screen">
+        <param name="simulator" value="$(arg simulator)" />
         <param name="timeout_secs" value="$(arg timeout_secs)" />
         <remap from="/img_rgb" to="$(arg rgb_topic)" />
         <remap from="/img_narrow" to="$(arg allied_narrow_topic)" />
     </node>
     <node pkg="l3cam_ros" type="thermal_stream" name="thermal_stream" output="screen">
+        <param name="simulator" value="$(arg simulator)" />
         <param name="timeout_secs" value="$(arg timeout_secs)" />
         <remap from="/img_thermal" to="$(arg thermal_topic)" />
     </node>

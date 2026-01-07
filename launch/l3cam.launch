@@ -1,8 +1,9 @@
 <launch>
     <!-- roslaunch l3cam_ros l3cam.launch stream:=true configure:=true rviz:=false rqt_reconfigure:=false -->
+    <arg name="simulator" default="false" />
     <arg name="stream" default="true" />
-    <arg name="rviz" default="false" />
     <arg name="configure" default="true" />
+    <arg name="rviz" default="false" />
     <arg name="rqt_reconfigure" default="false" />
 
     <group ns="/L3Cam">
@@ -132,7 +133,7 @@
         <arg name="allied_narrow_rtsp_pipeline" default="" />
 
         <!-- Start the driver -->
-        <node pkg="l3cam_ros" type="l3cam_ros_node" name="l3cam_ros_node" output="screen">
+        <node pkg="l3cam_ros" type="l3cam_ros_node" name="l3cam_ros_node" output="screen" unless="$(arg simulator)">
             <param name="local_address" value="$(arg local_address)" type="str" />
             <param name="device_address" value="$(arg device_address)" type="str" />
             <param name="timeout_secs" value="$(arg timeout_secs)" />
@@ -244,7 +245,7 @@
         </node>
 
         <!-- Start dyanmic reconfigure -->
-        <include file="$(find l3cam_ros)/launch/configure_l3cam.launch" if="$(eval arg('configure'))">
+        <include file="$(find l3cam_ros)/launch/configure_l3cam.launch" if="$(eval arg('configure') and not arg('simulator'))">
             <arg name="timeout_secs" value="$(arg timeout_secs)" />
 
             <arg name="pointcloud_color" value="$(arg pointcloud_color)" />
@@ -340,6 +341,7 @@
 
         <!-- Start streaming the available sensors. -->
         <include file="$(find l3cam_ros)/launch/stream_l3cam.launch" if="$(eval arg('stream'))">
+            <arg name="simulator" value="$(arg simulator)" />
             <arg name="timeout_secs" value="$(arg timeout_secs)" />
             <arg name="lidar_topic" value="$(arg lidar_topic)" />
             <arg name="polarimetric_topic" value="$(arg polarimetric_topic)" />

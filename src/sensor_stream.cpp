@@ -34,6 +34,7 @@ namespace l3cam_ros
         client_get_sensors_ = this->serviceClient<l3cam_ros::GetSensorsAvailable>("/L3Cam/l3cam_ros_node/get_sensors_available");
 
         loadParam("timeout_secs", timeout_secs_, 60);
+        loadParam("simulator", simulator_, false);
     }
 
     void SensorStream::spin()
