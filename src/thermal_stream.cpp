@@ -267,7 +267,7 @@ void FloatImageThread(ros::Publisher publisher)
         }
         else if (size_read == 1) // End, send image
         {
-            if(bytes_count != m_image_data_size)
+            if (bytes_count != m_image_data_size)
             {
                 ROS_WARN_STREAM("thermal NET PROBLEM: bytes_count != m_image_data_size");
                 continue;

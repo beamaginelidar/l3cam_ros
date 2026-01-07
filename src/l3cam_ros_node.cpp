@@ -289,7 +289,7 @@ namespace l3cam_ros
         srv_enable_auto_bias_ = advertiseService("enable_auto_bias", &L3Cam::enableAutoBias, this);
         srv_change_bias_value_ = advertiseService("change_bias_value", &L3Cam::changeBiasValue, this);
         srv_change_autobias_value_ = advertiseService("change_autobias_value", &L3Cam::changeAutobiasValue, this);
-        srv_get_autobias_value_ = advertiseService("get_autobias_value", &L3Cam::getAutobiasValue, this);        
+        srv_get_autobias_value_ = advertiseService("get_autobias_value", &L3Cam::getAutobiasValue, this);
 
         client_lidar_stream_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/lidar_stream/lidar_stream_disconnected");
         client_lidar_configuration_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/lidar_configuration/lidar_configuration_disconnected");

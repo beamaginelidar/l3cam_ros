@@ -14,7 +14,7 @@ First, you will need to install the L3Cam SDK.
 
 Download the package from Beamagine's [L3Cam SDK 0.1.18 release](https://github.com/beamaginelidar/libl3cam/releases) repository and install the required package depending on your hardware architecture:
 
-```
+```bash
 sudo dpkg -i <PACKAGE>
 ```
 
@@ -22,7 +22,7 @@ sudo dpkg -i <PACKAGE>
 
 Clone this repository in your catkin workspace (e.g. catkin_ws) and build:
 
-```
+```bash
 cd ~/catkin_ws/src && git clone https://github.com/beamaginelidar/l3cam_ros
 catkin_make
 ```
@@ -31,7 +31,7 @@ catkin_make
 
 You will need to give permission to the cfg files.
 
-```
+```bash
 cd ~/catkin_ws/src/l3cam_ros/cfg
 chmod a+x Network.cfg Lidar.cfg Polarimetric.cfg Rgb.cfg Thermal.cfg AlliedWide.cfg AlliedNarrow.cfg
 ```
@@ -46,7 +46,7 @@ A jumbo frame is an Ethernet frame that is larger than 1500 bytes. Most Ethernet
 
 You can check what your current MTU setting is by running the following command:
 
-```
+```bash
 ifconfig | grep mtu
 ```
 
@@ -60,14 +60,14 @@ It is also recommended to increase your network default and maximum receive buff
 
 You can check what your current buffer size is:
 
-```
+```bash
 sudo sysctl 'net.core.rmem_max'
 sudo sysctl 'net.core.rmem_default'
 ```
 
 Update the buffer size with the following commands:
 
-```
+```bash
 sudo sh -c "echo 'net.core.rmem_default=268435456' >> /etc/sysctl.conf"
 sudo sh -c "echo 'net.core.rmem_max=268435456' >> /etc/sysctl.conf"
 sudo sysctl -p
@@ -97,7 +97,7 @@ TCP is used internally by `libL3Cam` and is transparent to the user. However, th
 
 To run the l3cam_ros driver, launch the `l3cam.launch` file specifying (if wanted) if the [stream launch file](#stream_l3cam), the [configure launch file](#configure_l3cam), `rviz` (for visualization GUI) and `rqt_reconfigure` (for dynamic reconfigure GUI) have to be launched too. By default, the values are as follows:
 
-```
+```bash
 roslaunch l3cam_ros l3cam.launch stream:=true configure:=true rviz:=false rqt_reconfigure:=false
 ```
 
@@ -181,7 +181,7 @@ The allied_narrow_configuration is a node that configures the Allied Narrow came
 
 Default parameters for the L3Cam can be set by loading params files, by editing the `l3cam.launch` file or by specifying them when launching it:
 
-```
+```bash
 roslaunch l3cam_ros l3cam.launch <PARAM>:=<VALUE> <PARAM>:=<VALUE> ...
 ```
 
@@ -344,7 +344,7 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 | `allied_narrow_intensity_controller_target`  | double | 50      | [10, 90]                            |
 | `allied_narrow_max_driver_buffers_count`     | int    | 64      | [1, 4096]                           |
 | `allied_narrow_streaming_protocol`           | int    | 0       | see `streamingProtocols`            |
-| `allied_narrow_rtsp_pipeline`                | string |         |
+| `allied_narrow_rtsp_pipeline`                | string |         |                                     |
 
 **Note:**
 

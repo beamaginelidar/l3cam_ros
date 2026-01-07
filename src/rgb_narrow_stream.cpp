@@ -154,7 +154,7 @@ void ImageThread(image_transport::Publisher publisher)
         }
         else if (size_read == 1) // End, send image
         {
-            if(bytes_count != m_image_data_size)
+            if (bytes_count != m_image_data_size)
             {
                 ROS_WARN_STREAM("rgb_narrow NET PROBLEM: bytes_count != m_image_data_size");
                 continue;
@@ -172,7 +172,7 @@ void ImageThread(image_transport::Publisher publisher)
             else if (m_image_channels == 2)
             {
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC2, image_pointer);
-                if(g_rgb && !g_wide) // econ
+                if (g_rgb && !g_wide) // econ
                 {
                     cv::cvtColor(img_data, img_data, cv::COLOR_YUV2BGR_YUYV);
                 }
@@ -211,7 +211,7 @@ void ImageThread(image_transport::Publisher publisher)
             bytes_count += size_read;
 
             // check if under size
-            //if (bytes_count >= m_image_data_size)
+            // if (bytes_count >= m_image_data_size)
             //    m_is_reading_image = false;
         }
         // size_read == -1 --> timeout
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
             ROS_ERROR_STREAM(node->getNamespace() << " error: " << getErrorDescription(L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR) << ". Waited " << timeout_duration << " seconds");
             return L3CAM_ROS_SERVICE_AVAILABILITY_TIMEOUT_ERROR;
         }
-    
+
         int error = L3CAM_OK;
         bool sensor_is_available = false;
         // Shutdown if sensor is not available or if error returned

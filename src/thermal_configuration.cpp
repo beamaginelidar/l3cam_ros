@@ -411,7 +411,6 @@ namespace l3cam_ros
             return error;
         }
 
-
         int callThermalStreamingProtocol(l3cam_ros::ThermalConfig &config)
         {
             int error = L3CAM_OK;

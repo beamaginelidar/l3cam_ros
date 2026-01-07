@@ -128,7 +128,7 @@ void PointCloudThread(ros::Publisher publisher)
         }
         else if (size_read == 1) // End, send point cloud
         {
-            if(points_received != m_pointcloud_size)
+            if (points_received != m_pointcloud_size)
             {
                 ROS_WARN("lidar NET PROBLEM: points_received != m_pointcloud_size");
                 continue;

@@ -116,10 +116,10 @@ namespace l3cam_ros
 
             if (searchParam(param_name, full_param_name))
             {
-                if(!getParam(full_param_name, param_var))
-            {
-                ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
-            }
+                if (!getParam(full_param_name, param_var))
+                {
+                    ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                }
             }
             else
             {

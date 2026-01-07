@@ -86,14 +86,20 @@ cv::Mat rgbpol2rgb(const cv::Mat img, polAngle angle = no_angle)
     cv::Mat bayer(img.rows / 2, img.cols / 2, CV_8UC1, cv::Scalar(0));
     cv::Mat rgb;
 
-    auto is_valid_pixel = [](int px_y, int px_x, polAngle angle) -> bool {
+    auto is_valid_pixel = [](int px_y, int px_x, polAngle angle) -> bool
+    {
         switch (angle)
         {
-        case angle_0:   return (px_y == 1 || px_y == 3) && (px_x == 1 || px_x == 3);
-        case angle_45:  return (px_y == 0 || px_y == 2) && (px_x == 1 || px_x == 3);
-        case angle_90:  return (px_y == 0 || px_y == 2) && (px_x == 0 || px_x == 2);
-        case angle_135: return (px_y == 1 || px_y == 3) && (px_x == 0 || px_x == 2);
-        default: return false;
+        case angle_0:
+            return (px_y == 1 || px_y == 3) && (px_x == 1 || px_x == 3);
+        case angle_45:
+            return (px_y == 0 || px_y == 2) && (px_x == 1 || px_x == 3);
+        case angle_90:
+            return (px_y == 0 || px_y == 2) && (px_x == 0 || px_x == 2);
+        case angle_135:
+            return (px_y == 1 || px_y == 3) && (px_x == 0 || px_x == 2);
+        default:
+            return false;
         }
     };
 
@@ -241,7 +247,7 @@ void ImageThread(image_transport::Publisher publisher, image_transport::Publishe
         }
         else if (size_read == 1) // End, send image
         {
-            if(bytes_count != m_image_data_size)
+            if (bytes_count != m_image_data_size)
             {
                 ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size");
                 continue;
@@ -285,7 +291,7 @@ void ImageThread(image_transport::Publisher publisher, image_transport::Publishe
 
             publisher.publish(img_msg);
 
-            if(!extra_publisher.getTopic().empty() && g_stream_processed)
+            if (!extra_publisher.getTopic().empty() && g_stream_processed)
             {
                 cv::Mat img_processed = rgbpol2rgb(img_data, (polAngle)g_angle);
 
@@ -302,7 +308,7 @@ void ImageThread(image_transport::Publisher publisher, image_transport::Publishe
             bytes_count += size_read;
 
             // check if under size
-            //if (bytes_count >= m_image_data_size)
+            // if (bytes_count >= m_image_data_size)
             //    m_is_reading_image = false;
         }
         // size_read == -1 --> timeout
@@ -346,10 +352,10 @@ namespace l3cam_ros
 
             if (searchParam(param_name, full_param_name))
             {
-                if(!getParam(full_param_name, param_var))
-            {
-                ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
-            }
+                if (!getParam(full_param_name, param_var))
+                {
+                    ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                }
             }
             else
             {
@@ -373,12 +379,12 @@ namespace l3cam_ros
 
         bool changeProcessType(l3cam_ros::ChangePolarimetricCameraProcessType::Request &req, l3cam_ros::ChangePolarimetricCameraProcessType::Response &res)
         {
-            if(req.type < 0 || req.type > no_angle)
+            if (req.type < 0 || req.type > no_angle)
             {
                 res.error = L3CAM_ROS_INVALID_POLARIMETRIC_PROCESS_TYPE;
                 return true;
             }
-            
+
             g_angle = req.type;
             res.error = 0;
 
@@ -447,7 +453,8 @@ int main(int argc, char **argv)
         {
             ROS_INFO_STREAM((g_pol ? "Polarimetric" : "Allied Wide") << " camera available for streaming");
             node->declareServiceServers(g_pol ? "polarimetric" : "allied_wide");
-            if(g_pol) node->declareExtraService();
+            if (g_pol)
+                node->declareExtraService();
         }
         else
         {
@@ -457,7 +464,7 @@ int main(int argc, char **argv)
 
     image_transport::ImageTransport it(*node);
     node->publisher_ = it.advertise(g_pol ? "/img_polarimetric" : "/img_wide", 10);
-    if(g_pol)
+    if (g_pol)
     {
         node->extra_publisher_ = it.advertise("/img_polarimetric_processed", 10);
     }
