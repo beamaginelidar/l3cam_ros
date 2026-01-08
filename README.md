@@ -98,22 +98,26 @@ TCP is used internally by `libL3Cam` and is transparent to the user. However, th
 To run the l3cam_ros driver, launch the `l3cam.launch` file specifying (if wanted) if the [stream launch file](#stream_l3cam), the [configure launch file](#configure_l3cam), `rviz` (for visualization GUI) and `rqt_reconfigure` (for dynamic reconfigure GUI) have to be launched too. By default, the values are as follows:
 
 ```bash
-roslaunch l3cam_ros l3cam.launch stream:=true configure:=true rviz:=false rqt_reconfigure:=false
+roslaunch l3cam_ros l3cam.launch simulator:=false comp:=false stream:=true configure:=true rviz:=false rqt_reconfigure:=false
 ```
 
 This will launch the [l3cam_ros_node](#l3cam_ros_node), which is the main node that connects to and controls the L3Cam, and the `stream_l3cam.launch` and `configure_l3cam.launch` files.
+
+If you are using the L3Cam Simulator, turn the `simulator` parameter to true to simulate the streaming of the L3Cam.
+
+Turn the `comp` parameter to true to stream using `image_transport` and `point_cloud_transport` to compress the messages sent.
 
 More parameters can be set if wanted for the default network and sensors parameters, this is seen in the [parameters section](#parameters). The default parameters specified will be passed to the main node ([l3cam_ros_node](#l3cam_ros_node)) and the [configure launch file](#configure_l3cam).
 
 ### stream_l3cam
 
-This launch file launches all the [stream nodes](#lidar_stream) for all the sensors and `rviz` if specified. Once the main node connects to the L3Cam it will only keep open the stream nodes of the sensors the L3Cam has available, the other ones will shut down automatically.
+This launch file launches all the [stream nodes](#lidar_stream) for all the sensors. Once the main node connects to the L3Cam it will only keep open the stream nodes of the sensors the L3Cam has available, the other ones will shut down automatically.
 
 The stream nodes stream automatically their sensor data to each sensor topic when data is available.
 
 ### configure_l3cam
 
-This launch file launches all the [configure nodes](#network_configuration) for all the sensors and `rqt_reconfigure` if specified. Once the main node connects to the L3Cam it will only keep open the configure nodes of the sensors the L3Cam has available, the other ones will shut down automatically.
+This launch file launches all the [configure nodes](#network_configuration) for all the sensors. Once the main node connects to the L3Cam it will only keep open the configure nodes of the sensors the L3Cam has available, the other ones will shut down automatically.
 
 The configure nodes function like a dynamic reconfigure interface to change parameters, which is more user friendly. In reality, the parameters are changed with the main node through services, the configure nodes call services when a dynamic reconfigure parameter is changed.
 
@@ -144,6 +148,22 @@ The rgb_narrow_stream is the node that publishes RGB or Allied Narrow image fram
 ### thermal_stream
 
 The thermal_stream is the node that publishes thermal image frames if the thermal sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
+
+### lidar_stream_comp
+
+The lidar_stream_comp is the same as [lidar_stream](#lidar_stream) but using `point_cloud_transport` to compress.
+
+### polarimetric_wide_stream_comp
+
+The polarimetric_wide_stream_comp is the same as [polarimetric_wide_stream](#polarimetric_wide_stream) but using `image_transport` to compress.
+
+### rgb_narrow_stream_comp
+
+The rgb_narrow_stream_comp is the same as [rgb_narrow_stream](#rgb_narrow_stream) but using `image_transport` to compress.
+
+### thermal_stream_comp
+
+The thermal_stream_comp is the same as [thermal_stream](#thermal_stream) but using `image_transport` to compress.
 
 ### network_configuration
 
@@ -191,10 +211,12 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 
 | Parameter           | Type   | Default     |
 | ------------------- | ------ | ----------- |
+| simulator           | bool   | false       |
+| comp                | bool   | false       |
 | stream              | bool   | true        |
 | configure           | bool   | true        |
-| rviz2               | bool   | true        |
-| rqt_reconfigure     | bool   | true        |
+| rviz2               | bool   | false       |
+| rqt_reconfigure     | bool   | false       |
 | namespace           | string | /l3cam      |
 | timeout_secs        | int    | 60          |
 | lidar_topic         | string | PC2_lidar   |

@@ -1,6 +1,7 @@
 <launch>
     <!-- roslaunch l3cam_ros l3cam.launch stream:=true configure:=true rviz:=false rqt_reconfigure:=false -->
     <arg name="simulator" default="false" />
+    <arg name="comp" default="false" />
     <arg name="stream" default="true" />
     <arg name="configure" default="true" />
     <arg name="rviz" default="false" />
@@ -342,6 +343,7 @@
         <!-- Start streaming the available sensors. -->
         <include file="$(find l3cam_ros)/launch/stream_l3cam.launch" if="$(eval arg('stream'))">
             <arg name="simulator" value="$(arg simulator)" />
+            <arg name="comp" value="$(arg comp)" />
             <arg name="timeout_secs" value="$(arg timeout_secs)" />
             <arg name="lidar_topic" value="$(arg lidar_topic)" />
             <arg name="polarimetric_topic" value="$(arg polarimetric_topic)" />
@@ -360,6 +362,6 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="tf2_lidar" output="screen" args="0 0 0 0 0 0 map lidar"/>
 
     <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" if="$(eval arg('rqt_reconfigure'))" />
-    <node pkg="rviz" type="rviz" name="rviz" if="$(eval arg('rviz'))" />
+    <node pkg="rviz" type="rviz" name="rviz" if="$(eval arg('rviz'))" args="-d $(find l3cam_ros)/l3cam.rviz" />
 
 </launch>

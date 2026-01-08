@@ -43,6 +43,7 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <image_transport/image_transport.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -54,54 +55,15 @@
 
 bool g_listening = false;
 
-bool openSocket(int &m_socket_descriptor, sockaddr_in &m_socket, std::string &m_address, int m_udp_port)
-{
-    if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-    {
-        perror("Opening socket");
-        return false;
-    }
-    // else ROS_INFO("Socket created");
+bool g_rgb = true; // true if rgb available, false if narrow available
+bool g_wide = false;
 
-    memset((char *)&m_socket, 0, sizeof(struct sockaddr_in));
-    m_socket.sin_addr.s_addr = inet_addr((char *)m_address.c_str());
-    m_socket.sin_family = AF_INET;
-    m_socket.sin_port = htons(m_udp_port);
-
-    if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
-    {
-        perror("inet_aton() failed");
-        return false;
-    }
-
-    if (bind(m_socket_descriptor, (struct sockaddr *)&m_socket, sizeof(struct sockaddr_in)) == -1)
-    {
-        perror("Could not bind name to socket");
-        close(m_socket_descriptor);
-        return false;
-    }
-
-    int rcvbufsize = 134217728;
-    if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
-    {
-        perror("Error setting size to socket");
-        return false;
-    }
-
-    // 1 second timeout for socket
-    struct timeval read_timeout;
-    read_timeout.tv_sec = 1;
-    setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
-
-    return true;
-}
-
-void ImageThread(ros::Publisher publisher)
+void ImageThread(image_transport::Publisher publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
     std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
-    int m_udp_port = 6030;             // For Thermal it's 6030
+    int m_udp_port = 6020;             // For RGB and Allied Narrow it's 6020
 
     socklen_t socket_len = sizeof(m_socket);
     char *buffer;
@@ -116,13 +78,48 @@ void ImageThread(ros::Publisher publisher)
     char *m_image_buffer = NULL;
     int bytes_count = 0;
 
-    if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
+    if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
+        perror("Opening socket");
+        return;
+    }
+    // else ROS_INFO("Socket RGB created");
+
+    memset((char *)&m_socket, 0, sizeof(struct sockaddr_in));
+    m_socket.sin_addr.s_addr = inet_addr((char *)m_address.c_str());
+    m_socket.sin_family = AF_INET;
+    m_socket.sin_port = htons(m_udp_port);
+
+    if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
+    {
+        perror("inet_aton() failed");
         return;
     }
 
+    if (bind(m_socket_descriptor, (struct sockaddr *)&m_socket, sizeof(struct sockaddr_in)) == -1)
+    {
+        perror("Could not bind name to socket");
+        close(m_socket_descriptor);
+        return;
+    }
+
+    int rcvbufsize = 134217728;
+    if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
+    {
+        perror("Error setting size to socket");
+        return;
+    }
+
+    // 1 second timeout for socket
+    struct timeval read_timeout;
+    read_timeout.tv_sec = 1;
+    setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+
     g_listening = true;
-    ROS_INFO("Thermal streaming");
+    if (g_rgb)
+        ROS_INFO("RGB streaming");
+    else
+        ROS_INFO("Allied Narrow streaming");
 
     uint8_t *image_pointer = NULL;
 
@@ -154,8 +151,14 @@ void ImageThread(ros::Publisher publisher)
             m_is_reading_image = true;
             bytes_count = 0;
         }
-        else if (size_read == 1 && bytes_count == m_image_data_size) // End, send image
+        else if (size_read == 1) // End, send image
         {
+            if (bytes_count != m_image_data_size)
+            {
+                ROS_WARN_STREAM("rgb_narrow NET PROBLEM: bytes_count != m_image_data_size");
+                continue;
+            }
+
             m_is_reading_image = false;
             bytes_count = 0;
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
@@ -165,13 +168,25 @@ void ImageThread(ros::Publisher publisher)
             {
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC1, image_pointer);
             }
+            else if (m_image_channels == 2)
+            {
+                img_data = cv::Mat(m_image_height, m_image_width, CV_8UC2, image_pointer);
+                if (g_rgb && !g_wide) // econ
+                {
+                    cv::cvtColor(img_data, img_data, cv::COLOR_YUV2BGR_YUYV);
+                }
+                else // econ wide and narrow
+                {
+                    cv::cvtColor(img_data, img_data, cv::COLOR_YUV2BGR_Y422);
+                }
+            }
             else if (m_image_channels == 3)
             {
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
             }
 
             std_msgs::Header header;
-            header.frame_id = "thermal";
+            header.frame_id = g_rgb ? "rgb" : "allied_narrow";
             // m_timestamp format: hhmmsszzz
             time_t raw_time = ros::Time::now().toSec();
             std::tm *time_info = std::localtime(&raw_time);
@@ -195,119 +210,16 @@ void ImageThread(ros::Publisher publisher)
             bytes_count += size_read;
 
             // check if under size
-            if (bytes_count >= m_image_data_size)
-                m_is_reading_image = false;
+            // if (bytes_count >= m_image_data_size)
+            //    m_is_reading_image = false;
         }
         // size_read == -1 --> timeout
     }
 
     publisher.shutdown();
-    ROS_INFO_STREAM("Exiting thermal streaming thread");
+    ROS_INFO_STREAM("Exiting " << (g_rgb ? "RGB" : "Allied Narrow") << " streaming thread");
     free(buffer);
-
-    shutdown(m_socket_descriptor, SHUT_RDWR);
-    close(m_socket_descriptor);
-
-    pthread_exit(0);
-}
-
-void FloatImageThread(ros::Publisher publisher)
-{
-    struct sockaddr_in m_socket;
-    int m_socket_descriptor;           // Socket descriptor
-    std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
-    int m_udp_port = 6031;             // For float Thermal it's 6031
-
-    socklen_t socket_len = sizeof(m_socket);
-    char *buffer;
-    buffer = (char *)malloc(64000);
-
-    uint16_t m_image_height;
-    uint16_t m_image_width;
-    uint32_t m_timestamp;
-    int m_image_data_size;
-    bool m_is_reading_image = false;
-    int bytes_count = 0;
-
-    if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
-    {
-        return;
-    }
-
-    g_listening = true;
-    ROS_INFO("Float Thermal streaming");
-
-    float *thermal_data_pointer = NULL;
-    int float_pointer_cnt = 0;
-
-    while (g_listening)
-    {
-        int size_read = recvfrom(m_socket_descriptor, buffer, 64000, 0, (struct sockaddr *)&m_socket, &socket_len);
-        if (size_read == 9) // Header
-        {
-            memcpy(&m_image_height, &buffer[1], 2);
-            memcpy(&m_image_width, &buffer[3], 2);
-            memcpy(&m_timestamp, &buffer[5], 4);
-
-            if (thermal_data_pointer != NULL)
-            {
-                free(thermal_data_pointer);
-                thermal_data_pointer = NULL;
-            }
-
-            m_image_data_size = m_image_height * m_image_width * sizeof(float);
-
-            thermal_data_pointer = (float *)malloc(m_image_data_size);
-
-            m_is_reading_image = true;
-            bytes_count = 0;
-            float_pointer_cnt = 0;
-        }
-        else if (size_read == 1) // End, send image
-        {
-            if (bytes_count != m_image_data_size)
-            {
-                ROS_WARN_STREAM("thermal NET PROBLEM: bytes_count != m_image_data_size");
-                continue;
-            }
-
-            m_is_reading_image = false;
-            bytes_count = 0;
-            float_pointer_cnt = 0;
-
-            cv::Mat float_image = cv::Mat(m_image_height, m_image_width, CV_32FC1, thermal_data_pointer);
-
-            // publish float image
-            std_msgs::Header header;
-            header.frame_id = "f_thermal";
-            // m_timestamp format: hhmmsszzz
-            time_t raw_time = ros::Time::now().toSec();
-            std::tm *time_info = std::localtime(&raw_time);
-            time_info->tm_sec = 0;
-            time_info->tm_min = 0;
-            time_info->tm_hour = 0;
-            header.stamp.sec = std::mktime(time_info) +
-                               (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
-                               (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
-                               (uint32_t)((m_timestamp / 1000) % 100);         // ss
-            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
-
-            sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_32FC1, float_image).toImageMsg();
-
-            publisher.publish(img_msg);
-        }
-        else if (size_read > 0 && m_is_reading_image) // Data
-        {
-            memcpy(&thermal_data_pointer[float_pointer_cnt], buffer, size_read);
-            bytes_count += size_read;
-            float_pointer_cnt += size_read / 4;
-        }
-        // size_read == -1 --> timeout
-    }
-
-    publisher.shutdown();
-    ROS_INFO_STREAM("Exiting float thermal streaming thread");
-    free(buffer);
+    free(m_image_buffer);
 
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
@@ -317,16 +229,14 @@ void FloatImageThread(ros::Publisher publisher)
 
 namespace l3cam_ros
 {
-    class ThermalStream : public SensorStream
+    class RgbNarrowStream : public SensorStream
     {
     public:
-        explicit ThermalStream() : SensorStream()
+        explicit RgbNarrowStream() : SensorStream()
         {
-            declareServiceServers("thermal");
         }
 
-        ros::Publisher publisher_;
-        ros::Publisher f_publisher_;
+        image_transport::Publisher publisher_;
 
     private:
         void stopListening()
@@ -334,15 +244,15 @@ namespace l3cam_ros
             g_listening = false;
         }
 
-    }; // class ThermalStream
+    }; // class RgbNarrowStream
 
 } // namespace l3cam_ros
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "thermal_stream");
+    ros::init(argc, argv, "rgb_narrow_stream");
 
-    l3cam_ros::ThermalStream *node = new l3cam_ros::ThermalStream();
+    l3cam_ros::RgbNarrowStream *node = new l3cam_ros::RgbNarrowStream();
 
     if (!node->simulator_)
     {
@@ -365,9 +275,22 @@ int main(int argc, char **argv)
             {
                 for (int i = 0; i < node->srv_get_sensors_.response.num_sensors; ++i)
                 {
-                    if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_thermal && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                    if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_econ_rgb && node->srv_get_sensors_.response.sensors[i].sensor_available)
                     {
                         sensor_is_available = true;
+                        g_rgb = true;
+                        g_wide = false;
+                    }
+                    else if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_econ_wide && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                    {
+                        sensor_is_available = true;
+                        g_rgb = true;
+                        g_wide = true;
+                    }
+                    else if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_allied_narrow && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                    {
+                        sensor_is_available = true;
+                        g_rgb = false;
                     }
                 }
             }
@@ -385,7 +308,8 @@ int main(int argc, char **argv)
 
         if (sensor_is_available)
         {
-            ROS_INFO_STREAM("Thermal camera available for streaming");
+            ROS_INFO_STREAM((g_rgb ? "RGB" : "Allied Narrow") << " camera available for streaming");
+            node->declareServiceServers((g_rgb ? "rgb" : "allied_narrow"));
         }
         else
         {
@@ -393,17 +317,14 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::Image>("/img_thermal", 10);
+    image_transport::ImageTransport it(*node);
+    node->publisher_ = it.advertise(g_rgb ? "/img_rgb" : "/img_narrow", 10);
     std::thread thread(ImageThread, node->publisher_);
     thread.detach();
-    node->f_publisher_ = node->advertise<sensor_msgs::Image>("/img_f_thermal", 10);
-    std::thread thread_f(FloatImageThread, node->f_publisher_);
-    thread_f.detach();
 
     node->spin();
 
     node->publisher_.shutdown();
-    node->f_publisher_.shutdown();
     g_listening = false;
     usleep(2000000);
 

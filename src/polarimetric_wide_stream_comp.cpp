@@ -43,6 +43,7 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <image_transport/image_transport.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -52,17 +53,110 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
+#include "l3cam_ros/EnablePolarimetricCameraStreamProcessedImage.h"
+#include "l3cam_ros/ChangePolarimetricCameraProcessType.h"
+
+int g_angle = no_angle;
+
 bool g_listening = false;
 
-bool g_rgb = true; // true if rgb available, false if narrow available
-bool g_wide = false;
+bool g_pol = false; // true if polarimetric available, false if wide available
+bool g_stream_processed = true;
 
-void ImageThread(ros::Publisher publisher)
+cv::Mat rgbpol2rgb(const cv::Mat img, polAngle angle = no_angle)
+{
+    /*
+    0       1       2       3
+    +-------+-------+-------+-------+ 0
+    |  90°  |  45°  |  90°  |  45°  |
+    |   B   |   B   |   Gb  |   Gb  |
+    +-------+-------+-------+-------+ 1
+    | 135°  |  0°   | 135°  |  0°   |
+    |   B   |   B   |   Gb  |   Gb  |
+    +-------+-------+-------+-------+ 2
+    |  90°  |  45°  |  90°  |  45°  |
+    |   Gr  |   Gr  |   R   |   R   |
+    +-------+-------+-------+-------+ 3
+    | 135°  |  0°   | 135°  |  0°   |
+    |   Gr  |   Gr  |   R   |   R   |
+    +-------+-------+-------+-------+
+    */
+
+    cv::Mat bayer(img.rows / 2, img.cols / 2, CV_8UC1, cv::Scalar(0));
+    cv::Mat rgb;
+
+    auto is_valid_pixel = [](int px_y, int px_x, polAngle angle) -> bool
+    {
+        switch (angle)
+        {
+        case angle_0:
+            return (px_y == 1 || px_y == 3) && (px_x == 1 || px_x == 3);
+        case angle_45:
+            return (px_y == 0 || px_y == 2) && (px_x == 1 || px_x == 3);
+        case angle_90:
+            return (px_y == 0 || px_y == 2) && (px_x == 0 || px_x == 2);
+        case angle_135:
+            return (px_y == 1 || px_y == 3) && (px_x == 0 || px_x == 2);
+        default:
+            return false;
+        }
+    };
+
+    if (angle != no_angle)
+    {
+        for (int y = 0; y < img.rows; ++y)
+        {
+            for (int x = 0; x < img.cols; ++x)
+            {
+                const int px_y = y % 4;
+                const int px_x = x % 4;
+
+                if (is_valid_pixel(px_y, px_x, angle))
+                {
+                    bayer.at<uint8_t>(y / 2, x / 2) = img.at<uint8_t>(y, x);
+                }
+            }
+        }
+        cv::cvtColor(bayer, rgb, cv::COLOR_BayerRG2BGR);
+    }
+    else
+    {
+        cv::Mat bayer0 = cv::Mat::zeros(img.rows / 2, img.cols / 2, CV_8UC1);
+        cv::Mat bayer90 = cv::Mat::zeros(img.rows / 2, img.cols / 2, CV_8UC1);
+
+        for (int y = 0; y < img.rows; ++y)
+        {
+            for (int x = 0; x < img.cols; ++x)
+            {
+                const int px_y = y % 4;
+                const int px_x = x % 4;
+
+                if ((px_y == 1 || px_y == 3) && (px_x == 1 || px_x == 3))
+                {
+                    bayer0.at<uint8_t>(y / 2, x / 2) = img.at<uint8_t>(y, x);
+                }
+                if ((px_y == 0 || px_y == 2) && (px_x == 0 || px_x == 2))
+                {
+                    bayer90.at<uint8_t>(y / 2, x / 2) = img.at<uint8_t>(y, x);
+                }
+            }
+        }
+
+        cv::Mat rgb0, rgb90;
+        cv::cvtColor(bayer0, rgb0, cv::COLOR_BayerRG2BGR);
+        cv::cvtColor(bayer90, rgb90, cv::COLOR_BayerRG2BGR);
+        rgb = rgb0 / 2 + rgb90 / 2;
+    }
+
+    return rgb;
+}
+
+void ImageThread(image_transport::Publisher publisher, image_transport::Publisher extra_publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
     std::string m_address = "0.0.0.0"; // Local address of the network interface port connected to the L3CAM
-    int m_udp_port = 6020;             // For RGB and Allied Narrow it's 6020
+    int m_udp_port = 6060;             // For Polarimetric and Allied Wide it's 6060
 
     socklen_t socket_len = sizeof(m_socket);
     char *buffer;
@@ -82,7 +176,7 @@ void ImageThread(ros::Publisher publisher)
         perror("Opening socket");
         return;
     }
-    // else ROS_INFO("Socket RGB created");
+    // else ROS_INFO("Socket Polarimetric created");
 
     memset((char *)&m_socket, 0, sizeof(struct sockaddr_in));
     m_socket.sin_addr.s_addr = inet_addr((char *)m_address.c_str());
@@ -115,10 +209,10 @@ void ImageThread(ros::Publisher publisher)
     setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 
     g_listening = true;
-    if (g_rgb)
-        ROS_INFO("RGB streaming");
+    if (g_pol)
+        ROS_INFO("Polarimetric streaming");
     else
-        ROS_INFO("Allied Narrow streaming");
+        ROS_INFO("Allied Wide streaming");
 
     uint8_t *image_pointer = NULL;
 
@@ -154,7 +248,7 @@ void ImageThread(ros::Publisher publisher)
         {
             if (bytes_count != m_image_data_size)
             {
-                ROS_WARN_STREAM("rgb_narrow NET PROBLEM: bytes_count != m_image_data_size");
+                ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size");
                 continue;
             }
 
@@ -170,14 +264,7 @@ void ImageThread(ros::Publisher publisher)
             else if (m_image_channels == 2)
             {
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC2, image_pointer);
-                if (g_rgb && !g_wide) // econ
-                {
-                    cv::cvtColor(img_data, img_data, cv::COLOR_YUV2BGR_YUYV);
-                }
-                else // econ wide and narrow
-                {
-                    cv::cvtColor(img_data, img_data, cv::COLOR_YUV2BGR_Y422);
-                }
+                cv::cvtColor(img_data, img_data, cv::COLOR_YUV2BGR_Y422);
             }
             else if (m_image_channels == 3)
             {
@@ -185,7 +272,7 @@ void ImageThread(ros::Publisher publisher)
             }
 
             std_msgs::Header header;
-            header.frame_id = g_rgb ? "rgb" : "allied_narrow";
+            header.frame_id = g_pol ? "polarimetric" : "allied_wide";
             // m_timestamp format: hhmmsszzz
             time_t raw_time = ros::Time::now().toSec();
             std::tm *time_info = std::localtime(&raw_time);
@@ -202,6 +289,17 @@ void ImageThread(ros::Publisher publisher)
             sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
 
             publisher.publish(img_msg);
+
+            if (!extra_publisher.getTopic().empty() && g_stream_processed)
+            {
+                cv::Mat img_processed = rgbpol2rgb(img_data, (polAngle)g_angle);
+
+                std_msgs::Header header_processed = header;
+                header.frame_id = "polarimetric_processed";
+
+                sensor_msgs::ImagePtr img_processed_msg = cv_bridge::CvImage(header_processed, sensor_msgs::image_encodings::BGR8, img_processed).toImageMsg();
+                extra_publisher.publish(img_processed_msg);
+            }
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
@@ -216,42 +314,94 @@ void ImageThread(ros::Publisher publisher)
     }
 
     publisher.shutdown();
-    ROS_INFO_STREAM("Exiting " << (g_rgb ? "RGB" : "Allied Narrow") << " streaming thread");
+    extra_publisher.shutdown();
+
+    ROS_INFO_STREAM("Exiting " << (g_pol ? "Polarimetric" : "Allied Wide") << " streaming thread");
     free(buffer);
     free(m_image_buffer);
 
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
-
-    pthread_exit(0);
 }
 
 namespace l3cam_ros
 {
-    class RgbNarrowStream : public SensorStream
+    class PolarimetricWideStream : public SensorStream
     {
     public:
-        explicit RgbNarrowStream() : SensorStream()
+        explicit PolarimetricWideStream() : SensorStream()
         {
+            loadParam("polarimetric_stream_processed_image", g_stream_processed, true);
+            loadParam("polarimetric_process_type", g_angle, 127);
         }
 
-        ros::Publisher publisher_;
+        void declareExtraService()
+        {
+            srv_stream_processed_ = this->advertiseService("enable_polarimetric_stream_processed_image", &PolarimetricWideStream::enableStreamProcessed, this);
+            srv_process_type_ = this->advertiseService("change_polarimetric_process_type", &PolarimetricWideStream::changeProcessType, this);
+        }
+
+        image_transport::Publisher publisher_, extra_publisher_;
 
     private:
+        template <typename T>
+        void loadParam(const std::string &param_name, T &param_var, const T &default_val)
+        {
+            std::string full_param_name;
+
+            if (searchParam(param_name, full_param_name))
+            {
+                if (!getParam(full_param_name, param_var))
+                {
+                    ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                }
+            }
+            else
+            {
+                ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
+                param_var = default_val;
+            }
+        }
+
         void stopListening()
         {
             g_listening = false;
         }
 
-    }; // class RgbNarrowStream
+        bool enableStreamProcessed(l3cam_ros::EnablePolarimetricCameraStreamProcessedImage::Request &req, l3cam_ros::EnablePolarimetricCameraStreamProcessedImage::Response &res)
+        {
+            g_stream_processed = req.enabled;
+            res.error = 0;
+
+            return true;
+        }
+
+        bool changeProcessType(l3cam_ros::ChangePolarimetricCameraProcessType::Request &req, l3cam_ros::ChangePolarimetricCameraProcessType::Response &res)
+        {
+            if (req.type < 0 || req.type > no_angle)
+            {
+                res.error = L3CAM_ROS_INVALID_POLARIMETRIC_PROCESS_TYPE;
+                return true;
+            }
+
+            g_angle = req.type;
+            res.error = 0;
+
+            return true;
+        }
+
+        ros::ServiceServer srv_stream_processed_;
+        ros::ServiceServer srv_process_type_;
+
+    }; // class PolarimetricWideStream
 
 } // namespace l3cam_ros
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "rgb_narrow_stream");
+    ros::init(argc, argv, "polarimetric_wide_stream");
 
-    l3cam_ros::RgbNarrowStream *node = new l3cam_ros::RgbNarrowStream();
+    l3cam_ros::PolarimetricWideStream *node = new l3cam_ros::PolarimetricWideStream();
 
     if (!node->simulator_)
     {
@@ -274,22 +424,15 @@ int main(int argc, char **argv)
             {
                 for (int i = 0; i < node->srv_get_sensors_.response.num_sensors; ++i)
                 {
-                    if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_econ_rgb && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                    if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_pol && node->srv_get_sensors_.response.sensors[i].sensor_available)
                     {
                         sensor_is_available = true;
-                        g_rgb = true;
-                        g_wide = false;
+                        g_pol = true;
                     }
-                    else if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_econ_wide && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                    else if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_allied_wide && node->srv_get_sensors_.response.sensors[i].sensor_available)
                     {
                         sensor_is_available = true;
-                        g_rgb = true;
-                        g_wide = true;
-                    }
-                    else if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_allied_narrow && node->srv_get_sensors_.response.sensors[i].sensor_available)
-                    {
-                        sensor_is_available = true;
-                        g_rgb = false;
+                        g_pol = false;
                     }
                 }
             }
@@ -301,14 +444,16 @@ int main(int argc, char **argv)
         }
         else
         {
-            ROS_ERROR_STREAM(node->getNamespace() << " error: Failed to call service get_sensors_available");
+            ROS_ERROR_STREAM(node->getNamespace() << "_error: Failed to call service get_sensors_available");
             return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
         }
 
         if (sensor_is_available)
         {
-            ROS_INFO_STREAM((g_rgb ? "RGB" : "Allied Narrow") << " camera available for streaming");
-            node->declareServiceServers((g_rgb ? "rgb" : "allied_narrow"));
+            ROS_INFO_STREAM((g_pol ? "Polarimetric" : "Allied Wide") << " camera available for streaming");
+            node->declareServiceServers(g_pol ? "polarimetric" : "allied_wide");
+            if (g_pol)
+                node->declareExtraService();
         }
         else
         {
@@ -316,13 +461,19 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::Image>(g_rgb ? "/img_rgb" : "/img_narrow", 10);
-    std::thread thread(ImageThread, node->publisher_);
+    image_transport::ImageTransport it(*node);
+    node->publisher_ = it.advertise(g_pol ? "/img_polarimetric" : "/img_wide", 10);
+    if (g_pol)
+    {
+        node->extra_publisher_ = it.advertise("/img_polarimetric_processed", 10);
+    }
+    std::thread thread(ImageThread, node->publisher_, node->extra_publisher_);
     thread.detach();
 
     node->spin();
 
     node->publisher_.shutdown();
+    node->extra_publisher_.shutdown();
     g_listening = false;
     usleep(2000000);
 

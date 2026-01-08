@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   cv_bridge
   image_transport
+  point_cloud_transport
 )
 
 #######################################
@@ -162,6 +163,7 @@ include_directories(
 
 ## Declare C++ executables
 add_executable(${PROJECT_NAME}_node src/l3cam_ros_node.cpp)
+
 add_executable(network_configuration src/network_configuration.cpp)
 add_executable(lidar_configuration src/lidar_configuration.cpp)
 add_executable(polarimetric_configuration src/polarimetric_configuration.cpp)
@@ -169,13 +171,21 @@ add_executable(rgb_configuration src/rgb_configuration.cpp)
 add_executable(thermal_configuration src/thermal_configuration.cpp)
 add_executable(allied_wide_configuration src/allied_wide_configuration.cpp)
 add_executable(allied_narrow_configuration src/allied_narrow_configuration.cpp)
+
 add_executable(lidar_stream src/lidar_stream.cpp src/sensor_stream.cpp)
 add_executable(polarimetric_wide_stream src/polarimetric_wide_stream.cpp src/sensor_stream.cpp)
 add_executable(rgb_narrow_stream src/rgb_narrow_stream.cpp src/sensor_stream.cpp)
 add_executable(thermal_stream src/thermal_stream.cpp src/sensor_stream.cpp)
 
+add_executable(lidar_stream_comp src/lidar_stream_comp.cpp src/sensor_stream.cpp)
+add_executable(polarimetric_wide_stream_comp src/polarimetric_wide_stream_comp.cpp src/sensor_stream.cpp)
+add_executable(rgb_narrow_stream_comp src/rgb_narrow_stream_comp.cpp src/sensor_stream.cpp)
+add_executable(thermal_stream_comp src/thermal_stream_comp.cpp src/sensor_stream.cpp)
+
+
 ## Add cmake target dependencies of the executable
 add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_gencpp)
+
 add_dependencies(network_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(lidar_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(polarimetric_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
@@ -183,14 +193,22 @@ add_dependencies(rgb_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg
 add_dependencies(thermal_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(allied_wide_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
 add_dependencies(allied_narrow_configuration ${PROJECT_NAME}_gencpp ${PROJECT_NAME}_gencfg) 
+
 add_dependencies(lidar_stream ${PROJECT_NAME}_gencpp) 
 add_dependencies(polarimetric_wide_stream ${PROJECT_NAME}_gencpp) 
 add_dependencies(rgb_narrow_stream ${PROJECT_NAME}_gencpp) 
 add_dependencies(thermal_stream ${PROJECT_NAME}_gencpp) 
 
+add_dependencies(lidar_stream_comp ${PROJECT_NAME}_gencpp) 
+add_dependencies(polarimetric_wide_stream_comp ${PROJECT_NAME}_gencpp) 
+add_dependencies(rgb_narrow_stream_comp ${PROJECT_NAME}_gencpp) 
+add_dependencies(thermal_stream_comp ${PROJECT_NAME}_gencpp) 
+
+
 ## Specify libraries to link a library or executable target against
 FIND_LIBRARY(l3cam_LIBRARIES libL3Cam.a /usr/local/lib/libl3cam/)
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+
 target_link_libraries(network_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(lidar_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(polarimetric_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
@@ -198,7 +216,13 @@ target_link_libraries(rgb_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(thermal_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(allied_wide_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(allied_narrow_configuration ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+
 target_link_libraries(lidar_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(polarimetric_wide_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(rgb_narrow_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(thermal_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+
+target_link_libraries(lidar_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(polarimetric_wide_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(rgb_narrow_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+target_link_libraries(thermal_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
