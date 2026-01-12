@@ -43,7 +43,6 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
-#include <image_transport/image_transport.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -151,7 +150,7 @@ cv::Mat rgbpol2rgb(const cv::Mat img, polAngle angle = no_angle)
     return rgb;
 }
 
-void ImageThread(image_transport::Publisher publisher, image_transport::Publisher extra_publisher)
+void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int quality, bool optimize, int rst_interval)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -170,6 +169,14 @@ void ImageThread(image_transport::Publisher publisher, image_transport::Publishe
     bool m_is_reading_image = false;
     char *m_image_buffer = NULL;
     int bytes_count = 0;
+
+    std::vector<int> compression_params;
+    compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(quality);
+    compression_params.push_back(cv::IMWRITE_JPEG_OPTIMIZE);
+    compression_params.push_back(optimize ? 1 : 0);
+    compression_params.push_back(cv::IMWRITE_JPEG_RST_INTERVAL);
+    compression_params.push_back(rst_interval);
 
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
@@ -210,9 +217,9 @@ void ImageThread(image_transport::Publisher publisher, image_transport::Publishe
 
     g_listening = true;
     if (g_pol)
-        ROS_INFO("Polarimetric streaming");
+        ROS_INFO("Polarimetric streaming compressed");
     else
-        ROS_INFO("Allied Wide streaming");
+        ROS_INFO("Allied Wide streaming compressed");
 
     uint8_t *image_pointer = NULL;
 
@@ -285,10 +292,31 @@ void ImageThread(image_transport::Publisher publisher, image_transport::Publishe
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
-            const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
-            sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
+            std::vector<uchar> buffer;
+            bool success = false;
+            try
+            {
+                success = cv::imencode(".jpg", img_data, buffer, compression_params);
+            }
+            catch (cv::Exception &e)
+            {
+                ROS_ERROR("OpenCV compression error: %s", e.what());
+                continue;
+            }
 
-            publisher.publish(img_msg);
+            if (success)
+            {
+                sensor_msgs::CompressedImage compressed_msg;
+                compressed_msg.header = header;
+                compressed_msg.format = "jpeg";
+                compressed_msg.data = buffer;
+
+                publisher.publish(compressed_msg);
+            }
+            else
+            {
+                ROS_WARN("Failed to compress image.");
+            }
 
             if (!extra_publisher.getTopic().empty() && g_stream_processed)
             {
@@ -297,8 +325,31 @@ void ImageThread(image_transport::Publisher publisher, image_transport::Publishe
                 std_msgs::Header header_processed = header;
                 header.frame_id = "polarimetric_processed";
 
-                sensor_msgs::ImagePtr img_processed_msg = cv_bridge::CvImage(header_processed, sensor_msgs::image_encodings::BGR8, img_processed).toImageMsg();
-                extra_publisher.publish(img_processed_msg);
+                std::vector<uchar> extra_buffer;
+                success = false;
+                try
+                {
+                    success = cv::imencode(".jpg", img_processed, extra_buffer, compression_params);
+                }
+                catch (cv::Exception &e)
+                {
+                    ROS_ERROR("OpenCV compression error: %s", e.what());
+                    continue;
+                }
+
+                if (success)
+                {
+                    sensor_msgs::CompressedImage processed_compressed_msg;
+                    processed_compressed_msg.header = header_processed;
+                    processed_compressed_msg.format = "jpeg";
+                    processed_compressed_msg.data = extra_buffer;
+
+                    publisher.publish(processed_compressed_msg);
+                }
+                else
+                {
+                    ROS_WARN("Failed to compress image.");
+                }
             }
         }
         else if (size_read > 0 && m_is_reading_image) // Data
@@ -332,7 +383,7 @@ namespace l3cam_ros
         explicit PolarimetricWideStream() : SensorStream()
         {
             loadParam("polarimetric_stream_processed_image", g_stream_processed, true);
-            loadParam("polarimetric_process_type", g_angle, 127);
+            loadParam("polarimetric_process_type", g_angle, 4);
         }
 
         void declareExtraService()
@@ -341,28 +392,9 @@ namespace l3cam_ros
             srv_process_type_ = this->advertiseService("change_polarimetric_process_type", &PolarimetricWideStream::changeProcessType, this);
         }
 
-        image_transport::Publisher publisher_, extra_publisher_;
+        ros::Publisher publisher_, extra_publisher_;
 
     private:
-        template <typename T>
-        void loadParam(const std::string &param_name, T &param_var, const T &default_val)
-        {
-            std::string full_param_name;
-
-            if (searchParam(param_name, full_param_name))
-            {
-                if (!getParam(full_param_name, param_var))
-                {
-                    ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
-                }
-            }
-            else
-            {
-                ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
-                param_var = default_val;
-            }
-        }
-
         void stopListening()
         {
             g_listening = false;
@@ -461,13 +493,18 @@ int main(int argc, char **argv)
         }
     }
 
-    image_transport::ImageTransport it(*node);
-    node->publisher_ = it.advertise(g_pol ? "/img_polarimetric" : "/img_wide", 10);
+    int quality, rst_interval;
+    bool optimize;
+    node->loadParam("jpeg_quality", quality, 90);
+    node->loadParam("jpeg_optimize", optimize, true);
+    node->loadParam("jpeg_rst_interval", rst_interval, 10);
+
+    node->publisher_ = node->advertise<sensor_msgs::CompressedImage>(g_pol ? "/img_polarimetric/compressed" : "/img_wide/compressed", 10);
     if (g_pol)
     {
-        node->extra_publisher_ = it.advertise("/img_polarimetric_processed", 10);
+        node->extra_publisher_ = node->advertise<sensor_msgs::CompressedImage>("/img_polarimetric_processed/compressed", 10);
     }
-    std::thread thread(ImageThread, node->publisher_, node->extra_publisher_);
+    std::thread thread(ImageThread, node->publisher_, node->extra_publisher_, quality, optimize, rst_interval);
     thread.detach();
 
     node->spin();

@@ -7,6 +7,10 @@
     <arg name="rviz" default="false" />
     <arg name="rqt_reconfigure" default="false" />
 
+    <arg name="jpeg_quality" default="90" /> <!-- 0 - 100 -->
+    <arg name="jpeg_optimize" default="true" />
+    <arg name="jpeg_rst_interval" default="10" /> <!-- 0 - 65535 -->
+
     <group ns="/L3Cam">
         <arg name="timeout_secs" default="30" />
         <arg name="lidar_topic" default="/PC2_lidar" />
@@ -351,6 +355,10 @@
             <arg name="thermal_topic" value="$(arg thermal_topic)" />
             <arg name="allied_wide_topic" value="$(arg allied_wide_topic)" />
             <arg name="allied_narrow_topic" value="$(arg allied_narrow_topic)" />
+
+            <arg name="jpeg_quality" value="$(arg jpeg_quality)" />
+            <arg name="jpeg_optimize" value="$(arg jpeg_optimize)" />
+            <arg name="jpeg_rst_interval" value="$(arg jpeg_rst_interval)" />
 
             <arg name="polarimetric_stream_processed_image" value="$(arg polarimetric_stream_processed_image)" />
             <arg name="polarimetric_process_type" value="$(arg polarimetric_process_type)" />

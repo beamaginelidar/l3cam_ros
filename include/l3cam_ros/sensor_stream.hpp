@@ -46,6 +46,9 @@ namespace l3cam_ros
         void spin();
 
         void declareServiceServers(const std::string &sensor);
+        
+        template <typename T>
+        void loadParam(const std::string &param_name, T &param_var, const T &default_val);
 
         ros::ServiceClient client_get_sensors_;
         l3cam_ros::GetSensorsAvailable srv_get_sensors_;
@@ -54,9 +57,6 @@ namespace l3cam_ros
         bool simulator_;
 
     private:
-        template <typename T>
-        void loadParam(const std::string &param_name, T &param_var, const T &default_val);
-
         bool sensorDisconnectedCallback(l3cam_ros::SensorDisconnected::Request &req, l3cam_ros::SensorDisconnected::Response &res);
 
         ros::ServiceServer srv_sensor_disconnected_;

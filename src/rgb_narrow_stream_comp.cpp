@@ -43,7 +43,6 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
-#include <image_transport/image_transport.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -58,7 +57,7 @@ bool g_listening = false;
 bool g_rgb = true; // true if rgb available, false if narrow available
 bool g_wide = false;
 
-void ImageThread(image_transport::Publisher publisher)
+void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_interval)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -77,6 +76,14 @@ void ImageThread(image_transport::Publisher publisher)
     bool m_is_reading_image = false;
     char *m_image_buffer = NULL;
     int bytes_count = 0;
+
+    std::vector<int> compression_params;
+    compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(quality);
+    compression_params.push_back(cv::IMWRITE_JPEG_OPTIMIZE);
+    compression_params.push_back(optimize ? 1 : 0);
+    compression_params.push_back(cv::IMWRITE_JPEG_RST_INTERVAL);
+    compression_params.push_back(rst_interval);
 
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
@@ -117,9 +124,9 @@ void ImageThread(image_transport::Publisher publisher)
 
     g_listening = true;
     if (g_rgb)
-        ROS_INFO("RGB streaming");
+        ROS_INFO("RGB streaming compressed");
     else
-        ROS_INFO("Allied Narrow streaming");
+        ROS_INFO("Allied Narrow streaming compressed");
 
     uint8_t *image_pointer = NULL;
 
@@ -199,21 +206,37 @@ void ImageThread(image_transport::Publisher publisher)
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
-            const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
-            sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
+            std::vector<uchar> buffer;
+            bool success = false;
+            try
+            {
+                success = cv::imencode(".jpg", img_data, buffer, compression_params);
+            }
+            catch (cv::Exception &e)
+            {
+                ROS_ERROR("OpenCV compression error: %s", e.what());
+                continue;
+            }
 
-            publisher.publish(img_msg);
+            if (success)
+            {
+                sensor_msgs::CompressedImage compressed_msg;
+                compressed_msg.header = header;
+                compressed_msg.format = "jpeg";
+                compressed_msg.data = buffer;
+
+                publisher.publish(compressed_msg);
+            }
+            else
+            {
+                ROS_WARN("Failed to compress image.");
+            }
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
             memcpy(&m_image_buffer[bytes_count], buffer, size_read);
             bytes_count += size_read;
-
-            // check if under size
-            // if (bytes_count >= m_image_data_size)
-            //    m_is_reading_image = false;
         }
-        // size_read == -1 --> timeout
     }
 
     publisher.shutdown();
@@ -236,7 +259,7 @@ namespace l3cam_ros
         {
         }
 
-        image_transport::Publisher publisher_;
+        ros::Publisher publisher_;
 
     private:
         void stopListening()
@@ -317,9 +340,14 @@ int main(int argc, char **argv)
         }
     }
 
-    image_transport::ImageTransport it(*node);
-    node->publisher_ = it.advertise(g_rgb ? "/img_rgb" : "/img_narrow", 10);
-    std::thread thread(ImageThread, node->publisher_);
+    int quality, rst_interval;
+    bool optimize;
+    node->loadParam("jpeg_quality", quality, 90);
+    node->loadParam("jpeg_optimize", optimize, true);
+    node->loadParam("jpeg_rst_interval", rst_interval, 10);
+
+    node->publisher_ = node->advertise<sensor_msgs::CompressedImage>(g_rgb ? "/img_rgb/compressed" : "/img_narrow/compressed", 10);
+    std::thread thread(ImageThread, node->publisher_, quality, optimize, rst_interval);
     thread.detach();
 
     node->spin();

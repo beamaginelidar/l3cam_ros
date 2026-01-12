@@ -43,7 +43,6 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
-#include <image_transport/image_transport.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -97,7 +96,7 @@ bool openSocket(int &m_socket_descriptor, sockaddr_in &m_socket, std::string &m_
     return true;
 }
 
-void ImageThread(image_transport::Publisher publisher)
+void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_interval)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -117,13 +116,21 @@ void ImageThread(image_transport::Publisher publisher)
     char *m_image_buffer = NULL;
     int bytes_count = 0;
 
+    std::vector<int> compression_params;
+    compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(quality);
+    compression_params.push_back(cv::IMWRITE_JPEG_OPTIMIZE);
+    compression_params.push_back(optimize ? 1 : 0);
+    compression_params.push_back(cv::IMWRITE_JPEG_RST_INTERVAL);
+    compression_params.push_back(rst_interval);
+
     if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
     {
         return;
     }
 
     g_listening = true;
-    ROS_INFO("Thermal streaming");
+    ROS_INFO("Thermal streaming compressed");
 
     uint8_t *image_pointer = NULL;
 
@@ -185,10 +192,31 @@ void ImageThread(image_transport::Publisher publisher)
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
-            const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
-            sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
+            std::vector<uchar> buffer;
+            bool success = false;
+            try
+            {
+                success = cv::imencode(".jpg", img_data, buffer, compression_params);
+            }
+            catch (cv::Exception &e)
+            {
+                ROS_ERROR("OpenCV compression error: %s", e.what());
+                continue;
+            }
 
-            publisher.publish(img_msg);
+            if (success)
+            {
+                sensor_msgs::CompressedImage compressed_msg;
+                compressed_msg.header = header;
+                compressed_msg.format = "jpeg";
+                compressed_msg.data = buffer;
+
+                publisher.publish(compressed_msg);
+            }
+            else
+            {
+                ROS_WARN("Failed to compress image.");
+            }
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
@@ -212,7 +240,7 @@ void ImageThread(image_transport::Publisher publisher)
     pthread_exit(0);
 }
 
-void FloatImageThread(ros::Publisher publisher)
+void FloatImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_interval)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -230,13 +258,21 @@ void FloatImageThread(ros::Publisher publisher)
     bool m_is_reading_image = false;
     int bytes_count = 0;
 
+    std::vector<int> compression_params;
+    compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(quality);
+    compression_params.push_back(cv::IMWRITE_JPEG_OPTIMIZE);
+    compression_params.push_back(optimize ? 1 : 0);
+    compression_params.push_back(cv::IMWRITE_JPEG_RST_INTERVAL);
+    compression_params.push_back(rst_interval);
+
     if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
     {
         return;
     }
 
     g_listening = true;
-    ROS_INFO("Float Thermal streaming");
+    ROS_INFO("Float Thermal streaming compressed");
 
     float *thermal_data_pointer = NULL;
     int float_pointer_cnt = 0;
@@ -293,9 +329,31 @@ void FloatImageThread(ros::Publisher publisher)
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
-            sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_32FC1, float_image).toImageMsg();
+            std::vector<uchar> buffer;
+            bool success = false;
+            try
+            {
+                success = cv::imencode(".jpg", float_image, buffer, compression_params);
+            }
+            catch (cv::Exception &e)
+            {
+                ROS_ERROR("OpenCV compression error: %s", e.what());
+                continue;
+            }
 
-            publisher.publish(img_msg);
+            if (success)
+            {
+                sensor_msgs::CompressedImage compressed_msg;
+                compressed_msg.header = header;
+                compressed_msg.format = "jpeg";
+                compressed_msg.data = buffer;
+
+                publisher.publish(compressed_msg);
+            }
+            else
+            {
+                ROS_WARN("Failed to compress image.");
+            }
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
@@ -326,7 +384,7 @@ namespace l3cam_ros
             declareServiceServers("thermal");
         }
 
-        image_transport::Publisher publisher_;
+        ros::Publisher publisher_;
         ros::Publisher f_publisher_;
 
     private:
@@ -394,12 +452,17 @@ int main(int argc, char **argv)
         }
     }
 
-    image_transport::ImageTransport it(*node);
-    node->publisher_ = it.advertise("/img_thermal", 10);
-    std::thread thread(ImageThread, node->publisher_);
+    int quality, rst_interval;
+    bool optimize;
+    node->loadParam("jpeg_quality", quality, 90);
+    node->loadParam("jpeg_optimize", optimize, true);
+    node->loadParam("jpeg_rst_interval", rst_interval, 10);
+
+    node->publisher_ = node->advertise<sensor_msgs::CompressedImage>("/img_thermal/compressed", 10);
+    std::thread thread(ImageThread, node->publisher_, quality, optimize, rst_interval);
     thread.detach();
-    node->f_publisher_ = node->advertise<sensor_msgs::Image>("/img_f_thermal", 10);
-    std::thread thread_f(FloatImageThread, node->f_publisher_);
+    node->f_publisher_ = node->advertise<sensor_msgs::CompressedImage>("/img_f_thermal/compressed", 10);
+    std::thread thread_f(FloatImageThread, node->f_publisher_, quality, optimize, rst_interval);
     thread_f.detach();
 
     node->spin();
