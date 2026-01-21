@@ -43,6 +43,7 @@
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <vision_msgs/Detection2DArray.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -57,7 +58,7 @@ bool g_listening = false;
 bool g_rgb = true; // true if rgb available, false if narrow available
 bool g_wide = false;
 
-void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_interval)
+void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_interval, ros::Publisher detections_publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -72,10 +73,16 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
     uint16_t m_image_width;
     uint8_t m_image_channels;
     uint32_t m_timestamp;
+    uint8_t m_image_detections;
+    vision_msgs::Detection2DArray m_2d_detections;
+    vision_msgs::Detection2D detection_2d;
     int m_image_data_size;
     bool m_is_reading_image = false;
     char *m_image_buffer = NULL;
     int bytes_count = 0;
+
+    std_msgs::Header header;
+    header.frame_id = g_rgb ? "rgb" : "allied_narrow";
 
     std::vector<int> compression_params;
     compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
@@ -138,6 +145,8 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
             memcpy(&m_image_height, &buffer[1], 2);
             memcpy(&m_image_width, &buffer[3], 2);
             memcpy(&m_image_channels, &buffer[5], 1);
+            memcpy(&m_timestamp, &buffer[6], sizeof(uint32_t));
+            memcpy(&m_image_detections, &buffer[10], 1);
 
             if (image_pointer != NULL)
             {
@@ -153,10 +162,24 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
             m_image_buffer = (char *)malloc(m_image_height * m_image_width * m_image_channels);
             image_pointer = (uint8_t *)malloc(m_image_height * m_image_width * m_image_channels);
 
-            memcpy(&m_timestamp, &buffer[6], sizeof(uint32_t));
             m_image_data_size = m_image_height * m_image_width * m_image_channels;
             m_is_reading_image = true;
+            m_2d_detections.detections.clear();
             bytes_count = 0;
+
+            // m_timestamp format: hhmmsszzz
+            time_t raw_time = ros::Time::now().toSec();
+            std::tm *time_info = std::localtime(&raw_time);
+            time_info->tm_sec = 0;
+            time_info->tm_min = 0;
+            time_info->tm_hour = 0;
+            header.stamp.sec = std::mktime(time_info) +
+                               (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
+                               (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
+                               (uint32_t)((m_timestamp / 1000) % 100);         // ss
+            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
+
+            m_2d_detections.header = header;
         }
         else if (size_read == 1) // End, send image
         {
@@ -168,6 +191,7 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
 
             m_is_reading_image = false;
             bytes_count = 0;
+            m_image_detections = 0;
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
 
             cv::Mat img_data;
@@ -191,20 +215,6 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
             {
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
             }
-
-            std_msgs::Header header;
-            header.frame_id = g_rgb ? "rgb" : "allied_narrow";
-            // m_timestamp format: hhmmsszzz
-            time_t raw_time = ros::Time::now().toSec();
-            std::tm *time_info = std::localtime(&raw_time);
-            time_info->tm_sec = 0;
-            time_info->tm_min = 0;
-            time_info->tm_hour = 0;
-            header.stamp.sec = std::mktime(time_info) +
-                               (uint32_t)(m_timestamp / 10000000) * 3600 +     // hh
-                               (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
-                               (uint32_t)((m_timestamp / 1000) % 100);         // ss
-            header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
             std::vector<uchar> buffer;
             bool success = false;
@@ -231,9 +241,43 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
             {
                 ROS_WARN("Failed to compress image.");
             }
+            
+            detections_publisher.publish(m_2d_detections);
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
+            if(m_image_detections > 0)
+            {
+                uint16_t confidence, label;
+                int16_t x, y, height, width;
+                uint8_t red, green, blue;
+
+                //!read detections packages
+                memcpy(&confidence, &buffer[0], 2);
+                memcpy(&x, &buffer[2], 2);
+                memcpy(&y, &buffer[4], 2);
+                memcpy(&height, &buffer[6], 2);
+                memcpy(&width, &buffer[8], 2);
+                memcpy(&label, &buffer[10], 2);
+                memcpy(&red, &buffer[12], 1);
+                memcpy(&green, &buffer[13], 1);
+                memcpy(&blue, &buffer[14], 1);
+
+                vision_msgs::Detection2D det;
+                det.header = header;
+                det.bbox.center.x = x + width / 2;
+                det.bbox.center.y = y + height / 2;
+                det.bbox.size_x = width;
+                det.bbox.size_y = height;
+                vision_msgs::ObjectHypothesisWithPose hyp_2d;
+                hyp_2d.id = label;
+                hyp_2d.score = confidence;
+                det.results.push_back(hyp_2d);
+                m_2d_detections.detections.push_back(det);
+
+                --m_image_detections;
+                continue;
+            }
             memcpy(&m_image_buffer[bytes_count], buffer, size_read);
             bytes_count += size_read;
         }
@@ -259,7 +303,7 @@ namespace l3cam_ros
         {
         }
 
-        ros::Publisher publisher_;
+        ros::Publisher publisher_, detections_publisher_;
 
     private:
         void stopListening()
@@ -347,7 +391,8 @@ int main(int argc, char **argv)
     node->loadParam("jpeg_rst_interval", rst_interval, 10);
 
     node->publisher_ = node->advertise<sensor_msgs::CompressedImage>(g_rgb ? "/img_rgb/compressed" : "/img_narrow/compressed", 10);
-    std::thread thread(ImageThread, node->publisher_, quality, optimize, rst_interval);
+    node->detections_publisher_ = node->advertise<vision_msgs::Detection2DArray>(g_rgb ? "/rgb_detections" : "/narrow_detections", 10);
+    std::thread thread(ImageThread, node->publisher_, quality, optimize, rst_interval, node->detections_publisher_);
     thread.detach();
 
     node->spin();

@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
   sensor_msgs
   cv_bridge
+  vision_msgs
 )
 
 #######################################
@@ -179,6 +180,8 @@ add_executable(polarimetric_wide_stream_comp src/polarimetric_wide_stream_comp.c
 add_executable(rgb_narrow_stream_comp src/rgb_narrow_stream_comp.cpp src/sensor_stream.cpp)
 add_executable(thermal_stream_comp src/thermal_stream_comp.cpp src/sensor_stream.cpp)
 
+add_executable(lidar_detections_stream src/lidar_detections_stream.cpp src/sensor_stream.cpp)
+
 
 ## Add cmake target dependencies of the executable
 add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_gencpp)
@@ -199,6 +202,8 @@ add_dependencies(thermal_stream ${PROJECT_NAME}_gencpp)
 add_dependencies(polarimetric_wide_stream_comp ${PROJECT_NAME}_gencpp) 
 add_dependencies(rgb_narrow_stream_comp ${PROJECT_NAME}_gencpp) 
 add_dependencies(thermal_stream_comp ${PROJECT_NAME}_gencpp) 
+
+add_dependencies(lidar_detections_stream ${PROJECT_NAME}_gencpp)
 
 
 ## Specify libraries to link a library or executable target against
@@ -221,3 +226,5 @@ target_link_libraries(thermal_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(polarimetric_wide_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(rgb_narrow_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(thermal_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
+
+target_link_libraries(lidar_detections_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
