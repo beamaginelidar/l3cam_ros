@@ -11,8 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
   sensor_msgs
   cv_bridge
-  image_transport
-  point_cloud_transport
 )
 
 #######################################
