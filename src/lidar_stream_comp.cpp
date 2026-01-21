@@ -136,10 +136,8 @@ void PointCloudThread(point_cloud_transport::Publisher publisher)
             }
 
             m_is_reading_pointcloud = false;
-            int32_t *data_received = (int32_t *)malloc(sizeof(int32_t) * (m_pointcloud_size * 5) + 1);
-            memcpy(&data_received[0], &m_pointcloud_data[0], sizeof(int32_t) * ((m_pointcloud_size * 5) + 1));
 
-            int size_pc = data_received[0];
+            int size_pc = m_pointcloud_data[0];
 
             sensor_msgs::PointCloud2 pcl_msg;
 
@@ -185,15 +183,15 @@ void PointCloudThread(point_cloud_transport::Publisher publisher)
 
             for (int i = 0; i < size_pc; ++i)
             {
-                *iter_y = -(float)data_received[5 * i + 1] / 1000.0;
+                *iter_y = -(float)m_pointcloud_data[5 * i + 1] / 1000.0;
 
-                *iter_z = -(float)data_received[5 * i + 2] / 1000.0;
+                *iter_z = -(float)m_pointcloud_data[5 * i + 2] / 1000.0;
 
-                *iter_x = (float)data_received[5 * i + 3] / 1000.0;
+                *iter_x = (float)m_pointcloud_data[5 * i + 3] / 1000.0;
 
-                *iter_intensity = (uint16_t)data_received[5 * i + 4];
+                *iter_intensity = (uint16_t)m_pointcloud_data[5 * i + 4];
 
-                *iter_rgb = (uint32_t)data_received[5 * i + 5];
+                *iter_rgb = (uint32_t)m_pointcloud_data[5 * i + 5];
 
                 ++iter_y;
                 ++iter_z;
@@ -205,6 +203,7 @@ void PointCloudThread(point_cloud_transport::Publisher publisher)
             publisher.publish(pcl_msg);
 
             free(m_pointcloud_data);
+            m_pointcloud_data = nullptr;
             points_received = 0;
             pointcloud_index = 1;
         }
@@ -228,7 +227,10 @@ void PointCloudThread(point_cloud_transport::Publisher publisher)
     publisher.shutdown();
     ROS_INFO("Exiting lidar streaming thread");
     free(buffer);
-    free(m_pointcloud_data);
+    if (m_pointcloud_data)
+    {
+        free(m_pointcloud_data);
+    }
 
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
