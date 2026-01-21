@@ -175,7 +175,6 @@ add_executable(polarimetric_wide_stream src/polarimetric_wide_stream.cpp src/sen
 add_executable(rgb_narrow_stream src/rgb_narrow_stream.cpp src/sensor_stream.cpp)
 add_executable(thermal_stream src/thermal_stream.cpp src/sensor_stream.cpp)
 
-add_executable(lidar_stream_comp src/lidar_stream_comp.cpp src/sensor_stream.cpp)
 add_executable(polarimetric_wide_stream_comp src/polarimetric_wide_stream_comp.cpp src/sensor_stream.cpp)
 add_executable(rgb_narrow_stream_comp src/rgb_narrow_stream_comp.cpp src/sensor_stream.cpp)
 add_executable(thermal_stream_comp src/thermal_stream_comp.cpp src/sensor_stream.cpp)
@@ -197,7 +196,6 @@ add_dependencies(polarimetric_wide_stream ${PROJECT_NAME}_gencpp)
 add_dependencies(rgb_narrow_stream ${PROJECT_NAME}_gencpp) 
 add_dependencies(thermal_stream ${PROJECT_NAME}_gencpp) 
 
-add_dependencies(lidar_stream_comp ${PROJECT_NAME}_gencpp) 
 add_dependencies(polarimetric_wide_stream_comp ${PROJECT_NAME}_gencpp) 
 add_dependencies(rgb_narrow_stream_comp ${PROJECT_NAME}_gencpp) 
 add_dependencies(thermal_stream_comp ${PROJECT_NAME}_gencpp) 
@@ -220,7 +218,6 @@ target_link_libraries(polarimetric_wide_stream ${catkin_LIBRARIES} ${l3cam_LIBRA
 target_link_libraries(rgb_narrow_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(thermal_stream ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 
-target_link_libraries(lidar_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(polarimetric_wide_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(rgb_narrow_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
 target_link_libraries(thermal_stream_comp ${catkin_LIBRARIES} ${l3cam_LIBRARIES})
