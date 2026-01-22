@@ -13,12 +13,21 @@
 
     <group ns="/L3Cam">
         <arg name="timeout_secs" default="30" />
-        <arg name="lidar_topic" default="/PC2_lidar" />
-        <arg name="polarimetric_topic" default="/img_polarimetric" />
-        <arg name="rgb_topic" default="/img_rgb" />
-        <arg name="thermal_topic" default="/img_thermal" />
-        <arg name="allied_wide_topic" default="/img_wide" />
-        <arg name="allied_narrow_topic" default="/img_narrow" />
+
+        <arg name="lidar_topic" default="/L3Cam/PC2_lidar" />
+        <arg name="polarimetric_topic" default="/L3Cam/img_polarimetric" />
+        <arg name="polarimetric_processed_topic" default="/L3Cam/img_polarimetric_processed" />
+        <arg name="rgb_topic" default="/L3Cam/img_rgb" />
+        <arg name="thermal_topic" default="/L3Cam/img_thermal" />
+        <arg name="f_thermal_topic" default="/L3Cam/img_f_thermal" />
+        <arg name="allied_wide_topic" default="/L3Cam/img_wide" />
+        <arg name="allied_narrow_topic" default="/L3Cam/img_narrow" />
+        <arg name="lidar_detections_topic" default="/L3Cam/lidar_detections" />
+        <arg name="polarimetric_detections_topic" default="/L3Cam/polarimetric_detections" />
+        <arg name="rgb_detections_topic" default="/L3Cam/rgb_detections" />
+        <arg name="thermal_detections_topic" default="/L3Cam/thermal_detections" />
+        <arg name="wide_detections_topic" default="/L3Cam/wide_detections" />
+        <arg name="narrow_detections_topic" default="/L3Cam/narrow_detections" />
 
         <!-- Network configuration -->
         <arg name="local_address" default="" />
@@ -349,12 +358,21 @@
             <arg name="simulator" value="$(arg simulator)" />
             <arg name="comp" value="$(arg comp)" />
             <arg name="timeout_secs" value="$(arg timeout_secs)" />
+            
             <arg name="lidar_topic" value="$(arg lidar_topic)" />
             <arg name="polarimetric_topic" value="$(arg polarimetric_topic)" />
+            <arg name="polarimetric_processed_topic" default="$(arg polarimetric_processed_topic)" />
             <arg name="rgb_topic" value="$(arg rgb_topic)" />
             <arg name="thermal_topic" value="$(arg thermal_topic)" />
+            <arg name="f_thermal_topic" default="$(arg f_thermal_topic)" />
             <arg name="allied_wide_topic" value="$(arg allied_wide_topic)" />
             <arg name="allied_narrow_topic" value="$(arg allied_narrow_topic)" />
+            <arg name="lidar_detections_topic" default="$(arg lidar_detections_topic)" />
+            <arg name="polarimetric_detections_topic" default="$(arg polarimetric_detections_topic)" />
+            <arg name="rgb_detections_topic" default="$(arg rgb_detections_topic)" />
+            <arg name="thermal_detections_topic" default="$(arg thermal_detections_topic)" />
+            <arg name="wide_detections_topic" default="$(arg wide_detections_topic)" />
+            <arg name="narrow_detections_topic" default="$(arg narrow_detections_topic)" />
 
             <arg name="jpeg_quality" value="$(arg jpeg_quality)" />
             <arg name="jpeg_optimize" value="$(arg jpeg_optimize)" />
