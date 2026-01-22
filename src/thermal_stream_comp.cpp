@@ -55,6 +55,50 @@
 
 bool g_listening = false;
 
+std::mutex g_mutex;
+int g_thread_counter = 0;
+const int g_max_thread = 100;
+
+void CompressSendImageThread(cv::Mat img_data, ros::Publisher publisher, std::vector<int> compression_params, std_msgs::Header header)
+{
+    if (g_thread_counter >= g_max_thread)
+    return;
+    
+    g_mutex.lock();
+    ++g_thread_counter;
+    g_mutex.unlock();
+
+    std::vector<uchar> buffer;
+    bool success = false;
+    try
+    {
+        success = cv::imencode(".jpg", img_data, buffer, compression_params);
+    }
+    catch (cv::Exception &e)
+    {
+        ROS_ERROR("OpenCV compression error: %s", e.what());
+        return;
+    }
+
+    if (success)
+    {
+        sensor_msgs::CompressedImage compressed_msg;
+        compressed_msg.header = header;
+        compressed_msg.format = "jpeg";
+        compressed_msg.data = buffer;
+
+        publisher.publish(compressed_msg);
+    }
+    else
+    {
+        ROS_WARN("Failed to compress image.");
+    }
+
+    g_mutex.lock();
+    --g_thread_counter;
+    g_mutex.unlock();
+}
+
 bool openSocket(int &m_socket_descriptor, sockaddr_in &m_socket, std::string &m_address, int m_udp_port)
 {
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -202,31 +246,8 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
             }
 
-            std::vector<uchar> buffer;
-            bool success = false;
-            try
-            {
-                success = cv::imencode(".jpg", img_data, buffer, compression_params);
-            }
-            catch (cv::Exception &e)
-            {
-                ROS_ERROR("OpenCV compression error: %s", e.what());
-                continue;
-            }
-
-            if (success)
-            {
-                sensor_msgs::CompressedImage compressed_msg;
-                compressed_msg.header = header;
-                compressed_msg.format = "jpeg";
-                compressed_msg.data = buffer;
-
-                publisher.publish(compressed_msg);
-            }
-            else
-            {
-                ROS_WARN("Failed to compress image.");
-            }
+            std::thread comp_thread(CompressSendImageThread, img_data, publisher, compression_params, header);
+            comp_thread.detach();
 
             detections_publisher.publish(m_2d_detections);
         }

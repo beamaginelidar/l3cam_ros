@@ -63,7 +63,51 @@ bool g_listening = false;
 bool g_pol = true; // true if polarimetric available, false if wide available
 bool g_stream_processed = true;
 
-cv::Mat rgbpol2rgb(const cv::Mat img, polAngle angle = no_angle)
+std::mutex g_mutex;
+int g_thread_counter = 0;
+const int g_max_thread = 100;
+
+void CompressSendImageThread(cv::Mat img_data, ros::Publisher publisher, std::vector<int> compression_params, std_msgs::Header header)
+{
+    if (g_thread_counter >= g_max_thread)
+    return;
+    
+    g_mutex.lock();
+    ++g_thread_counter;
+    g_mutex.unlock();
+
+    std::vector<uchar> buffer;
+    bool success = false;
+    try
+    {
+        success = cv::imencode(".jpg", img_data, buffer, compression_params);
+    }
+    catch (cv::Exception &e)
+    {
+        ROS_ERROR("OpenCV compression error: %s", e.what());
+        return;
+    }
+
+    if (success)
+    {
+        sensor_msgs::CompressedImage compressed_msg;
+        compressed_msg.header = header;
+        compressed_msg.format = "jpeg";
+        compressed_msg.data = buffer;
+
+        publisher.publish(compressed_msg);
+    }
+    else
+    {
+        ROS_WARN("Failed to compress image.");
+    }
+
+    g_mutex.lock();
+    --g_thread_counter;
+    g_mutex.unlock();
+}
+
+cv::Mat rgbpol2rgb(const cv::Mat &img, const polMode &mode = no_angle)
 {
     /*
     0       1       2       3
@@ -82,72 +126,100 @@ cv::Mat rgbpol2rgb(const cv::Mat img, polAngle angle = no_angle)
     +-------+-------+-------+-------+
     */
 
-    cv::Mat bayer(img.rows / 2, img.cols / 2, CV_8UC1, cv::Scalar(0));
-    cv::Mat rgb;
+    if (mode == polMode::raw)
+        return img;
 
-    auto is_valid_pixel = [](int px_y, int px_x, polAngle angle) -> bool
+    auto extract_bayer = [&](polMode ang)
     {
-        switch (angle)
+        cv::Mat bayer(img.rows / 2, img.cols / 2, CV_8UC1, cv::Scalar(0));
+        for (int y = 0; y < img.rows; ++y)
         {
-        case angle_0:
-            return (px_y == 1 || px_y == 3) && (px_x == 1 || px_x == 3);
-        case angle_45:
-            return (px_y == 0 || px_y == 2) && (px_x == 1 || px_x == 3);
-        case angle_90:
-            return (px_y == 0 || px_y == 2) && (px_x == 0 || px_x == 2);
-        case angle_135:
-            return (px_y == 1 || px_y == 3) && (px_x == 0 || px_x == 2);
-        default:
-            return false;
+            for (int x = 0; x < img.cols; ++x)
+            {
+                int py = y % 4;
+                int px = x % 4;
+                bool match = false;
+                switch (ang)
+                {
+                case angle_0:
+                    match = (py == 1 || py == 3) && (px == 1 || px == 3);
+                    break;
+                case angle_45:
+                    match = (py == 0 || py == 2) && (px == 1 || px == 3);
+                    break;
+                case angle_90:
+                    match = (py == 0 || py == 2) && (px == 0 || px == 2);
+                    break;
+                case angle_135:
+                    match = (py == 1 || py == 3) && (px == 0 || px == 2);
+                    break;
+                default:
+                    break;
+                }
+                if (match)
+                    bayer.at<uint8_t>(y / 2, x / 2) = img.at<uint8_t>(y, x);
+            }
         }
+        return bayer;
     };
 
-    if (angle != no_angle)
+    if (mode == angle_0 || mode == angle_45 || mode == angle_90 || mode == angle_135)
     {
-        for (int y = 0; y < img.rows; ++y)
-        {
-            for (int x = 0; x < img.cols; ++x)
-            {
-                const int px_y = y % 4;
-                const int px_x = x % 4;
-
-                if (is_valid_pixel(px_y, px_x, angle))
-                {
-                    bayer.at<uint8_t>(y / 2, x / 2) = img.at<uint8_t>(y, x);
-                }
-            }
-        }
+        cv::Mat bayer = extract_bayer(mode);
+        cv::Mat rgb;
         cv::cvtColor(bayer, rgb, cv::COLOR_BayerRG2BGR);
+        return rgb;
     }
-    else
+
+    // Compute DOLP or AOLP
+    if (mode == dolp || mode == aolp)
     {
-        cv::Mat bayer0 = cv::Mat::zeros(img.rows / 2, img.cols / 2, CV_8UC1);
-        cv::Mat bayer90 = cv::Mat::zeros(img.rows / 2, img.cols / 2, CV_8UC1);
+        cv::Mat bayer0 = extract_bayer(angle_0);
+        cv::Mat bayer45 = extract_bayer(angle_45);
+        cv::Mat bayer90 = extract_bayer(angle_90);
+        cv::Mat bayer135 = extract_bayer(angle_135);
 
-        for (int y = 0; y < img.rows; ++y)
+        cv::Mat I0, I45, I90, I135;
+        cv::cvtColor(bayer0, I0, cv::COLOR_BayerRG2BGR);
+        cv::cvtColor(bayer45, I45, cv::COLOR_BayerRG2BGR);
+        cv::cvtColor(bayer90, I90, cv::COLOR_BayerRG2BGR);
+        cv::cvtColor(bayer135, I135, cv::COLOR_BayerRG2BGR);
+
+        I0.convertTo(I0, CV_32F, 1.0 / 255.0);
+        I45.convertTo(I45, CV_32F, 1.0 / 255.0);
+        I90.convertTo(I90, CV_32F, 1.0 / 255.0);
+        I135.convertTo(I135, CV_32F, 1.0 / 255.0);
+
+        cv::Mat S0 = I0 + I90;
+        cv::Mat S1 = I0 - I90;
+        cv::Mat S2 = I45 - I135;
+
+        if (mode == dolp)
         {
-            for (int x = 0; x < img.cols; ++x)
-            {
-                const int px_y = y % 4;
-                const int px_x = x % 4;
-
-                if ((px_y == 1 || px_y == 3) && (px_x == 1 || px_x == 3))
-                {
-                    bayer0.at<uint8_t>(y / 2, x / 2) = img.at<uint8_t>(y, x);
-                }
-                if ((px_y == 0 || px_y == 2) && (px_x == 0 || px_x == 2))
-                {
-                    bayer90.at<uint8_t>(y / 2, x / 2) = img.at<uint8_t>(y, x);
-                }
-            }
+            cv::Mat dolp;
+            cv::sqrt(S1.mul(S1) + S2.mul(S2), dolp);
+            dolp = dolp / (S0 + 1e-6f);
+            dolp.convertTo(dolp, CV_8UC3, 255);
+            return dolp;
         }
-
-        cv::Mat rgb0, rgb90;
-        cv::cvtColor(bayer0, rgb0, cv::COLOR_BayerRG2BGR);
-        cv::cvtColor(bayer90, rgb90, cv::COLOR_BayerRG2BGR);
-        rgb = rgb0 / 2 + rgb90 / 2;
+        else // aolp
+        {
+            cv::Mat aolp;
+            cv::phase(S1, S2, aolp, true);                       // true -> output in degrees
+            aolp.convertTo(aolp, CV_32F, CV_PI / 180.0f * 0.5f); // convert to radians and apply 0.5 factor
+            aolp.convertTo(aolp, CV_32F, 1 / CV_PI);             // Normalize radians
+            aolp.convertTo(aolp, CV_8UC3, 255);
+            return aolp;
+        }
     }
 
+    // Default: average I0 + I90 (unpolarized RGB)
+    cv::Mat bayer0 = extract_bayer(angle_0);
+    cv::Mat bayer90 = extract_bayer(angle_90);
+    cv::Mat rgb0, rgb90;
+    cv::cvtColor(bayer0, rgb0, cv::COLOR_BayerRG2BGR);
+    cv::cvtColor(bayer90, rgb90, cv::COLOR_BayerRG2BGR);
+    cv::Mat rgb = (rgb0 / 2 + rgb90 / 2);
     return rgb;
 }
 
@@ -308,65 +380,19 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
                 sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
 
                 publisher.publish(img_msg);
-
-                cv::Mat img_processed = rgbpol2rgb(img_data, (polAngle)g_angle);
-
+                
+                cv::Mat img_processed = rgbpol2rgb(img_data, (polMode)g_angle);
+                
                 std_msgs::Header header_processed = header;
                 header.frame_id = "polarimetric_processed";
 
-                std::vector<uchar> extra_buffer;
-                bool success = false;
-                try
-                {
-                    success = cv::imencode(".jpg", img_processed, extra_buffer, compression_params);
-                }
-                catch (cv::Exception &e)
-                {
-                    ROS_ERROR("OpenCV compression error: %s", e.what());
-                    continue;
-                }
-
-                if (success)
-                {
-                    sensor_msgs::CompressedImage processed_compressed_msg;
-                    processed_compressed_msg.header = header_processed;
-                    processed_compressed_msg.format = "jpeg";
-                    processed_compressed_msg.data = extra_buffer;
-
-                    extra_publisher.publish(processed_compressed_msg);
-                }
-                else
-                {
-                    ROS_WARN("Failed to compress image.");
-                }
+                std::thread comp_thread(CompressSendImageThread, img_processed, extra_publisher, compression_params, header_processed);
+                comp_thread.detach();
             }
             else
             {
-                std::vector<uchar> buffer;
-                bool success = false;
-                try
-                {
-                    success = cv::imencode(".jpg", img_data, buffer, compression_params);
-                }
-                catch (cv::Exception &e)
-                {
-                    ROS_ERROR("OpenCV compression error: %s", e.what());
-                    continue;
-                }
-
-                if (success)
-                {
-                    sensor_msgs::CompressedImage compressed_msg;
-                    compressed_msg.header = header;
-                    compressed_msg.format = "jpeg";
-                    compressed_msg.data = buffer;
-
-                    publisher.publish(compressed_msg);
-                }
-                else
-                {
-                    ROS_WARN("Failed to compress image.");
-                }
+                std::thread comp_thread(CompressSendImageThread, img_data, publisher, compression_params, header);
+                comp_thread.detach();
             }
 
             detections_publisher.publish(m_2d_detections);
@@ -434,7 +460,7 @@ namespace l3cam_ros
         explicit PolarimetricWideStream() : SensorStream()
         {
             loadParam("polarimetric_stream_processed_image", g_stream_processed, true);
-            loadParam("polarimetric_process_type", g_angle, 4);
+            loadParam("polarimetric_process_type", g_angle, (int)no_angle);
         }
 
         void declareExtraService()
