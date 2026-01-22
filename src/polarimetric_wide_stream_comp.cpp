@@ -284,6 +284,7 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
 
             m_is_reading_image = false;
             bytes_count = 0;
+            m_image_detections = 0;
             memcpy(image_pointer, m_image_buffer, m_image_data_size);
 
             cv::Mat img_data;
@@ -301,41 +302,20 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
             }
 
-            std::vector<uchar> buffer;
-            bool success = false;
-            try
+            if (g_pol)
             {
-                success = cv::imencode(".jpg", img_data, buffer, compression_params);
-            }
-            catch (cv::Exception &e)
-            {
-                ROS_ERROR("OpenCV compression error: %s", e.what());
-                continue;
-            }
+                const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
+                sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
 
-            if (success)
-            {
-                sensor_msgs::CompressedImage compressed_msg;
-                compressed_msg.header = header;
-                compressed_msg.format = "jpeg";
-                compressed_msg.data = buffer;
+                publisher.publish(img_msg);
 
-                publisher.publish(compressed_msg);
-            }
-            else
-            {
-                ROS_WARN("Failed to compress image.");
-            }
-
-            if (!extra_publisher.getTopic().empty() && g_stream_processed)
-            {
                 cv::Mat img_processed = rgbpol2rgb(img_data, (polAngle)g_angle);
 
                 std_msgs::Header header_processed = header;
                 header.frame_id = "polarimetric_processed";
 
                 std::vector<uchar> extra_buffer;
-                success = false;
+                bool success = false;
                 try
                 {
                     success = cv::imencode(".jpg", img_processed, extra_buffer, compression_params);
@@ -353,7 +333,35 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
                     processed_compressed_msg.format = "jpeg";
                     processed_compressed_msg.data = extra_buffer;
 
-                    publisher.publish(processed_compressed_msg);
+                    extra_publisher.publish(processed_compressed_msg);
+                }
+                else
+                {
+                    ROS_WARN("Failed to compress image.");
+                }
+            }
+            else
+            {
+                std::vector<uchar> buffer;
+                bool success = false;
+                try
+                {
+                    success = cv::imencode(".jpg", img_data, buffer, compression_params);
+                }
+                catch (cv::Exception &e)
+                {
+                    ROS_ERROR("OpenCV compression error: %s", e.what());
+                    continue;
+                }
+
+                if (success)
+                {
+                    sensor_msgs::CompressedImage compressed_msg;
+                    compressed_msg.header = header;
+                    compressed_msg.format = "jpeg";
+                    compressed_msg.data = buffer;
+
+                    publisher.publish(compressed_msg);
                 }
                 else
                 {
@@ -365,13 +373,13 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
-            if(m_image_detections > 0)
+            if (m_image_detections > 0)
             {
                 uint16_t confidence, label;
                 int16_t x, y, height, width;
                 uint8_t red, green, blue;
 
-                //!read detections packages
+                //! read detections packages
                 memcpy(&confidence, &buffer[0], 2);
                 memcpy(&x, &buffer[2], 2);
                 memcpy(&y, &buffer[4], 2);
@@ -542,11 +550,15 @@ int main(int argc, char **argv)
     node->loadParam("jpeg_optimize", optimize, true);
     node->loadParam("jpeg_rst_interval", rst_interval, 10);
 
-    node->publisher_ = node->advertise<sensor_msgs::CompressedImage>(g_pol ? "/img_polarimetric/compressed" : "/img_wide/compressed", 10);
     node->detections_publisher_ = node->advertise<vision_msgs::Detection2DArray>(g_pol ? "/polarimetric_detections" : "/wide_detections", 10);
     if (g_pol)
     {
+        node->publisher_ = node->advertise<sensor_msgs::Image>("/img_polarimetric", 10); // Compressing would make it lose the polarimetric info
         node->extra_publisher_ = node->advertise<sensor_msgs::CompressedImage>("/img_polarimetric_processed/compressed", 10);
+    }
+    else
+    {
+        node->publisher_ = node->advertise<sensor_msgs::CompressedImage>("/img_wide/compressed", 10);
     }
     std::thread thread(ImageThread, node->publisher_, node->extra_publisher_, quality, optimize, rst_interval, node->detections_publisher_);
     thread.detach();

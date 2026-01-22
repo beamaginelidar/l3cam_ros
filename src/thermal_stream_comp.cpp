@@ -227,18 +227,18 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
             {
                 ROS_WARN("Failed to compress image.");
             }
-            
+
             detections_publisher.publish(m_2d_detections);
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
-            if(m_image_detections > 0)
+            if (m_image_detections > 0)
             {
                 uint16_t confidence, label;
                 int16_t x, y, height, width;
                 uint8_t red, green, blue;
 
-                //!read detections packages
+                //! read detections packages
                 memcpy(&confidence, &buffer[0], 2);
                 memcpy(&x, &buffer[2], 2);
                 memcpy(&y, &buffer[4], 2);
@@ -284,7 +284,7 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
     pthread_exit(0);
 }
 
-void FloatImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_interval)
+void FloatImageThread(ros::Publisher publisher)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -302,21 +302,13 @@ void FloatImageThread(ros::Publisher publisher, int quality, bool optimize, int 
     bool m_is_reading_image = false;
     int bytes_count = 0;
 
-    std::vector<int> compression_params;
-    compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
-    compression_params.push_back(quality);
-    compression_params.push_back(cv::IMWRITE_JPEG_OPTIMIZE);
-    compression_params.push_back(optimize ? 1 : 0);
-    compression_params.push_back(cv::IMWRITE_JPEG_RST_INTERVAL);
-    compression_params.push_back(rst_interval);
-
     if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
     {
         return;
     }
 
     g_listening = true;
-    ROS_INFO("Float Thermal streaming compressed");
+    ROS_INFO("Float Thermal streaming");
 
     float *thermal_data_pointer = NULL;
     int float_pointer_cnt = 0;
@@ -373,31 +365,9 @@ void FloatImageThread(ros::Publisher publisher, int quality, bool optimize, int 
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
 
-            std::vector<uchar> buffer;
-            bool success = false;
-            try
-            {
-                success = cv::imencode(".jpg", float_image, buffer, compression_params);
-            }
-            catch (cv::Exception &e)
-            {
-                ROS_ERROR("OpenCV compression error: %s", e.what());
-                continue;
-            }
+            sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_32FC1, float_image).toImageMsg();
 
-            if (success)
-            {
-                sensor_msgs::CompressedImage compressed_msg;
-                compressed_msg.header = header;
-                compressed_msg.format = "jpeg";
-                compressed_msg.data = buffer;
-
-                publisher.publish(compressed_msg);
-            }
-            else
-            {
-                ROS_WARN("Failed to compress image.");
-            }
+            publisher.publish(img_msg);
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
@@ -506,8 +476,8 @@ int main(int argc, char **argv)
     node->detections_publisher_ = node->advertise<vision_msgs::Detection2DArray>("/thermal_detections", 10);
     std::thread thread(ImageThread, node->publisher_, quality, optimize, rst_interval, node->detections_publisher_);
     thread.detach();
-    node->f_publisher_ = node->advertise<sensor_msgs::CompressedImage>("/img_f_thermal/compressed", 10);
-    std::thread thread_f(FloatImageThread, node->f_publisher_, quality, optimize, rst_interval);
+    node->f_publisher_ = node->advertise<sensor_msgs::Image>("/img_f_thermal", 10); // Compressing would make it lose the thermal info
+    std::thread thread_f(FloatImageThread, node->f_publisher_);
     thread_f.detach();
 
     node->spin();

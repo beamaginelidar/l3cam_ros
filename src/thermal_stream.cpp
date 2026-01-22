@@ -203,13 +203,13 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
-            if(m_image_detections > 0)
+            if (m_image_detections > 0)
             {
                 uint16_t confidence, label;
                 int16_t x, y, height, width;
                 uint8_t red, green, blue;
 
-                //!read detections packages
+                //! read detections packages
                 memcpy(&confidence, &buffer[0], 2);
                 memcpy(&x, &buffer[2], 2);
                 memcpy(&y, &buffer[4], 2);

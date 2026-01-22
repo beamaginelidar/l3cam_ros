@@ -314,13 +314,13 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
-            if(m_image_detections > 0)
+            if (m_image_detections > 0)
             {
                 uint16_t confidence, label;
                 int16_t x, y, height, width;
                 uint8_t red, green, blue;
 
-                //!read detections packages
+                //! read detections packages
                 memcpy(&confidence, &buffer[0], 2);
                 memcpy(&x, &buffer[2], 2);
                 memcpy(&y, &buffer[4], 2);
@@ -375,7 +375,7 @@ namespace l3cam_ros
         explicit PolarimetricWideStream() : SensorStream()
         {
             loadParam("polarimetric_stream_processed_image", g_stream_processed, true);
-            loadParam("polarimetric_process_type", g_angle, 127);
+            loadParam("polarimetric_process_type", g_angle, 4);
         }
 
         void declareExtraService()
@@ -387,25 +387,6 @@ namespace l3cam_ros
         ros::Publisher publisher_, extra_publisher_, detections_publisher_;
 
     private:
-        template <typename T>
-        void loadParam(const std::string &param_name, T &param_var, const T &default_val)
-        {
-            std::string full_param_name;
-
-            if (searchParam(param_name, full_param_name))
-            {
-                if (!getParam(full_param_name, param_var))
-                {
-                    ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
-                }
-            }
-            else
-            {
-                ROS_WARN_STREAM(this->getNamespace() << " Parameter '" << param_name << "' not defined");
-                param_var = default_val;
-            }
-        }
-
         void stopListening()
         {
             g_listening = false;
