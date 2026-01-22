@@ -139,15 +139,15 @@ The lidar_stream is the node that publishes pointcloud frames if the LiDAR senso
 
 ### polarimetric_wide_stream
 
-The polarimetric_wide_stream is the node that publishes polarimetric or Allied Wide image frames if the polarimetric or the Allied Wide sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
+The polarimetric_wide_stream is the node that publishes polarimetric or Allied Wide image frames and its detections if the polarimetric or the Allied Wide sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
 
 ### rgb_narrow_stream
 
-The rgb_narrow_stream is the node that publishes RGB or Allied Narrow image frames if the RGB or the Allied Narrow sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
+The rgb_narrow_stream is the node that publishes RGB or Allied Narrow image frames and its detections if the RGB or the Allied Narrow sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
 
 ### thermal_stream
 
-The thermal_stream is the node that publishes thermal image frames if the thermal sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
+The thermal_stream is the node that publishes thermal image frames and its detections if the thermal sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
 
 ### polarimetric_wide_stream_comp
 
@@ -160,6 +160,10 @@ The rgb_narrow_stream_comp is the same as [rgb_narrow_stream](#rgb_narrow_stream
 ### thermal_stream_comp
 
 The thermal_stream_comp is the same as [thermal_stream](#thermal_stream) but using using compressed images when possible.
+
+### lidar_detections_stream
+
+The lidar_detections_stream is the node that publishes pointcloud detections if the LiDAR sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
 
 ### network_configuration
 
@@ -205,22 +209,29 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 
 ### Initialization parameters
 
-| Parameter           | Type   | Default     |
-| ------------------- | ------ | ----------- |
-| simulator           | bool   | false       |
-| comp                | bool   | false       |
-| stream              | bool   | true        |
-| configure           | bool   | true        |
-| rviz2               | bool   | false       |
-| rqt_reconfigure     | bool   | false       |
-| namespace           | string | /l3cam      |
-| timeout_secs        | int    | 60          |
-| lidar_topic         | string | PC2_lidar   |
-| polarimetric_topic  | string | img_pol     |
-| rgb_topic           | string | img_rgb     |
-| thermal_topic       | string | img_thermal |
-| allied_wide_topic   | string | img_wide    |
-| allied_narrow_topic | string | img_narrow  |
+| Parameter                     | Type   | Default                           |
+| ----------------------------- | ------ | --------------------------------- |
+| simulator                     | bool   | false                             |
+| comp                          | bool   | false                             |
+| stream                        | bool   | true                              |
+| configure                     | bool   | true                              |
+| rviz2                         | bool   | false                             |
+| rqt_reconfigure               | bool   | false                             |
+| timeout_secs                  | int    | 60                                |
+| lidar_topic                   | string | /L3Cam/PC2_lidar                  |
+| polarimetric_topic            | string | /L3Cam/img_polarimetric           |
+| polarimetric_processed_topic  | string | /L3Cam/img_polarimetric_processed |
+| rgb_topic                     | string | /L3Cam/img_rgb                    |
+| thermal_topic                 | string | /L3Cam/img_thermal                |
+| f_thermal_topic               | string | /L3Cam/img_f_thermal              |
+| allied_wide_topic             | string | /L3Cam/img_wide                   |
+| allied_narrow_topic           | string | /L3Cam/img_narrow                 |
+| lidar_detections_topic        | string | /L3Cam/lidar_detections           |
+| polarimetric_detections_topic | string | /L3Cam/polarimetric_detections    |
+| rgb_detections_topic          | string | /L3Cam/rgb_detections             |
+| thermal_detections_topic      | string | /L3Cam/thermal_detections         |
+| wide_detections_topic         | string | /L3Cam/wide_detections            |
+| narrow_detections_topic       | string | /L3Cam/narrow_detections          |
 
 ### Network parameters
 
@@ -521,13 +532,24 @@ Being protocol a number contained in the enum `streamingProtocols` and sensor_ty
 
 All sensors stream their data to each topic:
 
-| Sensor                         | Topic                               | Data type                  |
-| ------------------------------ | ----------------------------------- | -------------------------- |
-| Lidar                          | `/L3Cam/PC2_lidar`                  | `sensor_msgs::PointCloud2` |
-| Polarimetric                   | `/L3Cam/img_polarimetric`           | `sensor_msgs::Image`       |
-| Polarimetric (processed)       | `/L3Cam/img_polarimetric_processed` | `sensor_msgs::Image`       |
-| RGB                            | `/L3Cam/img_rgb`                    | `sensor_msgs::Image`       |
-| Thermal                        | `/L3Cam/img_thermal`                | `sensor_msgs::Image`       |
-| Thermal (raw temperature data) | `/L3Cam/img_f_thermal`              | `sensor_msgs::Image`       |
-| Allied Wide                    | `/L3Cam/img_wide`                   | `sensor_msgs::Image`       |
-| Allied Narrow                  | `/L3Cam/img_narrow`                 | `sensor_msgs::Image`       |
+| Sensor                            | Topic                                          | Data type                       |
+| --------------------------------- | ---------------------------------------------- | ------------------------------- |
+| Lidar                             | `/L3Cam/PC2_lidar`                             | `sensor_msgs::PointCloud2`      |
+| Polarimetric                      | `/L3Cam/img_polarimetric`                      | `sensor_msgs::Image`            |
+| Polarimetric Processed            | `/L3Cam/img_polarimetric_processed`            | `sensor_msgs::Image`            |
+| Polarimetric Processed Compressed | `/L3Cam/img_polarimetric_processed/compressed` | `sensor_msgs::CompressedImage`  |
+| RGB                               | `/L3Cam/img_rgb`                               | `sensor_msgs::Image`            |
+| RGB Compressed                    | `/L3Cam/img_rgb/compressed`                    | `sensor_msgs::CompressedImage`  |
+| Thermal                           | `/L3Cam/img_thermal`                           | `sensor_msgs::Image`            |
+| Thermal Compressed                | `/L3Cam/img_thermal/compressed`                | `sensor_msgs::CompressedImage`  |
+| Thermal (raw temperature data)    | `/L3Cam/img_f_thermal`                         | `sensor_msgs::Image`            |
+| Allied Wide                       | `/L3Cam/img_wide`                              | `sensor_msgs::Image`            |
+| Allied Wide Compressed            | `/L3Cam/img_wide/compressed`                   | `sensor_msgs::CompressedImage`  |
+| Allied Narrow                     | `/L3Cam/img_narrow`                            | `sensor_msgs::Image`            |
+| Allied Narrow Compressed          | `/L3Cam/img_narrow/compressed`                 | `sensor_msgs::Image`            |
+| Lidar Detections                  | `/L3Cam/lidar_detections`                      | `vision_msgs::Detection3DArray` |
+| Polarimetric Detections           | `/L3Cam/polarimetric_detections`               | `vision_msgs::Detection2DArray` |
+| RGB Detections                    | `/L3Cam/rgb_detections`                        | `vision_msgs::Detection2DArray` |
+| Thermal Detections                | `/L3Cam/thermal_detections`                    | `vision_msgs::Detection2DArray` |
+| Allied Wide Detections            | `/L3Cam/wide_detections`                       | `vision_msgs::Detection2DArray` |
+| Allied Narrow Detections          | `/L3Cam/narrow_detections`                     | `vision_msgs::Detection2DArray` |
