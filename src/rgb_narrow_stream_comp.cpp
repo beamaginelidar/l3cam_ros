@@ -66,7 +66,7 @@ void CompressSendImageThread(cv::Mat img_data, ros::Publisher publisher, std::ve
 {
     if (g_thread_counter >= g_max_thread)
         return;
-    
+
     g_mutex.lock();
     ++g_thread_counter;
     g_mutex.unlock();

@@ -70,8 +70,8 @@ const int g_max_thread = 100;
 void CompressSendImageThread(cv::Mat img_data, ros::Publisher publisher, std::vector<int> compression_params, std_msgs::Header header)
 {
     if (g_thread_counter >= g_max_thread)
-    return;
-    
+        return;
+
     g_mutex.lock();
     ++g_thread_counter;
     g_mutex.unlock();
@@ -380,9 +380,9 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
                 sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
 
                 publisher.publish(img_msg);
-                
+
                 cv::Mat img_processed = rgbpol2rgb(img_data, (polMode)g_angle);
-                
+
                 std_msgs::Header header_processed = header;
                 header.frame_id = "polarimetric_processed";
 
