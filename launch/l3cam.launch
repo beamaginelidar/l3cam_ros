@@ -41,7 +41,7 @@
 
         <!-- Polarimetric configuration -->
         <arg name="polarimetric_stream_processed_image" default="true" />
-        <arg name="polarimetric_process_type" default="4" /> <!-- see polAngle -->
+        <arg name="polarimetric_process_type" default="4" /> <!-- see polModes -->
         <arg name="polarimetric_brightness" default="127" /> <!-- 0 - 255 -->
         <arg name="polarimetric_black_level" default="6.0" /> <!-- 0 - 12.5 -->
         <arg name="polarimetric_auto_gain" default="true" />

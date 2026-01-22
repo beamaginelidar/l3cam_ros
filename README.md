@@ -149,21 +149,17 @@ The rgb_narrow_stream is the node that publishes RGB or Allied Narrow image fram
 
 The thermal_stream is the node that publishes thermal image frames if the thermal sensor is available. See the [topics](#topics) section for documentation regarding the topics each sensor topic.
 
-### lidar_stream_comp
-
-The lidar_stream_comp is the same as [lidar_stream](#lidar_stream) but using `point_cloud_transport` to compress.
-
 ### polarimetric_wide_stream_comp
 
-The polarimetric_wide_stream_comp is the same as [polarimetric_wide_stream](#polarimetric_wide_stream) but using `image_transport` to compress.
+The polarimetric_wide_stream_comp is the same as [polarimetric_wide_stream](#polarimetric_wide_stream) but using compressed images when possible.
 
 ### rgb_narrow_stream_comp
 
-The rgb_narrow_stream_comp is the same as [rgb_narrow_stream](#rgb_narrow_stream) but using `image_transport` to compress.
+The rgb_narrow_stream_comp is the same as [rgb_narrow_stream](#rgb_narrow_stream) but using using compressed images.
 
 ### thermal_stream_comp
 
-The thermal_stream_comp is the same as [thermal_stream](#thermal_stream) but using `image_transport` to compress.
+The thermal_stream_comp is the same as [thermal_stream](#thermal_stream) but using using compressed images when possible.
 
 ### network_configuration
 
@@ -260,7 +256,7 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 | Parameter                                       | Type   | Default   | Range                    |
 | ----------------------------------------------- | ------ | --------- | ------------------------ |
 | `polarimetric_stream_processed_image`           | bool   | true      |                          |
-| `polarimetric_process_type`                     | int    | 4         | see `polAngle`           |
+| `polarimetric_process_type`                     | int    | 4         | see `polModes`           |
 | `polarimetric_brightness`                       | int    | 127       | [0, 255]                 |
 | `polarimetric_black_level`                      | double | 6.0       | [0, 12.5]                |
 | `polarimetric_auto_gain`                        | bool   | true      |                          |
