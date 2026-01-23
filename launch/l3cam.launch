@@ -7,6 +7,9 @@
     <arg name="rviz" default="false" />
     <arg name="rqt_reconfigure" default="false" />
 
+    <arg name="lidar_precision" default="1" /> <!-- 0(mm), 1(cm), 2(dm), 3(m) -->
+    <arg name="lidar_deduplicate" default="true" />
+    <arg name="lidar_deduplicate_intensity_threshold" default="12" /> <!-- 0 - 255 -->
     <arg name="jpeg_quality" default="90" /> <!-- 0 - 100 -->
     <arg name="jpeg_optimize" default="true" />
     <arg name="jpeg_rst_interval" default="10" /> <!-- 0 - 65535 -->
@@ -374,6 +377,9 @@
             <arg name="wide_detections_topic" default="$(arg wide_detections_topic)" />
             <arg name="narrow_detections_topic" default="$(arg narrow_detections_topic)" />
 
+            <arg name="lidar_precision" value="$(arg lidar_precision)" />
+            <arg name="lidar_deduplicate" value="$(arg lidar_deduplicate)" />
+            <arg name="lidar_deduplicate_intensity_threshold" value="$(arg lidar_deduplicate_intensity_threshold)" />
             <arg name="jpeg_quality" value="$(arg jpeg_quality)" />
             <arg name="jpeg_optimize" value="$(arg jpeg_optimize)" />
             <arg name="jpeg_rst_interval" value="$(arg jpeg_rst_interval)" />

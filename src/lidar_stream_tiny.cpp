@@ -37,13 +37,12 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <unordered_map>
 
 #include <pthread.h>
 #include <thread>
 
-#include "sensor_msgs/PointCloud2.h"
-#include <sensor_msgs/PointField.h>
-#include <sensor_msgs/point_cloud2_iterator.h>
+#include "l3cam_ros/TinyPointCloud.h"
 
 #include <libL3Cam.h>
 #include <beamagine.h>
@@ -51,7 +50,25 @@
 
 bool g_listening = false;
 
-void PointCloudThread(ros::Publisher publisher)
+int16_t clamp_to_int16(int32_t value)
+{
+    if (value > INT16_MAX)
+        return INT16_MAX;
+    if (value < INT16_MIN)
+        return INT16_MIN;
+    return (int16_t)value;
+}
+
+uint8_t clamp_to_uint8(float value)
+{
+    if ((int)value > UINT8_MAX)
+        return UINT8_MAX;
+    if ((int)value < 0)
+        return 0;
+    return (uint8_t)value;
+}
+
+void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplicate, int intensity_th)
 {
     struct sockaddr_in m_socket;
     int m_socket_descriptor;           // Socket descriptor
@@ -71,6 +88,20 @@ void PointCloudThread(ros::Publisher publisher)
 
     std_msgs::Header header;
     header.frame_id = "lidar";
+
+    int32_t divisor = 0; // mm
+    switch (precision)
+    {
+    case 1: // cm
+        divisor = 10;
+        break;
+    case 2: // dm
+        divisor = 100;
+        break;
+    case 3: // m
+        divisor = 1000;
+        break;
+    }
 
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
@@ -153,53 +184,78 @@ void PointCloudThread(ros::Publisher publisher)
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
             
-            sensor_msgs::PointCloud2 pcl_msg;
-            pcl_msg.header = header;
-            pcl_msg.height = 1;
-            pcl_msg.width = size_pc;
-            pcl_msg.is_dense = true;
+            l3cam_ros::TinyPointCloud tpc_msg;
+            tpc_msg.header = header;
+            tpc_msg.precision = precision;
 
-            // Total number of bytes per point
-            pcl_msg.point_step = sizeof(float) * 3 + sizeof(uint16_t) + sizeof(uint32_t); // x(4) + y(4) + z(4) + intensity(2) + rgb(4)
-            pcl_msg.row_step = pcl_msg.point_step * pcl_msg.width;
-            pcl_msg.data.resize(pcl_msg.row_step);
-
-            // Modifier to describe what the fields are.
-            sensor_msgs::PointCloud2Modifier modifier(pcl_msg);
-            modifier.setPointCloud2Fields(5,
-                                          "x", 1, sensor_msgs::PointField::FLOAT32,
-                                          "y", 1, sensor_msgs::PointField::FLOAT32,
-                                          "z", 1, sensor_msgs::PointField::FLOAT32,
-                                          "intensity", 1, sensor_msgs::PointField::UINT16,
-                                          "rgb", 1, sensor_msgs::PointField::UINT32);
-
-            // Iterators for PointCloud msg
-            sensor_msgs::PointCloud2Iterator<float> iter_x(pcl_msg, pcl_msg.fields[0].name);
-            sensor_msgs::PointCloud2Iterator<float> iter_y(pcl_msg, pcl_msg.fields[1].name);
-            sensor_msgs::PointCloud2Iterator<float> iter_z(pcl_msg, pcl_msg.fields[2].name);
-            sensor_msgs::PointCloud2Iterator<uint16_t> iter_intensity(pcl_msg, pcl_msg.fields[3].name);
-            sensor_msgs::PointCloud2Iterator<uint32_t> iter_rgb(pcl_msg, pcl_msg.fields[4].name);
-
-            for (int i = 0; i < size_pc; ++i)
+            std::unordered_map<uint64_t, std::vector<int16_t>> spatial_grid;
+            if (deduplicate)
             {
-                *iter_y = -(float)m_pointcloud_data[5 * i + 1] / 1000.0;
-
-                *iter_z = -(float)m_pointcloud_data[5 * i + 2] / 1000.0;
-
-                *iter_x = (float)m_pointcloud_data[5 * i + 3] / 1000.0;
-
-                *iter_intensity = (uint16_t)m_pointcloud_data[5 * i + 4];
-
-                *iter_rgb = (uint32_t)m_pointcloud_data[5 * i + 5];
-
-                ++iter_y;
-                ++iter_z;
-                ++iter_x;
-                ++iter_intensity;
-                ++iter_rgb;
+                spatial_grid.reserve(size_pc);
             }
 
-            publisher.publish(pcl_msg);
+            int count_removed = 0;
+            int32_t x, y, z;
+            float intensity;
+            int16_t x_16, y_16, z_16;
+            uint8_t i_8;
+            for (int i = 0; i < size_pc; ++i)
+            {
+                y = -m_pointcloud_data[5 * i + 1];
+                z = -m_pointcloud_data[5 * i + 2];
+                x = m_pointcloud_data[5 * i + 3];
+                intensity = (float)m_pointcloud_data[5 * i + 4];
+
+                // Scale, Clamp
+                x_16 = clamp_to_int16(x / divisor);
+                y_16 = clamp_to_int16(y / divisor);
+                z_16 = clamp_to_int16(z / divisor);
+                i_8 = clamp_to_uint8((intensity - 500) / 4500 * 256);
+                
+                if (deduplicate)
+                {
+                    // Pack 3x int16 into one uint64 for O(1) lookup
+                    // Casting to uint16_t first ensures bits are preserved correctly for negative numbers
+                    uint64_t key = ((uint64_t)(uint16_t)x_16 << 32) |
+                                ((uint64_t)(uint16_t)y_16 << 16) |
+                                (uint64_t)(uint16_t)z_16;
+
+                    // Check if this coordinate exists
+                    auto &existing_intensities = spatial_grid[key];
+
+                    bool is_duplicate = false;
+                    // Only iterate through points at THIS EXACT coordinate (usually 0 or 1)
+                    for (int16_t existing_i : existing_intensities)
+                    {
+                        if (abs(i_8 - existing_i) < intensity_th)
+                        {
+                            is_duplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (is_duplicate)
+                    {
+                        count_removed++;
+                        continue; // Skip writing
+                    }
+
+                    // Not a duplicate, store intensity for future checks at this coord
+                    existing_intensities.push_back(i_8);
+                }
+
+                tpc_msg.points.push_back(x_16);
+                tpc_msg.points.push_back(y_16);
+                tpc_msg.points.push_back(z_16);
+                tpc_msg.intensities.push_back(i_8);
+            }
+
+            if (count_removed > 0)
+            {
+                //ROS_INFO_STREAM("Removed " << count_removed << " duplicated points");
+            }
+
+            publisher.publish(tpc_msg);
 
             free(m_pointcloud_data);
             m_pointcloud_data = nullptr;
@@ -245,9 +301,15 @@ namespace l3cam_ros
         explicit LidarStream() : SensorStream()
         {
             declareServiceServers("lidar");
+            loadParam("lidar_precision", precision_, 1);
+            loadParam("lidar_deduplicate", deduplicate_, true);
+            loadParam("lidar_deduplicate_intensity_threshold", intensity_th_, 12);
         }
 
         ros::Publisher publisher_;
+        int precision_;
+        int intensity_th_;
+        bool deduplicate_;
 
     private:
         void stopListening()
@@ -314,8 +376,8 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::PointCloud2>("/PC2_lidar", 10);
-    std::thread thread(PointCloudThread, node->publisher_);
+    node->publisher_ = node->advertise<l3cam_ros::TinyPointCloud>("/PC2_lidar/tiny", 10);
+    std::thread thread(PointCloudThread, node->publisher_, (uint8_t)node->precision_, node->deduplicate_, node->intensity_th_);
     thread.detach();
 
     node->spin();

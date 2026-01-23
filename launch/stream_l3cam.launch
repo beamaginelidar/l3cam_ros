@@ -18,6 +18,9 @@
     <arg name="wide_detections_topic" default="/L3Cam/wide_detections" />
     <arg name="narrow_detections_topic" default="/L3Cam/narrow_detections" />
 
+    <arg name="lidar_precision" default="1" />
+    <arg name="lidar_deduplicate" default="true" />
+    <arg name="lidar_deduplicate_intensity_threshold" default="12" />
     <arg name="jpeg_quality" default="90" />
     <arg name="jpeg_optimize" default="true" />
     <arg name="jpeg_rst_interval" default="10" />
@@ -26,7 +29,7 @@
     <arg name="polarimetric_process_type" default="4" /> <!-- see polModes -->
 
     <!-- Stream -->
-    <node pkg="l3cam_ros" type="lidar_stream" name="lidar_stream" output="screen">
+    <node pkg="l3cam_ros" type="lidar_stream" name="lidar_stream" output="screen" unless="$(arg comp)">
         <param name="simulator" value="$(arg simulator)" />
         <param name="timeout_secs" value="$(arg timeout_secs)" />
         <remap from="/PC2_lidar" to="$(arg lidar_topic)" />
@@ -60,6 +63,14 @@
     </node>
 
     <!-- Stream compressed -->
+    <node pkg="l3cam_ros" type="lidar_stream_tiny" name="lidar_stream_tiny" output="screen" if="$(eval arg('comp'))">
+        <param name="simulator" value="$(arg simulator)" />
+        <param name="timeout_secs" value="$(arg timeout_secs)" />
+        <param name="lidar_precision" value="$(arg lidar_precision)" />
+        <param name="lidar_deduplicate" value="$(arg lidar_deduplicate)" />
+        <param name="lidar_deduplicate_intensity_threshold" value="$(arg lidar_deduplicate_intensity_threshold)" />
+        <remap from="/PC2_lidar/tiny" to="$(arg lidar_topic)/tiny" />
+    </node>
     <node pkg="l3cam_ros" type="polarimetric_wide_stream_comp" name="polarimetric_wide_stream_comp" output="screen" if="$(eval arg('comp'))">
         <param name="simulator" value="$(arg simulator)" />
         <param name="timeout_secs" value="$(arg timeout_secs)" />
