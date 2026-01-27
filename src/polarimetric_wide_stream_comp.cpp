@@ -350,8 +350,8 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
         {
             if (bytes_count != m_image_data_size)
             {
-                ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size");
-                continue;
+                ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size: " << bytes_count  << " != " << m_image_data_size);
+                //continue;
             }
 
             m_is_reading_image = false;
@@ -386,12 +386,12 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
                 std_msgs::Header header_processed = header;
                 header.frame_id = "polarimetric_processed";
 
-                std::thread comp_thread(CompressSendImageThread, img_processed, extra_publisher, compression_params, header_processed);
+                std::thread comp_thread(CompressSendImageThread, img_processed.clone(), extra_publisher, compression_params, header_processed);
                 comp_thread.detach();
             }
             else
             {
-                std::thread comp_thread(CompressSendImageThread, img_data, publisher, compression_params, header);
+                std::thread comp_thread(CompressSendImageThread, img_data.clone(), publisher, compression_params, header);
                 comp_thread.detach();
             }
 

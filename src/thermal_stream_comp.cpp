@@ -229,8 +229,14 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
 
             m_2d_detections.header = header;
         }
-        else if (size_read == 1 && bytes_count == m_image_data_size) // End, send image
+        else if (size_read == 1) // End, send image
         {
+            if (bytes_count != m_image_data_size)
+            {
+                ROS_WARN_STREAM("thermal NET PROBLEM: bytes_count != m_image_data_size: " << bytes_count << " != " << m_image_data_size);
+                //continue;
+            }
+            
             m_is_reading_image = false;
             bytes_count = 0;
             m_image_detections = 0;
@@ -246,7 +252,7 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
             }
 
-            std::thread comp_thread(CompressSendImageThread, img_data, publisher, compression_params, header);
+            std::thread comp_thread(CompressSendImageThread, img_data.clone(), publisher, compression_params, header);
             comp_thread.detach();
 
             detections_publisher.publish(m_2d_detections);

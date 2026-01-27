@@ -164,8 +164,8 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
         {
             if (points_received != m_pointcloud_size)
             {
-                ROS_WARN("lidar NET PROBLEM: points_received != m_pointcloud_size");
-                continue;
+                ROS_WARN_STREAM("lidar NET PROBLEM: points_received != m_pointcloud_size: " << points_received << " != " << m_pointcloud_size);
+                //continue;
             }
 
             m_is_reading_pointcloud = false;

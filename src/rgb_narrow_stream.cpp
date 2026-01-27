@@ -177,8 +177,8 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
         {
             if (bytes_count != m_image_data_size)
             {
-                ROS_WARN_STREAM("rgb_narrow NET PROBLEM: bytes_count != m_image_data_size");
-                continue;
+                ROS_WARN_STREAM("rgb_narrow NET PROBLEM: bytes_count != m_image_data_size: " << bytes_count << " != " << m_image_data_size);
+                //continue;
             }
 
             m_is_reading_image = false;

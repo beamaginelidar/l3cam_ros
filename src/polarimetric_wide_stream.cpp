@@ -298,8 +298,8 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
         {
             if (bytes_count != m_image_data_size)
             {
-                ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size");
-                continue;
+                ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size: " << bytes_count  << " != " << m_image_data_size);
+                //continue;
             }
 
             m_is_reading_image = false;
