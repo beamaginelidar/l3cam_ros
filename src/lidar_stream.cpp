@@ -104,6 +104,17 @@ void PointCloudThread(ros::Publisher publisher)
         return;
     }
 
+    // VERIFY what the kernel actually gave you
+    int actual_buf_size = 0;
+    socklen_t optlen = sizeof(actual_buf_size);
+    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0) {
+        // Note: Kernel doubles the requested value for internal bookkeeping, so actual might be 2x rcvbufsize
+        if (actual_buf_size < rcvbufsize)
+        {
+            ROS_WARN_STREAM("Socket receive buffer is set to " << actual_buf_size << " bytes instead of " << rcvbufsize);
+        }
+    }
+
     // 1 second timeout for socket
     struct timeval read_timeout;
     read_timeout.tv_sec = 1;
@@ -134,7 +145,7 @@ void PointCloudThread(ros::Publisher publisher)
             if (points_received != m_pointcloud_size)
             {
                 ROS_WARN_STREAM("lidar NET PROBLEM: points_received != m_pointcloud_size: " << points_received << " != " << m_pointcloud_size);
-                //continue;
+                continue;
             }
 
             m_is_reading_pointcloud = false;

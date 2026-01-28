@@ -63,6 +63,10 @@ bool g_listening = false;
 bool g_pol = true; // true if polarimetric available, false if wide available
 bool g_stream_processed = true;
 
+std::mutex g_processing_mutex;
+int g_processing_thread_counter = 0;
+const int g_max_processing_thread = 100;
+
 std::mutex g_mutex;
 int g_thread_counter = 0;
 const int g_max_thread = 100;
@@ -223,6 +227,28 @@ cv::Mat rgbpol2rgb(const cv::Mat &img, const polMode &mode = no_angle)
     return rgb;
 }
 
+void ProcessSendImageThread(cv::Mat img_data, std_msgs::Header header, ros::Publisher publisher, std::vector<int> compression_params)
+{
+    if (g_processing_thread_counter >= g_max_processing_thread)
+        return;
+
+    g_processing_mutex.lock();
+    ++g_processing_thread_counter;
+    g_processing_mutex.unlock();
+
+    cv::Mat img_processed = rgbpol2rgb(img_data, (polMode)g_angle);
+
+    std_msgs::Header header_processed = header;
+    header.frame_id = "polarimetric_processed";
+
+    std::thread comp_thread(CompressSendImageThread, img_processed.clone(), publisher, compression_params, header_processed);
+    comp_thread.detach();
+
+    g_processing_mutex.lock();
+    --g_processing_thread_counter;
+    g_processing_mutex.unlock();
+}
+
 void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int quality, bool optimize, int rst_interval, ros::Publisher detections_publisher)
 {
     struct sockaddr_in m_socket;
@@ -289,6 +315,17 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
         return;
     }
 
+    // VERIFY what the kernel actually gave you
+    int actual_buf_size = 0;
+    socklen_t optlen = sizeof(actual_buf_size);
+    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0) {
+        // Note: Kernel doubles the requested value for internal bookkeeping, so actual might be 2x rcvbufsize
+        if (actual_buf_size < rcvbufsize)
+        {
+            ROS_WARN_STREAM("Socket receive buffer is set to " << actual_buf_size << " bytes instead of " << rcvbufsize);
+        }
+    }
+
     // 1 second timeout for socket
     struct timeval read_timeout;
     read_timeout.tv_sec = 1;
@@ -351,7 +388,7 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
             if (bytes_count != m_image_data_size)
             {
                 ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size: " << bytes_count  << " != " << m_image_data_size);
-                //continue;
+                continue;
             }
 
             m_is_reading_image = false;
@@ -374,20 +411,15 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
             }
 
-            if (g_pol)
+            if (g_pol && g_stream_processed)
             {
                 const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
                 sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
 
                 publisher.publish(img_msg);
 
-                cv::Mat img_processed = rgbpol2rgb(img_data, (polMode)g_angle);
-
-                std_msgs::Header header_processed = header;
-                header.frame_id = "polarimetric_processed";
-
-                std::thread comp_thread(CompressSendImageThread, img_processed.clone(), extra_publisher, compression_params, header_processed);
-                comp_thread.detach();
+                std::thread process_thread(ProcessSendImageThread, img_data, header, extra_publisher, compression_params);
+                process_thread.detach();
             }
             else
             {

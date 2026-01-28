@@ -61,8 +61,9 @@ It is also recommended to increase your network default and maximum receive buff
 You can check what your current buffer size is:
 
 ```bash
-sudo sysctl 'net.core.rmem_max'
-sudo sysctl 'net.core.rmem_default'
+sudo sysctl 'net.core.rmem_max' # should be 268435456
+sudo sysctl 'net.core.rmem_default' # should be 268435456
+sudo sysctl 'net.core.netdev_max_backlog' # should be 5000
 ```
 
 Update the buffer size with the following commands:
@@ -70,6 +71,7 @@ Update the buffer size with the following commands:
 ```bash
 sudo sh -c "echo 'net.core.rmem_default=268435456' >> /etc/sysctl.conf"
 sudo sh -c "echo 'net.core.rmem_max=268435456' >> /etc/sysctl.conf"
+sudo sh -c "echo 'net.core.netdev_max_backlog=5000' >> /etc/sysctl.conf"
 sudo sysctl -p
 ```
 

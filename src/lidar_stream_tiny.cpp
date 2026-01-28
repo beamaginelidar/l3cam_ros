@@ -38,6 +38,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <unordered_map>
+#include <mutex>
 
 #include <pthread.h>
 #include <thread>
@@ -49,6 +50,10 @@
 #include <beamErrors.h>
 
 bool g_listening = false;
+
+std::mutex g_mutex;
+int g_thread_counter = 0;
+const int g_max_thread = 100;
 
 int16_t clamp_to_int16(int32_t value)
 {
@@ -66,6 +71,93 @@ uint8_t clamp_to_uint8(float value)
     if ((int)value < 0)
         return 0;
     return (uint8_t)value;
+}
+
+void CompressSendPointCloudThread(std::vector<int32_t> point_cloud_data, ros::Publisher publisher, uint8_t precision, int divisor, bool deduplicate, int intensity_th, std_msgs::Header header)
+{
+    if (g_thread_counter >= g_max_thread)
+        return;
+
+    g_mutex.lock();
+    ++g_thread_counter;
+    g_mutex.unlock();
+
+    l3cam_ros::TinyPointCloud tpc_msg;
+    tpc_msg.header = header;
+    tpc_msg.precision = precision;
+
+    std::unordered_map<uint64_t, std::vector<int16_t>> spatial_grid;
+    if (deduplicate)
+    {
+        spatial_grid.reserve(point_cloud_data.size());
+    }
+
+    int count_removed = 0;
+    int32_t x, y, z;
+    float intensity;
+    int16_t x_16, y_16, z_16;
+    uint8_t i_8;
+    for (int i = 0; i < point_cloud_data.size() / 5; ++i)
+    {
+        y = -point_cloud_data[5 * i + 1];
+        z = -point_cloud_data[5 * i + 2];
+        x = point_cloud_data[5 * i + 3];
+        intensity = (float)point_cloud_data[5 * i + 4];
+        
+        // Scale, Clamp
+        x_16 = clamp_to_int16(x / divisor);
+        y_16 = clamp_to_int16(y / divisor);
+        z_16 = clamp_to_int16(z / divisor);
+        i_8 = clamp_to_uint8((intensity - 500) / 4500 * 256);
+        
+        if (deduplicate)
+        {
+            // Pack 3x int16 into one uint64 for O(1) lookup
+            // Casting to uint16_t first ensures bits are preserved correctly for negative numbers
+            uint64_t key = ((uint64_t)(uint16_t)x_16 << 32) |
+                        ((uint64_t)(uint16_t)y_16 << 16) |
+                        (uint64_t)(uint16_t)z_16;
+
+            // Check if this coordinate exists
+            auto &existing_intensities = spatial_grid[key];
+
+            bool is_duplicate = false;
+            // Only iterate through points at THIS EXACT coordinate (usually 0 or 1)
+            for (int16_t existing_i : existing_intensities)
+            {
+                if (abs(i_8 - existing_i) < intensity_th)
+                {
+                    is_duplicate = true;
+                    break;
+                }
+            }
+
+            if (is_duplicate)
+            {
+                count_removed++;
+                continue; // Skip writing
+            }
+
+            // Not a duplicate, store intensity for future checks at this coord
+            existing_intensities.push_back(i_8);
+        }
+
+        tpc_msg.points.push_back(x_16);
+        tpc_msg.points.push_back(y_16);
+        tpc_msg.points.push_back(z_16);
+        tpc_msg.intensities.push_back(i_8);
+    }
+
+    if (count_removed > 0)
+    {
+        //ROS_INFO_STREAM("Removed " << count_removed << " duplicated points");
+    }
+
+    publisher.publish(tpc_msg);
+
+    g_mutex.lock();
+    --g_thread_counter;
+    g_mutex.unlock();
 }
 
 void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplicate, int intensity_th)
@@ -135,6 +227,17 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
         return;
     }
 
+    // VERIFY what the kernel actually gave you
+    int actual_buf_size = 0;
+    socklen_t optlen = sizeof(actual_buf_size);
+    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0) {
+        // Note: Kernel doubles the requested value for internal bookkeeping, so actual might be 2x rcvbufsize
+        if (actual_buf_size < rcvbufsize)
+        {
+            ROS_WARN_STREAM("Socket receive buffer is set to " << actual_buf_size << " bytes instead of " << rcvbufsize);
+        }
+    }
+
     // 1 second timeout for socket
     struct timeval read_timeout;
     read_timeout.tv_sec = 1;
@@ -165,7 +268,7 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
             if (points_received != m_pointcloud_size)
             {
                 ROS_WARN_STREAM("lidar NET PROBLEM: points_received != m_pointcloud_size: " << points_received << " != " << m_pointcloud_size);
-                //continue;
+                continue;
             }
 
             m_is_reading_pointcloud = false;
@@ -183,80 +286,16 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
                                (uint32_t)((m_timestamp / 100000) % 100) * 60 + // mm
                                (uint32_t)((m_timestamp / 1000) % 100);         // ss
             header.stamp.nsec = (m_timestamp % 1000) * 1e6;                    // zzz
+
+            std::vector<int32_t> point_cloud_data(size_pc * 5);
+            for (int i = 0; i < size_pc * 5; ++i)
+            {
+                point_cloud_data[i] = m_pointcloud_data[i];
+            }
+
+            std::thread comp_thread(CompressSendPointCloudThread, point_cloud_data, publisher, precision, divisor, deduplicate, intensity_th, header);
+            comp_thread.detach();
             
-            l3cam_ros::TinyPointCloud tpc_msg;
-            tpc_msg.header = header;
-            tpc_msg.precision = precision;
-
-            std::unordered_map<uint64_t, std::vector<int16_t>> spatial_grid;
-            if (deduplicate)
-            {
-                spatial_grid.reserve(size_pc);
-            }
-
-            int count_removed = 0;
-            int32_t x, y, z;
-            float intensity;
-            int16_t x_16, y_16, z_16;
-            uint8_t i_8;
-            for (int i = 0; i < size_pc; ++i)
-            {
-                y = -m_pointcloud_data[5 * i + 1];
-                z = -m_pointcloud_data[5 * i + 2];
-                x = m_pointcloud_data[5 * i + 3];
-                intensity = (float)m_pointcloud_data[5 * i + 4];
-
-                // Scale, Clamp
-                x_16 = clamp_to_int16(x / divisor);
-                y_16 = clamp_to_int16(y / divisor);
-                z_16 = clamp_to_int16(z / divisor);
-                i_8 = clamp_to_uint8((intensity - 500) / 4500 * 256);
-                
-                if (deduplicate)
-                {
-                    // Pack 3x int16 into one uint64 for O(1) lookup
-                    // Casting to uint16_t first ensures bits are preserved correctly for negative numbers
-                    uint64_t key = ((uint64_t)(uint16_t)x_16 << 32) |
-                                ((uint64_t)(uint16_t)y_16 << 16) |
-                                (uint64_t)(uint16_t)z_16;
-
-                    // Check if this coordinate exists
-                    auto &existing_intensities = spatial_grid[key];
-
-                    bool is_duplicate = false;
-                    // Only iterate through points at THIS EXACT coordinate (usually 0 or 1)
-                    for (int16_t existing_i : existing_intensities)
-                    {
-                        if (abs(i_8 - existing_i) < intensity_th)
-                        {
-                            is_duplicate = true;
-                            break;
-                        }
-                    }
-
-                    if (is_duplicate)
-                    {
-                        count_removed++;
-                        continue; // Skip writing
-                    }
-
-                    // Not a duplicate, store intensity for future checks at this coord
-                    existing_intensities.push_back(i_8);
-                }
-
-                tpc_msg.points.push_back(x_16);
-                tpc_msg.points.push_back(y_16);
-                tpc_msg.points.push_back(z_16);
-                tpc_msg.intensities.push_back(i_8);
-            }
-
-            if (count_removed > 0)
-            {
-                //ROS_INFO_STREAM("Removed " << count_removed << " duplicated points");
-            }
-
-            publisher.publish(tpc_msg);
-
             free(m_pointcloud_data);
             m_pointcloud_data = nullptr;
             points_received = 0;
