@@ -4,6 +4,18 @@ Changelog for package l3cam_ros
 
 1.0.2 (2024-07-10)
 -----------
+- Updated threading in streaming nodes.
+- Added simulator functionality to use L3CamSimulator.
+- Added processing of polarimetric camera.
+- Added streaming of 2D and 3D detections.
+- Added nodes for streaming compressed images.
+- Added node for streaming tiny point clouds (custom compression message).
+- Better debugging for setting socket receive buffer size.
+- Better debugging for lost UDP packets.
+
+
+1.0.2 (2024-07-10)
+-----------
 - thermalTypes changed for newThermalTypes.
 - LibL3CamStatus status types with '_status' suffix to avoid errors.
 - libl3cam 0.1.18 new functionalities.
