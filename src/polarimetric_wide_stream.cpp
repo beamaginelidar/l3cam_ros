@@ -366,7 +366,7 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
 
             if (!extra_publisher.getTopic().empty() && g_stream_processed)
             {
-                std::thread process_thread(ProcessSendImageThread, img_data, header, extra_publisher);
+                std::thread process_thread(ProcessSendImageThread, img_data.clone(), header, extra_publisher);
                 process_thread.detach();
             }
 

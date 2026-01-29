@@ -418,7 +418,7 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
 
                 publisher.publish(img_msg);
 
-                std::thread process_thread(ProcessSendImageThread, img_data, header, extra_publisher, compression_params);
+                std::thread process_thread(ProcessSendImageThread, img_data.clone(), header, extra_publisher, compression_params);
                 process_thread.detach();
             }
             else
