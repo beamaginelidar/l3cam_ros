@@ -322,8 +322,6 @@ void ImageThread(ros::Publisher publisher, int quality, bool optimize, int rst_i
 
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
-
-    pthread_exit(0);
 }
 
 namespace l3cam_ros

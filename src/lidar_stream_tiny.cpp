@@ -328,8 +328,6 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
 
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
-
-    pthread_exit(0);
 }
 
 namespace l3cam_ros

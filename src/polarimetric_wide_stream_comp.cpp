@@ -411,15 +411,18 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, int q
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
             }
 
-            if (g_pol && g_stream_processed)
+            if (g_pol)
             {
                 const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
                 sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(header, encoding, img_data).toImageMsg();
 
                 publisher.publish(img_msg);
 
-                std::thread process_thread(ProcessSendImageThread, img_data.clone(), header, extra_publisher, compression_params);
-                process_thread.detach();
+                if (g_stream_processed)
+                {
+                    std::thread process_thread(ProcessSendImageThread, img_data.clone(), header, extra_publisher, compression_params);
+                    process_thread.detach();
+                }
             }
             else
             {

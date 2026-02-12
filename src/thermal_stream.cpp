@@ -268,8 +268,6 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
 
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
-
-    pthread_exit(0);
 }
 
 void FloatImageThread(ros::Publisher publisher)
@@ -372,8 +370,6 @@ void FloatImageThread(ros::Publisher publisher)
 
     shutdown(m_socket_descriptor, SHUT_RDWR);
     close(m_socket_descriptor);
-
-    pthread_exit(0);
 }
 
 namespace l3cam_ros
