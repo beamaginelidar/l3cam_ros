@@ -506,11 +506,11 @@ int main(int argc, char **argv)
     node->loadParam("jpeg_optimize", optimize, true);
     node->loadParam("jpeg_rst_interval", rst_interval, 10);
 
-    node->publisher_ = node->advertise<sensor_msgs::CompressedImage>("/img_thermal/compressed", 10);
-    node->detections_publisher_ = node->advertise<vision_msgs::Detection2DArray>("/thermal_detections", 10);
+    node->publisher_ = node->advertise<sensor_msgs::CompressedImage>("img_thermal/compressed", 10);
+    node->detections_publisher_ = node->advertise<vision_msgs::Detection2DArray>("thermal_detections", 10);
     std::thread thread(ImageThread, node->publisher_, quality, optimize, rst_interval, node->detections_publisher_);
     thread.detach();
-    node->f_publisher_ = node->advertise<sensor_msgs::Image>("/img_f_thermal", 10); // Compressing would make it lose the thermal info
+    node->f_publisher_ = node->advertise<sensor_msgs::Image>("img_f_thermal", 10); // Compressing would make it lose the thermal info
     std::thread thread_f(FloatImageThread, node->f_publisher_);
     thread_f.detach();
 

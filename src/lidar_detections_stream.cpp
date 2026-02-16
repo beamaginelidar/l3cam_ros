@@ -280,7 +280,7 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<vision_msgs::Detection3DArray>("/lidar_detections", 10);
+    node->publisher_ = node->advertise<vision_msgs::Detection3DArray>("lidar_detections", 10);
     std::thread thread(DetectionsThread, node->publisher_);
     thread.detach();
 

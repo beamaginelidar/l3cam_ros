@@ -413,7 +413,7 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<l3cam_ros::TinyPointCloud>("/PC2_lidar/tiny", 10);
+    node->publisher_ = node->advertise<l3cam_ros::TinyPointCloud>("PC2_lidar/tiny", 10);
     std::thread thread(PointCloudThread, node->publisher_, (uint8_t)node->precision_, node->deduplicate_, node->intensity_th_);
     thread.detach();
 

@@ -323,7 +323,7 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::PointCloud2>("/PC2_lidar", 10);
+    node->publisher_ = node->advertise<sensor_msgs::PointCloud2>("PC2_lidar", 10);
     std::thread thread(PointCloudThread, node->publisher_);
     thread.detach();
 
