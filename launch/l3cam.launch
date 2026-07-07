@@ -14,7 +14,9 @@
     <arg name="jpeg_optimize" default="true" />
     <arg name="jpeg_rst_interval" default="10" /> <!-- 0 - 65535 -->
 
-    <group ns="L3Cam">
+    <arg name="namespace" default="L3Cam" />
+
+    <group ns="$(arg namespace)">
         <arg name="timeout_secs" default="30" />
 
         <arg name="lidar_topic" default="PC2_lidar" />
