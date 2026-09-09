@@ -55,14 +55,14 @@ namespace l3cam_ros
     public:
         explicit ThermalConfiguration() : ros::NodeHandle("~")
         {
-            client_get_sensors_ = serviceClient<l3cam_ros::GetSensorsAvailable>("/L3Cam/l3cam_ros_node/get_sensors_available");
-            client_colormap_ = serviceClient<l3cam_ros::ChangeThermalCameraColormap>("/L3Cam/l3cam_ros_node/change_thermal_colormap");
-            client_enable_temperature_filter_ = serviceClient<l3cam_ros::EnableThermalCameraTemperatureFilter>("/L3Cam/l3cam_ros_node/enable_thermal_temperature_filter");
-            client_temperature_filter_ = serviceClient<l3cam_ros::ChangeThermalCameraTemperatureFilter>("/L3Cam/l3cam_ros_node/change_thermal_temperature_filter");
-            client_processing_pipeline_ = serviceClient<l3cam_ros::ChangeThermalCameraProcessingPipeline>("/L3Cam/l3cam_ros_node/change_thermal_processing_pipeline");
-            client_temperature_data_udp_ = serviceClient<l3cam_ros::EnableThermalCameraTemperatureDataUdp>("/L3Cam/l3cam_ros_node/enable_thermal_temperature_data_udp");
-            client_change_streaming_protocol_ = serviceClient<l3cam_ros::ChangeStreamingProtocol>("/L3Cam/l3cam_ros_node/change_streaming_protocol");
-            client_get_rtsp_pipeline_ = serviceClient<l3cam_ros::GetRtspPipeline>("/L3Cam/l3cam_ros_node/get_rtsp_pipeline");
+            client_get_sensors_ = ros::NodeHandle().serviceClient<l3cam_ros::GetSensorsAvailable>("l3cam_ros_node/get_sensors_available");
+            client_colormap_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeThermalCameraColormap>("l3cam_ros_node/change_thermal_colormap");
+            client_enable_temperature_filter_ = ros::NodeHandle().serviceClient<l3cam_ros::EnableThermalCameraTemperatureFilter>("l3cam_ros_node/enable_thermal_temperature_filter");
+            client_temperature_filter_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeThermalCameraTemperatureFilter>("l3cam_ros_node/change_thermal_temperature_filter");
+            client_processing_pipeline_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeThermalCameraProcessingPipeline>("l3cam_ros_node/change_thermal_processing_pipeline");
+            client_temperature_data_udp_ = ros::NodeHandle().serviceClient<l3cam_ros::EnableThermalCameraTemperatureDataUdp>("l3cam_ros_node/enable_thermal_temperature_data_udp");
+            client_change_streaming_protocol_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeStreamingProtocol>("l3cam_ros_node/change_streaming_protocol");
+            client_get_rtsp_pipeline_ = ros::NodeHandle().serviceClient<l3cam_ros::GetRtspPipeline>("l3cam_ros_node/get_rtsp_pipeline");
 
             loadDefaultParams();
 
@@ -108,6 +108,7 @@ namespace l3cam_ros
                 if (!getParam(full_param_name, param_var))
                 {
                     ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                    param_var = default_val;
                 }
             }
             else
@@ -133,7 +134,7 @@ namespace l3cam_ros
         void configureDefault(l3cam_ros::ThermalConfig &config)
         {
             // Configure default params to dynamix reconfigure if inside range
-            if (thermal_colormap_ >= 0 || thermal_colormap_ <= 8)
+            if (thermal_colormap_ >= 0 && thermal_colormap_ <= 8)
             {
                 config.thermal_colormap = thermal_colormap_;
             }
@@ -143,6 +144,7 @@ namespace l3cam_ros
             }
 
             config.thermal_temperature_filter = thermal_temperature_filter_;
+            config.thermal_temperature_data_udp = thermal_temperature_data_udp_;
 
             if (thermal_temperature_filter_min_ >= -40 && thermal_temperature_filter_min_ <= 200)
             {

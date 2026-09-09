@@ -58,16 +58,16 @@ namespace l3cam_ros
         explicit LidarConfiguration() : ros::NodeHandle("~")
         {
             // Create service clients
-            client_get_sensors_ = serviceClient<l3cam_ros::GetSensorsAvailable>("/L3Cam/l3cam_ros_node/get_sensors_available");
-            client_color_ = serviceClient<l3cam_ros::ChangePointcloudColor>("/L3Cam/l3cam_ros_node/change_pointcloud_color");
-            client_color_range_ = serviceClient<l3cam_ros::ChangePointcloudColorRange>("/L3Cam/l3cam_ros_node/change_pointcloud_color_range");
-            client_distance_range_ = serviceClient<l3cam_ros::ChangeDistanceRange>("/L3Cam/l3cam_ros_node/change_distance_range");
-            client_bias_short_range_ = serviceClient<l3cam_ros::SetBiasShortRange>("/L3Cam/l3cam_ros_node/set_bias_short_range");
-            client_auto_bias_ = serviceClient<l3cam_ros::EnableAutoBias>("/L3Cam/l3cam_ros_node/enable_auto_bias");
-            client_bias_value_ = serviceClient<l3cam_ros::ChangeBiasValue>("/L3Cam/l3cam_ros_node/change_bias_value");
-            client_autobias_value_ = serviceClient<l3cam_ros::ChangeAutobiasValue>("/L3Cam/l3cam_ros_node/change_autobias_value");
-            client_change_streaming_protocol_ = serviceClient<l3cam_ros::ChangeStreamingProtocol>("/L3Cam/l3cam_ros_node/change_streaming_protocol");
-            client_get_rtsp_pipeline_ = serviceClient<l3cam_ros::GetRtspPipeline>("/L3Cam/l3cam_ros_node/get_rtsp_pipeline");
+            client_get_sensors_ = ros::NodeHandle().serviceClient<l3cam_ros::GetSensorsAvailable>("l3cam_ros_node/get_sensors_available");
+            client_color_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePointcloudColor>("l3cam_ros_node/change_pointcloud_color");
+            client_color_range_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePointcloudColorRange>("l3cam_ros_node/change_pointcloud_color_range");
+            client_distance_range_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeDistanceRange>("l3cam_ros_node/change_distance_range");
+            client_bias_short_range_ = ros::NodeHandle().serviceClient<l3cam_ros::SetBiasShortRange>("l3cam_ros_node/set_bias_short_range");
+            client_auto_bias_ = ros::NodeHandle().serviceClient<l3cam_ros::EnableAutoBias>("l3cam_ros_node/enable_auto_bias");
+            client_bias_value_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeBiasValue>("l3cam_ros_node/change_bias_value");
+            client_autobias_value_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAutobiasValue>("l3cam_ros_node/change_autobias_value");
+            client_change_streaming_protocol_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeStreamingProtocol>("l3cam_ros_node/change_streaming_protocol");
+            client_get_rtsp_pipeline_ = ros::NodeHandle().serviceClient<l3cam_ros::GetRtspPipeline>("l3cam_ros_node/get_rtsp_pipeline");
 
             loadDefaultParams();
 
@@ -113,6 +113,7 @@ namespace l3cam_ros
                 if (!getParam(full_param_name, param_var))
                 {
                     ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                    param_var = default_val;
                 }
             }
             else
@@ -465,7 +466,7 @@ namespace l3cam_ros
             srv_auto_bias_.request.enabled = config.auto_bias;
             if (client_auto_bias_.call(srv_auto_bias_))
             {
-                error = srv_bias_short_range_.response.error;
+                error = srv_auto_bias_.response.error;
                 if (!error)
                 {
                     // Parameter changed successfully, save value

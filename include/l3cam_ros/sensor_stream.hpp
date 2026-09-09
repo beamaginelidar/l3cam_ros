@@ -45,7 +45,7 @@ namespace l3cam_ros
     public:
         void spin();
 
-        void declareServiceServers(const std::string &sensor);
+        void declareServiceServers(const std::string &stream_name);
         
         template <typename T>
         void loadParam(const std::string &param_name, T &param_var, const T &default_val);

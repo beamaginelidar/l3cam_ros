@@ -60,19 +60,19 @@ namespace l3cam_ros
     public:
         explicit RgbConfiguration() : ros::NodeHandle("~")
         {
-            client_get_sensors_ = serviceClient<l3cam_ros::GetSensorsAvailable>("/L3Cam/l3cam_ros_node/get_sensors_available");
-            client_brightness_ = serviceClient<l3cam_ros::ChangeRgbCameraBrightness>("/L3Cam/l3cam_ros_node/change_rgb_brightness");
-            client_contrast_ = serviceClient<l3cam_ros::ChangeRgbCameraContrast>("/L3Cam/l3cam_ros_node/change_rgb_contrast");
-            client_saturation_ = serviceClient<l3cam_ros::ChangeRgbCameraSaturation>("/L3Cam/l3cam_ros_node/change_rgb_saturation");
-            client_sharpness_ = serviceClient<l3cam_ros::ChangeRgbCameraSharpness>("/L3Cam/l3cam_ros_node/change_rgb_sharpness");
-            client_gamma_ = serviceClient<l3cam_ros::ChangeRgbCameraGamma>("/L3Cam/l3cam_ros_node/change_rgb_gamma");
-            client_gain_ = serviceClient<l3cam_ros::ChangeRgbCameraGain>("/L3Cam/l3cam_ros_node/change_rgb_gain");
-            client_enable_auto_white_balance_ = serviceClient<l3cam_ros::EnableRgbCameraAutoWhiteBalance>("/L3Cam/l3cam_ros_node/enable_rgb_auto_white_balance");
-            client_white_balance_ = serviceClient<l3cam_ros::ChangeRgbCameraWhiteBalance>("/L3Cam/l3cam_ros_node/change_rgb_white_balance");
-            client_enable_auto_exposure_time_ = serviceClient<l3cam_ros::EnableRgbCameraAutoExposureTime>("/L3Cam/l3cam_ros_node/enable_rgb_auto_exposure_time");
-            client_exposure_time_ = serviceClient<l3cam_ros::ChangeRgbCameraExposureTime>("/L3Cam/l3cam_ros_node/change_rgb_exposure_time");
-            client_change_streaming_protocol_ = serviceClient<l3cam_ros::ChangeStreamingProtocol>("/L3Cam/l3cam_ros_node/change_streaming_protocol");
-            client_get_rtsp_pipeline_ = serviceClient<l3cam_ros::GetRtspPipeline>("/L3Cam/l3cam_ros_node/get_rtsp_pipeline");
+            client_get_sensors_ = ros::NodeHandle().serviceClient<l3cam_ros::GetSensorsAvailable>("l3cam_ros_node/get_sensors_available");
+            client_brightness_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeRgbCameraBrightness>("l3cam_ros_node/change_rgb_brightness");
+            client_contrast_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeRgbCameraContrast>("l3cam_ros_node/change_rgb_contrast");
+            client_saturation_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeRgbCameraSaturation>("l3cam_ros_node/change_rgb_saturation");
+            client_sharpness_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeRgbCameraSharpness>("l3cam_ros_node/change_rgb_sharpness");
+            client_gamma_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeRgbCameraGamma>("l3cam_ros_node/change_rgb_gamma");
+            client_gain_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeRgbCameraGain>("l3cam_ros_node/change_rgb_gain");
+            client_enable_auto_white_balance_ = ros::NodeHandle().serviceClient<l3cam_ros::EnableRgbCameraAutoWhiteBalance>("l3cam_ros_node/enable_rgb_auto_white_balance");
+            client_white_balance_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeRgbCameraWhiteBalance>("l3cam_ros_node/change_rgb_white_balance");
+            client_enable_auto_exposure_time_ = ros::NodeHandle().serviceClient<l3cam_ros::EnableRgbCameraAutoExposureTime>("l3cam_ros_node/enable_rgb_auto_exposure_time");
+            client_exposure_time_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeRgbCameraExposureTime>("l3cam_ros_node/change_rgb_exposure_time");
+            client_change_streaming_protocol_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeStreamingProtocol>("l3cam_ros_node/change_streaming_protocol");
+            client_get_rtsp_pipeline_ = ros::NodeHandle().serviceClient<l3cam_ros::GetRtspPipeline>("l3cam_ros_node/get_rtsp_pipeline");
 
             loadDefaultParams();
 
@@ -106,6 +106,7 @@ namespace l3cam_ros
         l3cam_ros::GetSensorsAvailable srv_get_sensors_;
 
         int timeout_secs_;
+        int rgb_sensor_type_ = (int)sensorTypes::sensor_econ_rgb;
 
     private:
         template <typename T>
@@ -118,6 +119,7 @@ namespace l3cam_ros
                 if (!getParam(full_param_name, param_var))
                 {
                     ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                    param_var = default_val;
                 }
             }
             else
@@ -241,7 +243,7 @@ namespace l3cam_ros
             }
             else
             {
-                srv_get_rtsp_pipeline_.request.sensor_type = (int)sensorTypes::sensor_econ_rgb;
+                srv_get_rtsp_pipeline_.request.sensor_type = rgb_sensor_type_;
                 if (client_get_rtsp_pipeline_.call(srv_get_rtsp_pipeline_))
                 {
                     error = srv_get_rtsp_pipeline_.response.error;
@@ -638,7 +640,7 @@ namespace l3cam_ros
             int error = L3CAM_OK;
 
             srv_change_streaming_protocol_.request.protocol = config.rgb_streaming_protocol;
-            srv_change_streaming_protocol_.request.sensor_type = (int)sensorTypes::sensor_econ_rgb;
+            srv_change_streaming_protocol_.request.sensor_type = rgb_sensor_type_;
             if (client_change_streaming_protocol_.call(srv_change_streaming_protocol_))
             {
                 error = srv_change_streaming_protocol_.response.error;
@@ -762,9 +764,10 @@ int main(int argc, char **argv)
         {
             for (int i = 0; i < node->srv_get_sensors_.response.num_sensors; ++i)
             {
-                if (node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_econ_rgb && node->srv_get_sensors_.response.sensors[i].sensor_available)
+                if ((node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_econ_rgb || node->srv_get_sensors_.response.sensors[i].sensor_type == sensor_econ_wide) && node->srv_get_sensors_.response.sensors[i].sensor_available)
                 {
                     sensor_is_available = true;
+                    node->rgb_sensor_type_ = node->srv_get_sensors_.response.sensors[i].sensor_type;
                 }
             }
         }

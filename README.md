@@ -269,7 +269,7 @@ Some parameters are enumerate's declared on the `libL3Cam`, check the [L3Cam Use
 | Parameter                                       | Type   | Default   | Range                    |
 | ----------------------------------------------- | ------ | --------- | ------------------------ |
 | `polarimetric_stream_processed_image`           | bool   | true      |                          |
-| `polarimetric_process_type`                     | int    | 4         | see `polModes`           |
+| `polarimetric_process_type`                     | int    | 0         | see `polModes`           |
 | `polarimetric_brightness`                       | int    | 127       | [0, 255]                 |
 | `polarimetric_black_level`                      | double | 6.0       | [0, 12.5]                |
 | `polarimetric_auto_gain`                        | bool   | true      |                          |

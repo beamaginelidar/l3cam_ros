@@ -47,7 +47,8 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-bool g_listening = false;
+#include <atomic>
+std::atomic<bool> g_listening(false);
 
 void DetectionsThread(ros::Publisher publisher)
 {
@@ -63,7 +64,7 @@ void DetectionsThread(ros::Publisher publisher)
     uint32_t num_detections = 0;
     uint32_t num_detections_pack = 0;
     uint32_t detections_recv = 0;
-    bool m_is_reading_detections;
+    bool m_is_reading_detections = false;
     vision_msgs::Detection3DArray m_3d_detections;
 
     std_msgs::Header header;
@@ -72,6 +73,7 @@ void DetectionsThread(ros::Publisher publisher)
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
         perror("Opening socket");
+        free(buffer);
         return;
     }
     // else ROS_INFO("Socket Lidar created");
@@ -84,6 +86,8 @@ void DetectionsThread(ros::Publisher publisher)
     if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
     {
         perror("inet_aton() failed");
+        close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
@@ -91,6 +95,7 @@ void DetectionsThread(ros::Publisher publisher)
     {
         perror("Could not bind name to socket");
         close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
@@ -98,6 +103,8 @@ void DetectionsThread(ros::Publisher publisher)
     if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
     {
         perror("Error setting size to socket");
+        close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
@@ -115,6 +122,7 @@ void DetectionsThread(ros::Publisher publisher)
     // 1 second timeout for socket
     struct timeval read_timeout;
     read_timeout.tv_sec = 1;
+    read_timeout.tv_usec = 0;
     setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 
     g_listening = true;
@@ -134,7 +142,7 @@ void DetectionsThread(ros::Publisher publisher)
             header.stamp = ros::Time::now();
             m_3d_detections.header = header;
         }
-        else if (size_read == 1 || detections_recv == num_detections) // End, send point cloud detections
+        else if (m_is_reading_detections && (size_read == 1 || detections_recv >= num_detections)) // End, send point cloud detections
         {
             m_is_reading_detections = false;
             num_detections = 0;
@@ -143,13 +151,18 @@ void DetectionsThread(ros::Publisher publisher)
         }
         else if (size_read > 0 && m_is_reading_detections) // Data
         {
-            num_detections_pack = buffer[0];
+            num_detections_pack = (uint8_t)buffer[0];
             detections_recv += num_detections_pack;
             int offset = 1;
             if (num_detections > 0)
             {
                 for (uint32_t n = 0; n < num_detections_pack; ++n)
                 {
+                    if (offset + 48 > size_read)
+                    {
+                        ROS_WARN_STREAM("lidar detections NET PROBLEM: packet shorter than announced detections");
+                        break;
+                    }
                     //! read detections packages
                     uint16_t confidence, label;
                     uint8_t sensor_ori, red, green, blue;
@@ -210,7 +223,7 @@ namespace l3cam_ros
     public:
         explicit LidarDetectionsStream() : SensorStream()
         {
-            declareServiceServers("lidar");
+            declareServiceServers("lidar_detections_stream");
         }
 
         ros::Publisher publisher_;
@@ -280,7 +293,7 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<vision_msgs::Detection3DArray>("lidar_detections", 10);
+    node->publisher_ = ros::NodeHandle().advertise<vision_msgs::Detection3DArray>("lidar_detections", 10);
     std::thread thread(DetectionsThread, node->publisher_);
     thread.detach();
 

@@ -70,28 +70,28 @@ namespace l3cam_ros
         explicit AlliedWideConfiguration() : ros::NodeHandle("~")
         {
             // Create service clients
-            client_get_sensors_ = serviceClient<l3cam_ros::GetSensorsAvailable>("/L3Cam/l3cam_ros_node/get_sensors_available");
-            client_exposure_time_ = serviceClient<l3cam_ros::ChangeAlliedCameraExposureTime>("/L3Cam/l3cam_ros_node/change_allied_exposure_time");
-            client_enable_auto_exposure_time_ = serviceClient<l3cam_ros::EnableAlliedCameraAutoExposureTime>("/L3Cam/l3cam_ros_node/enable_allied_auto_exposure_time");
-            client_auto_exposure_time_range_ = serviceClient<l3cam_ros::ChangeAlliedCameraAutoExposureTimeRange>("/L3Cam/l3cam_ros_node/change_allied_auto_exposure_time_range");
-            client_gain_ = serviceClient<l3cam_ros::ChangeAlliedCameraGain>("/L3Cam/l3cam_ros_node/change_allied_gain");
-            client_enable_auto_gain_ = serviceClient<l3cam_ros::EnableAlliedCameraAutoGain>("/L3Cam/l3cam_ros_node/enable_allied_auto_gain");
-            client_auto_gain_range_ = serviceClient<l3cam_ros::ChangeAlliedCameraAutoGainRange>("/L3Cam/l3cam_ros_node/change_allied_auto_gain_range");
-            client_gamma_ = serviceClient<l3cam_ros::ChangeAlliedCameraGamma>("/L3Cam/l3cam_ros_node/change_allied_gamma");
-            client_saturation_ = serviceClient<l3cam_ros::ChangeAlliedCameraSaturation>("/L3Cam/l3cam_ros_node/change_allied_saturation");
-            client_hue_ = serviceClient<l3cam_ros::ChangeAlliedCameraHue>("/L3Cam/l3cam_ros_node/change_allied_hue");
-            client_intensity_auto_precedence_ = serviceClient<l3cam_ros::ChangeAlliedCameraIntensityAutoPrecedence>("/L3Cam/l3cam_ros_node/change_allied_intensity_auto_precedence");
-            client_enable_auto_white_balance_ = serviceClient<l3cam_ros::EnableAlliedCameraAutoWhiteBalance>("/L3Cam/l3cam_ros_node/enable_allied_auto_white_balance");
-            client_balance_ratio_selector_ = serviceClient<l3cam_ros::ChangeAlliedCameraBalanceRatioSelector>("/L3Cam/l3cam_ros_node/change_allied_balance_ratio_selector");
-            client_balance_ratio_ = serviceClient<l3cam_ros::ChangeAlliedCameraBalanceRatio>("/L3Cam/l3cam_ros_node/change_allied_balance_ratio");
-            client_balance_white_auto_rate_ = serviceClient<l3cam_ros::ChangeAlliedCameraBalanceWhiteAutoRate>("/L3Cam/l3cam_ros_node/change_allied_balance_white_auto_rate");
-            client_balance_white_auto_tolerance_ = serviceClient<l3cam_ros::ChangeAlliedCameraBalanceWhiteAutoTolerance>("/L3Cam/l3cam_ros_node/change_allied_balance_white_auto_tolerance");
-            client_intensity_controller_region_ = serviceClient<l3cam_ros::ChangeAlliedCameraIntensityControllerRegion>("/L3Cam/l3cam_ros_node/change_allied_intensity_controller_region");
-            client_intensity_controller_target_ = serviceClient<l3cam_ros::ChangeAlliedCameraIntensityControllerTarget>("/L3Cam/l3cam_ros_node/change_allied_intensity_controller_target");
-            client_change_streaming_protocol_ = serviceClient<l3cam_ros::ChangeStreamingProtocol>("/L3Cam/l3cam_ros_node/change_streaming_protocol");
-            client_get_rtsp_pipeline_ = serviceClient<l3cam_ros::GetRtspPipeline>("/L3Cam/l3cam_ros_node/get_rtsp_pipeline");
-            client_get_exposure_time_ = serviceClient<l3cam_ros::GetAlliedCameraExposureTime>("/L3Cam/l3cam_ros_node/get_allied_exposure_time");
-            client_get_gain_ = serviceClient<l3cam_ros::GetAlliedCameraGain>("/L3Cam/l3cam_ros_node/get_allied_gain");
+            client_get_sensors_ = ros::NodeHandle().serviceClient<l3cam_ros::GetSensorsAvailable>("l3cam_ros_node/get_sensors_available");
+            client_exposure_time_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraExposureTime>("l3cam_ros_node/change_allied_exposure_time");
+            client_enable_auto_exposure_time_ = ros::NodeHandle().serviceClient<l3cam_ros::EnableAlliedCameraAutoExposureTime>("l3cam_ros_node/enable_allied_auto_exposure_time");
+            client_auto_exposure_time_range_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraAutoExposureTimeRange>("l3cam_ros_node/change_allied_auto_exposure_time_range");
+            client_gain_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraGain>("l3cam_ros_node/change_allied_gain");
+            client_enable_auto_gain_ = ros::NodeHandle().serviceClient<l3cam_ros::EnableAlliedCameraAutoGain>("l3cam_ros_node/enable_allied_auto_gain");
+            client_auto_gain_range_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraAutoGainRange>("l3cam_ros_node/change_allied_auto_gain_range");
+            client_gamma_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraGamma>("l3cam_ros_node/change_allied_gamma");
+            client_saturation_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraSaturation>("l3cam_ros_node/change_allied_saturation");
+            client_hue_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraHue>("l3cam_ros_node/change_allied_hue");
+            client_intensity_auto_precedence_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraIntensityAutoPrecedence>("l3cam_ros_node/change_allied_intensity_auto_precedence");
+            client_enable_auto_white_balance_ = ros::NodeHandle().serviceClient<l3cam_ros::EnableAlliedCameraAutoWhiteBalance>("l3cam_ros_node/enable_allied_auto_white_balance");
+            client_balance_ratio_selector_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraBalanceRatioSelector>("l3cam_ros_node/change_allied_balance_ratio_selector");
+            client_balance_ratio_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraBalanceRatio>("l3cam_ros_node/change_allied_balance_ratio");
+            client_balance_white_auto_rate_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraBalanceWhiteAutoRate>("l3cam_ros_node/change_allied_balance_white_auto_rate");
+            client_balance_white_auto_tolerance_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraBalanceWhiteAutoTolerance>("l3cam_ros_node/change_allied_balance_white_auto_tolerance");
+            client_intensity_controller_region_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraIntensityControllerRegion>("l3cam_ros_node/change_allied_intensity_controller_region");
+            client_intensity_controller_target_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeAlliedCameraIntensityControllerTarget>("l3cam_ros_node/change_allied_intensity_controller_target");
+            client_change_streaming_protocol_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeStreamingProtocol>("l3cam_ros_node/change_streaming_protocol");
+            client_get_rtsp_pipeline_ = ros::NodeHandle().serviceClient<l3cam_ros::GetRtspPipeline>("l3cam_ros_node/get_rtsp_pipeline");
+            client_get_exposure_time_ = ros::NodeHandle().serviceClient<l3cam_ros::GetAlliedCameraExposureTime>("l3cam_ros_node/get_allied_exposure_time");
+            client_get_gain_ = ros::NodeHandle().serviceClient<l3cam_ros::GetAlliedCameraGain>("l3cam_ros_node/get_allied_gain");
 
             loadDefaultParams();
 
@@ -137,6 +137,7 @@ namespace l3cam_ros
                 if (!getParam(full_param_name, param_var))
                 {
                     ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                    param_var = default_val;
                 }
             }
             else
@@ -153,7 +154,7 @@ namespace l3cam_ros
             loadParam("allied_wide_exposure_time", allied_wide_exposure_time_, 4992.32);
             loadParam("allied_wide_auto_exposure_time", allied_wide_auto_exposure_time_, false);
             loadParam("allied_wide_auto_exposure_time_range_min", allied_wide_auto_exposure_time_range_min_, 87.596);
-            loadParam("allied_wide_auto_exposure_time_range_max", allied_wide_auto_exposure_time_range_max_, 87.596);
+            loadParam("allied_wide_auto_exposure_time_range_max", allied_wide_auto_exposure_time_range_max_, 8999990.);
             loadParam("allied_wide_gain", allied_wide_gain_, 0.);
             loadParam("allied_wide_auto_gain", allied_wide_auto_gain_, false);
             loadParam("allied_wide_auto_gain_range_min", allied_wide_auto_gain_range_min_, 0.);
@@ -161,13 +162,13 @@ namespace l3cam_ros
             loadParam("allied_wide_gamma", allied_wide_gamma_, 1.);
             loadParam("allied_wide_saturation", allied_wide_saturation_, 1.);
             loadParam("allied_wide_hue", allied_wide_hue_, 0.);
-            loadParam("allied_wide_intensity_auto_precedence", allied_wide_intensity_auto_precedence_, 1);
+            loadParam("allied_wide_intensity_auto_precedence", allied_wide_intensity_auto_precedence_, 0);
             loadParam("allied_wide_auto_white_balance", allied_wide_auto_white_balance_, false);
-            loadParam("allied_wide_balance_ratio_selector", allied_wide_balance_ratio_selector_, 1);
+            loadParam("allied_wide_balance_ratio_selector", allied_wide_balance_ratio_selector_, 0);
             loadParam("allied_wide_balance_ratio", allied_wide_balance_ratio_, 2.35498);
             loadParam("allied_wide_balance_white_auto_rate", allied_wide_balance_white_auto_rate_, 100.);
             loadParam("allied_wide_balance_white_auto_tolerance", allied_wide_balance_white_auto_tolerance_, 5.);
-            loadParam("allied_wide_intensity_controller_region", allied_wide_intensity_controller_region_, 1);
+            loadParam("allied_wide_intensity_controller_region", allied_wide_intensity_controller_region_, 0);
             loadParam("allied_wide_intensity_controller_target", allied_wide_intensity_controller_target_, 50.);
             loadParam("allied_wide_streaming_protocol", allied_wide_streaming_protocol_, 0);
         }
@@ -175,7 +176,7 @@ namespace l3cam_ros
         void configureDefault(l3cam_ros::AlliedWideConfig &config)
         {
             // Configure default params to dynamix reconfigure if inside range
-            if (allied_wide_exposure_time_ >= 0 && allied_wide_exposure_time_ <= 4095)
+            if (allied_wide_exposure_time_ >= 63.03 && allied_wide_exposure_time_ <= 10000000)
             {
                 config.allied_wide_exposure_time = allied_wide_exposure_time_;
             }
@@ -184,14 +185,7 @@ namespace l3cam_ros
                 allied_wide_exposure_time_ = config.allied_wide_exposure_time;
             }
 
-            if (allied_wide_auto_exposure_time_ >= 63 && allied_wide_auto_exposure_time_ <= 10000000)
-            {
-                config.allied_wide_auto_exposure_time = allied_wide_auto_exposure_time_;
-            }
-            else
-            {
-                allied_wide_auto_exposure_time_ = config.allied_wide_auto_exposure_time;
-            }
+            config.allied_wide_auto_exposure_time = allied_wide_auto_exposure_time_;
 
             if (allied_wide_auto_exposure_time_range_min_ >= 63.03 && allied_wide_auto_exposure_time_range_min_ <= 8999990)
             {
@@ -851,7 +845,7 @@ namespace l3cam_ros
         {
             int error = L3CAM_OK;
 
-            srv_enable_auto_white_balance_.request.enabled = config.allied_wide_intensity_auto_precedence;
+            srv_enable_auto_white_balance_.request.enabled = config.allied_wide_auto_white_balance;
             srv_enable_auto_white_balance_.request.allied_type = alliedCamerasIds::wide_camera;
             if (client_enable_auto_white_balance_.call(srv_enable_auto_white_balance_))
             {
@@ -859,18 +853,18 @@ namespace l3cam_ros
                 if (!error)
                 {
                     // Parameter changed successfully, save value
-                    allied_wide_intensity_auto_precedence_ = config.allied_wide_intensity_auto_precedence;
+                    allied_wide_auto_white_balance_ = config.allied_wide_auto_white_balance;
                 }
                 else
                 {
                     // Parameter could not be changed, reset parameter to value before change
-                    config.allied_wide_intensity_auto_precedence = allied_wide_intensity_auto_precedence_;
+                    config.allied_wide_auto_white_balance = allied_wide_auto_white_balance_;
                 }
             }
             else
             {
                 // Service could not be called, reset parameter to value before change
-                config.allied_wide_intensity_auto_precedence = allied_wide_intensity_auto_precedence_;
+                config.allied_wide_auto_white_balance = allied_wide_auto_white_balance_;
                 return L3CAM_ROS_FAILED_TO_CALL_SERVICE;
             }
 

@@ -58,7 +58,8 @@
 
 int g_angle = no_angle;
 
-bool g_listening = false;
+#include <atomic>
+std::atomic<bool> g_listening(false);
 
 bool g_pol = true; // true if polarimetric available, false if wide available
 bool g_stream_processed = true;
@@ -195,9 +196,10 @@ void ProcessSendImageThread(cv::Mat img_data, std_msgs::Header header, ros::Publ
     cv::Mat img_processed = rgbpol2rgb(img_data, (polMode)g_angle);
 
     std_msgs::Header header_processed = header;
-    header.frame_id = "polarimetric_processed";
+    header_processed.frame_id = "polarimetric_processed";
 
-    sensor_msgs::ImagePtr img_processed_msg = cv_bridge::CvImage(header_processed, sensor_msgs::image_encodings::BGR8, img_processed).toImageMsg();
+    const std::string processed_encoding = img_processed.channels() == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
+    sensor_msgs::ImagePtr img_processed_msg = cv_bridge::CvImage(header_processed, processed_encoding, img_processed).toImageMsg();
     publisher.publish(img_processed_msg);
 
     g_processing_mutex.lock();
@@ -216,14 +218,14 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
     char *buffer;
     buffer = (char *)malloc(64000);
 
-    uint16_t m_image_height;
-    uint16_t m_image_width;
-    uint8_t m_image_channels;
-    uint32_t m_timestamp;
-    uint8_t m_image_detections;
+    uint16_t m_image_height = 0;
+    uint16_t m_image_width = 0;
+    uint8_t m_image_channels = 0;
+    uint32_t m_timestamp = 0;
+    uint8_t m_image_detections = 0;
     vision_msgs::Detection2DArray m_2d_detections;
     vision_msgs::Detection2D detection_2d;
-    int m_image_data_size;
+    int m_image_data_size = 0;
     bool m_is_reading_image = false;
     char *m_image_buffer = NULL;
     int bytes_count = 0;
@@ -234,6 +236,7 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
         perror("Opening socket");
+        free(buffer);
         return;
     }
     // else ROS_INFO("Socket Polarimetric created");
@@ -246,6 +249,8 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
     if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
     {
         perror("inet_aton() failed");
+        close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
@@ -253,6 +258,7 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
     {
         perror("Could not bind name to socket");
         close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
@@ -260,13 +266,16 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
     if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
     {
         perror("Error setting size to socket");
+        close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
     // VERIFY what the kernel actually gave you
     int actual_buf_size = 0;
     socklen_t optlen = sizeof(actual_buf_size);
-    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0) {
+    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0)
+    {
         // Note: Kernel doubles the requested value for internal bookkeeping, so actual might be 2x rcvbufsize
         if (actual_buf_size < rcvbufsize)
         {
@@ -277,6 +286,7 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
     // 1 second timeout for socket
     struct timeval read_timeout;
     read_timeout.tv_sec = 1;
+    read_timeout.tv_usec = 0; // uninitialised tv_usec can make setsockopt fail and recvfrom block forever
     setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 
     g_listening = true;
@@ -319,7 +329,8 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
 
             // m_timestamp format: hhmmsszzz
             time_t raw_time = ros::Time::now().toSec();
-            std::tm *time_info = std::localtime(&raw_time);
+            std::tm time_info_buf;
+            std::tm *time_info = localtime_r(&raw_time, &time_info_buf);
             time_info->tm_sec = 0;
             time_info->tm_min = 0;
             time_info->tm_hour = 0;
@@ -333,9 +344,15 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
         }
         else if (size_read == 1) // End, send image
         {
+            if (!m_is_reading_image || m_image_buffer == NULL)
+            {
+                continue;
+            }
             if (bytes_count != m_image_data_size)
             {
-                ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size: " << bytes_count  << " != " << m_image_data_size);
+                ROS_WARN_STREAM("pol_wide NET PROBLEM: bytes_count != m_image_data_size: " << bytes_count << " != " << m_image_data_size);
+                m_is_reading_image = false;
+                bytes_count = 0;
                 continue;
             }
 
@@ -357,6 +374,11 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
             else if (m_image_channels == 3)
             {
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
+            }
+            if (img_data.empty())
+            {
+                ROS_WARN_STREAM("Unsupported number of image channels: " << (int)m_image_channels << ", frame dropped");
+                continue;
             }
 
             const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
@@ -380,6 +402,12 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
                 int16_t x, y, height, width;
                 uint8_t red, green, blue;
 
+                if (size_read < 15)
+                {
+                    ROS_WARN_STREAM("NET PROBLEM: detection packet too short (" << size_read << " bytes)");
+                    --m_image_detections;
+                    continue;
+                }
                 //! read detections packages
                 memcpy(&confidence, &buffer[0], 2);
                 memcpy(&x, &buffer[2], 2);
@@ -404,6 +432,13 @@ void ImageThread(ros::Publisher publisher, ros::Publisher extra_publisher, ros::
                 m_2d_detections.detections.push_back(det);
 
                 --m_image_detections;
+                continue;
+            }
+            if (bytes_count + size_read > m_image_data_size)
+            {
+                ROS_WARN_STREAM("NET PROBLEM: image data exceeds header size, dropping frame");
+                m_is_reading_image = false;
+                bytes_count = 0;
                 continue;
             }
             memcpy(&m_image_buffer[bytes_count], buffer, size_read);
@@ -440,8 +475,8 @@ namespace l3cam_ros
 
         void declareExtraService()
         {
-            srv_stream_processed_ = this->advertiseService("enable_polarimetric_stream_processed_image", &PolarimetricWideStream::enableStreamProcessed, this);
-            srv_process_type_ = this->advertiseService("change_polarimetric_process_type", &PolarimetricWideStream::changeProcessType, this);
+            srv_stream_processed_ = ros::NodeHandle().advertiseService("polarimetric_wide_stream/enable_polarimetric_stream_processed_image", &PolarimetricWideStream::enableStreamProcessed, this);
+            srv_process_type_ = ros::NodeHandle().advertiseService("polarimetric_wide_stream/change_polarimetric_process_type", &PolarimetricWideStream::changeProcessType, this);
         }
 
         ros::Publisher publisher_, extra_publisher_, detections_publisher_;
@@ -462,7 +497,7 @@ namespace l3cam_ros
 
         bool changeProcessType(l3cam_ros::ChangePolarimetricCameraProcessType::Request &req, l3cam_ros::ChangePolarimetricCameraProcessType::Response &res)
         {
-            if (req.type < 0 || req.type > no_angle)
+            if (req.type < 0 || req.type > raw)
             {
                 res.error = L3CAM_ROS_INVALID_POLARIMETRIC_PROCESS_TYPE;
                 return true;
@@ -535,7 +570,7 @@ int main(int argc, char **argv)
         if (sensor_is_available)
         {
             ROS_INFO_STREAM((g_pol ? "Polarimetric" : "Allied Wide") << " camera available for streaming");
-            node->declareServiceServers(g_pol ? "polarimetric" : "allied_wide");
+            node->declareServiceServers("polarimetric_wide_stream");
             if (g_pol)
                 node->declareExtraService();
         }
@@ -545,11 +580,11 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::Image>(g_pol ? "img_polarimetric" : "img_wide", 10);
-    node->detections_publisher_ = node->advertise<vision_msgs::Detection2DArray>(g_pol ? "polarimetric_detections" : "wide_detections", 10);
+    node->publisher_ = ros::NodeHandle().advertise<sensor_msgs::Image>(g_pol ? "img_polarimetric" : "img_wide", 10);
+    node->detections_publisher_ = ros::NodeHandle().advertise<vision_msgs::Detection2DArray>(g_pol ? "polarimetric_detections" : "wide_detections", 10);
     if (g_pol)
     {
-        node->extra_publisher_ = node->advertise<sensor_msgs::Image>("img_polarimetric_processed", 10);
+        node->extra_publisher_ = ros::NodeHandle().advertise<sensor_msgs::Image>("img_polarimetric_processed", 10);
     }
     std::thread thread(ImageThread, node->publisher_, node->extra_publisher_, node->detections_publisher_);
     thread.detach();

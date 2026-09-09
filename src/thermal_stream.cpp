@@ -53,7 +53,8 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-bool g_listening = false;
+#include <atomic>
+std::atomic<bool> g_listening(false);
 
 bool openSocket(int &m_socket_descriptor, sockaddr_in &m_socket, std::string &m_address, int m_udp_port)
 {
@@ -72,6 +73,7 @@ bool openSocket(int &m_socket_descriptor, sockaddr_in &m_socket, std::string &m_
     if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
     {
         perror("inet_aton() failed");
+        close(m_socket_descriptor);
         return false;
     }
 
@@ -86,13 +88,15 @@ bool openSocket(int &m_socket_descriptor, sockaddr_in &m_socket, std::string &m_
     if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
     {
         perror("Error setting size to socket");
+        close(m_socket_descriptor);
         return false;
     }
 
     // VERIFY what the kernel actually gave you
     int actual_buf_size = 0;
     socklen_t optlen = sizeof(actual_buf_size);
-    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0) {
+    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0)
+    {
         // Note: Kernel doubles the requested value for internal bookkeeping, so actual might be 2x rcvbufsize
         if (actual_buf_size < rcvbufsize)
         {
@@ -103,6 +107,7 @@ bool openSocket(int &m_socket_descriptor, sockaddr_in &m_socket, std::string &m_
     // 1 second timeout for socket
     struct timeval read_timeout;
     read_timeout.tv_sec = 1;
+    read_timeout.tv_usec = 0; // uninitialised tv_usec can make setsockopt fail and recvfrom block forever
     setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 
     return true;
@@ -119,14 +124,14 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
     char *buffer;
     buffer = (char *)malloc(64000);
 
-    uint16_t m_image_height;
-    uint16_t m_image_width;
-    uint8_t m_image_channels;
-    uint32_t m_timestamp;
-    uint8_t m_image_detections;
+    uint16_t m_image_height = 0;
+    uint16_t m_image_width = 0;
+    uint8_t m_image_channels = 0;
+    uint32_t m_timestamp = 0;
+    uint8_t m_image_detections = 0;
     vision_msgs::Detection2DArray m_2d_detections;
     vision_msgs::Detection2D detection_2d;
-    int m_image_data_size;
+    int m_image_data_size = 0;
     bool m_is_reading_image = false;
     char *m_image_buffer = NULL;
     int bytes_count = 0;
@@ -136,6 +141,7 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
 
     if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
     {
+        free(buffer);
         return;
     }
 
@@ -176,7 +182,8 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
 
             // m_timestamp format: hhmmsszzz
             time_t raw_time = ros::Time::now().toSec();
-            std::tm *time_info = std::localtime(&raw_time);
+            std::tm time_info_buf;
+            std::tm *time_info = localtime_r(&raw_time, &time_info_buf); // std::localtime returns one shared static buffer (not thread-safe)
             time_info->tm_sec = 0;
             time_info->tm_min = 0;
             time_info->tm_hour = 0;
@@ -190,12 +197,18 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
         }
         else if (size_read == 1) // End, send image
         {
+            if (!m_is_reading_image || m_image_buffer == NULL)
+            {
+                continue; // end packet without a matching header (node started mid-frame, or frame already dropped)
+            }
             if (bytes_count != m_image_data_size)
             {
                 ROS_WARN_STREAM("thermal NET PROBLEM: bytes_count != m_image_data_size: " << bytes_count << " != " << m_image_data_size);
+                m_is_reading_image = false;
+                bytes_count = 0;
                 continue;
             }
-            
+
             m_is_reading_image = false;
             bytes_count = 0;
             m_image_detections = 0;
@@ -209,6 +222,11 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
             else if (m_image_channels == 3)
             {
                 img_data = cv::Mat(m_image_height, m_image_width, CV_8UC3, image_pointer);
+            }
+            if (img_data.empty())
+            {
+                ROS_WARN_STREAM("Unsupported number of image channels: " << (int)m_image_channels << ", frame dropped");
+                continue;
             }
 
             const std::string encoding = m_image_channels == 1 ? sensor_msgs::image_encodings::MONO8 : sensor_msgs::image_encodings::BGR8;
@@ -226,6 +244,12 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
                 int16_t x, y, height, width;
                 uint8_t red, green, blue;
 
+                if (size_read < 15)
+                {
+                    ROS_WARN_STREAM("NET PROBLEM: detection packet too short (" << size_read << " bytes)");
+                    --m_image_detections;
+                    continue;
+                }
                 //! read detections packages
                 memcpy(&confidence, &buffer[0], 2);
                 memcpy(&x, &buffer[2], 2);
@@ -252,12 +276,15 @@ void ImageThread(ros::Publisher publisher, ros::Publisher detections_publisher)
                 --m_image_detections;
                 continue;
             }
+            if (bytes_count + size_read > m_image_data_size)
+            {
+                ROS_WARN_STREAM("NET PROBLEM: image data exceeds header size, dropping frame");
+                m_is_reading_image = false;
+                bytes_count = 0;
+                continue;
+            }
             memcpy(&m_image_buffer[bytes_count], buffer, size_read);
             bytes_count += size_read;
-
-            // check if under size
-            if (bytes_count >= m_image_data_size)
-                m_is_reading_image = false;
         }
         // size_read == -1 --> timeout
     }
@@ -281,15 +308,16 @@ void FloatImageThread(ros::Publisher publisher)
     char *buffer;
     buffer = (char *)malloc(64000);
 
-    uint16_t m_image_height;
-    uint16_t m_image_width;
-    uint32_t m_timestamp;
-    int m_image_data_size;
+    uint16_t m_image_height = 0;
+    uint16_t m_image_width = 0;
+    uint32_t m_timestamp = 0;
+    int m_image_data_size = 0;
     bool m_is_reading_image = false;
     int bytes_count = 0;
 
     if (!openSocket(m_socket_descriptor, m_socket, m_address, m_udp_port))
     {
+        free(buffer);
         return;
     }
 
@@ -297,7 +325,6 @@ void FloatImageThread(ros::Publisher publisher)
     ROS_INFO("Float Thermal streaming");
 
     float *thermal_data_pointer = NULL;
-    int float_pointer_cnt = 0;
 
     while (g_listening)
     {
@@ -320,19 +347,23 @@ void FloatImageThread(ros::Publisher publisher)
 
             m_is_reading_image = true;
             bytes_count = 0;
-            float_pointer_cnt = 0;
         }
         else if (size_read == 1) // End, send image
         {
+            if (!m_is_reading_image || thermal_data_pointer == NULL)
+            {
+                continue; // end packet without a matching header
+            }
             if (bytes_count != m_image_data_size)
             {
                 ROS_WARN_STREAM("thermal NET PROBLEM: bytes_count != m_image_data_size");
+                m_is_reading_image = false;
+                bytes_count = 0;
                 continue;
             }
 
             m_is_reading_image = false;
             bytes_count = 0;
-            float_pointer_cnt = 0;
 
             cv::Mat float_image = cv::Mat(m_image_height, m_image_width, CV_32FC1, thermal_data_pointer);
 
@@ -341,7 +372,8 @@ void FloatImageThread(ros::Publisher publisher)
             header.frame_id = "f_thermal";
             // m_timestamp format: hhmmsszzz
             time_t raw_time = ros::Time::now().toSec();
-            std::tm *time_info = std::localtime(&raw_time);
+            std::tm time_info_buf;
+            std::tm *time_info = localtime_r(&raw_time, &time_info_buf); // std::localtime returns one shared static buffer (not thread-safe)
             time_info->tm_sec = 0;
             time_info->tm_min = 0;
             time_info->tm_hour = 0;
@@ -357,9 +389,15 @@ void FloatImageThread(ros::Publisher publisher)
         }
         else if (size_read > 0 && m_is_reading_image) // Data
         {
-            memcpy(&thermal_data_pointer[float_pointer_cnt], buffer, size_read);
+            if (thermal_data_pointer == NULL || bytes_count + size_read > m_image_data_size)
+            {
+                ROS_WARN_STREAM("thermal NET PROBLEM: float image data exceeds header size, dropping frame");
+                m_is_reading_image = false;
+                bytes_count = 0;
+                continue;
+            }
+            memcpy((char *)thermal_data_pointer + bytes_count, buffer, size_read);
             bytes_count += size_read;
-            float_pointer_cnt += size_read / 4;
         }
         // size_read == -1 --> timeout
     }
@@ -379,7 +417,7 @@ namespace l3cam_ros
     public:
         explicit ThermalStream() : SensorStream()
         {
-            declareServiceServers("thermal");
+            declareServiceServers("thermal_stream");
         }
 
         ros::Publisher publisher_, detections_publisher_;
@@ -450,11 +488,11 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<sensor_msgs::Image>("img_thermal", 10);
-    node->detections_publisher_ = node->advertise<vision_msgs::Detection2DArray>("thermal_detections", 10);
+    node->publisher_ = ros::NodeHandle().advertise<sensor_msgs::Image>("img_thermal", 10);
+    node->detections_publisher_ = ros::NodeHandle().advertise<vision_msgs::Detection2DArray>("thermal_detections", 10);
     std::thread thread(ImageThread, node->publisher_, node->detections_publisher_);
     thread.detach();
-    node->f_publisher_ = node->advertise<sensor_msgs::Image>("img_f_thermal", 10);
+    node->f_publisher_ = ros::NodeHandle().advertise<sensor_msgs::Image>("img_f_thermal", 10);
     std::thread thread_f(FloatImageThread, node->f_publisher_);
     thread_f.detach();
 

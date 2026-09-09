@@ -61,19 +61,19 @@ namespace l3cam_ros
         explicit PolarimetricConfiguration() : ros::NodeHandle("~")
         {
             // Create service clients
-            client_get_sensors_ = serviceClient<l3cam_ros::GetSensorsAvailable>("/L3Cam/l3cam_ros_node/get_sensors_available");
-            client_stream_processed_ = serviceClient<l3cam_ros::EnablePolarimetricCameraStreamProcessedImage>("/L3Cam/polarimetric_wide_stream/enable_polarimetric_stream_processed_image");
-            client_process_type_ = serviceClient<l3cam_ros::ChangePolarimetricCameraProcessType>("/L3Cam/polarimetric_wide_stream/change_polarimetric_process_type");
-            client_brightness_ = serviceClient<l3cam_ros::ChangePolarimetricCameraBrightness>("/L3Cam/l3cam_ros_node/change_polarimetric_brightness");
-            client_black_level_ = serviceClient<l3cam_ros::ChangePolarimetricCameraBlackLevel>("/L3Cam/l3cam_ros_node/change_polarimetric_black_level");
-            client_enable_auto_gain_ = serviceClient<l3cam_ros::EnablePolarimetricCameraAutoGain>("/L3Cam/l3cam_ros_node/enable_polarimetric_auto_gain");
-            client_auto_gain_range_ = serviceClient<l3cam_ros::ChangePolarimetricCameraAutoGainRange>("/L3Cam/l3cam_ros_node/change_polarimetric_auto_gain_range");
-            client_gain_ = serviceClient<l3cam_ros::ChangePolarimetricCameraGain>("/L3Cam/l3cam_ros_node/change_polarimetric_gain");
-            client_enable_auto_exposure_time_ = serviceClient<l3cam_ros::EnablePolarimetricCameraAutoExposureTime>("/L3Cam/l3cam_ros_node/enable_polarimetric_auto_exposure_time");
-            client_auto_exposure_time_range_ = serviceClient<l3cam_ros::ChangePolarimetricCameraAutoExposureTimeRange>("/L3Cam/l3cam_ros_node/change_polarimetric_auto_exposure_time_range");
-            client_exposure_time_ = serviceClient<l3cam_ros::ChangePolarimetricCameraExposureTime>("/L3Cam/l3cam_ros_node/change_polarimetric_exposure_time");
-            client_change_streaming_protocol_ = serviceClient<l3cam_ros::ChangeStreamingProtocol>("/L3Cam/l3cam_ros_node/change_streaming_protocol");
-            client_get_rtsp_pipeline_ = serviceClient<l3cam_ros::GetRtspPipeline>("/L3Cam/l3cam_ros_node/get_rtsp_pipeline");
+            client_get_sensors_ = ros::NodeHandle().serviceClient<l3cam_ros::GetSensorsAvailable>("l3cam_ros_node/get_sensors_available");
+            client_stream_processed_ = ros::NodeHandle().serviceClient<l3cam_ros::EnablePolarimetricCameraStreamProcessedImage>("polarimetric_wide_stream/enable_polarimetric_stream_processed_image");
+            client_process_type_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePolarimetricCameraProcessType>("polarimetric_wide_stream/change_polarimetric_process_type");
+            client_brightness_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePolarimetricCameraBrightness>("l3cam_ros_node/change_polarimetric_brightness");
+            client_black_level_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePolarimetricCameraBlackLevel>("l3cam_ros_node/change_polarimetric_black_level");
+            client_enable_auto_gain_ = ros::NodeHandle().serviceClient<l3cam_ros::EnablePolarimetricCameraAutoGain>("l3cam_ros_node/enable_polarimetric_auto_gain");
+            client_auto_gain_range_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePolarimetricCameraAutoGainRange>("l3cam_ros_node/change_polarimetric_auto_gain_range");
+            client_gain_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePolarimetricCameraGain>("l3cam_ros_node/change_polarimetric_gain");
+            client_enable_auto_exposure_time_ = ros::NodeHandle().serviceClient<l3cam_ros::EnablePolarimetricCameraAutoExposureTime>("l3cam_ros_node/enable_polarimetric_auto_exposure_time");
+            client_auto_exposure_time_range_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePolarimetricCameraAutoExposureTimeRange>("l3cam_ros_node/change_polarimetric_auto_exposure_time_range");
+            client_exposure_time_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangePolarimetricCameraExposureTime>("l3cam_ros_node/change_polarimetric_exposure_time");
+            client_change_streaming_protocol_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeStreamingProtocol>("l3cam_ros_node/change_streaming_protocol");
+            client_get_rtsp_pipeline_ = ros::NodeHandle().serviceClient<l3cam_ros::GetRtspPipeline>("l3cam_ros_node/get_rtsp_pipeline");
 
             loadDefaultParams();
 
@@ -119,6 +119,7 @@ namespace l3cam_ros
                 if (!getParam(full_param_name, param_var))
                 {
                     ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                    param_var = default_val;
                 }
             }
             else
@@ -133,7 +134,7 @@ namespace l3cam_ros
             // Get and save parameters
             loadParam("timeout_secs", timeout_secs_, 60);
             loadParam("polarimetric_stream_processed_image", polarimetric_stream_processed_, true);
-            loadParam("polarimetric_process_type", polarimetric_process_type_, 4);
+            loadParam("polarimetric_process_type", polarimetric_process_type_, 0); // polMode::no_angle
             loadParam("polarimetric_brightness", polarimetric_brightness_, 127);
             loadParam("polarimetric_black_level", polarimetric_black_level_, 6.0);
             loadParam("polarimetric_auto_gain", polarimetric_auto_gain_, true);
@@ -152,7 +153,7 @@ namespace l3cam_ros
             // Configure default params to dynamix reconfigure if inside range
             config.polarimetric_stream_processed_image = polarimetric_stream_processed_;
 
-            if (polarimetric_process_type_ >= 0 && polarimetric_process_type_ <= 4)
+            if (polarimetric_process_type_ >= 0 && polarimetric_process_type_ <= 7)
             {
                 config.polarimetric_process_type = polarimetric_process_type_;
             }
@@ -731,7 +732,6 @@ namespace l3cam_ros
             }
 
             m_shutdown_requested = true;
-            ros::shutdown();
             return true;
         }
 

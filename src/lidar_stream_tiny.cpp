@@ -49,7 +49,8 @@
 #include <beamagine.h>
 #include <beamErrors.h>
 
-bool g_listening = false;
+#include <atomic>
+std::atomic<bool> g_listening(false);
 
 std::mutex g_mutex;
 int g_thread_counter = 0;
@@ -103,20 +104,20 @@ void CompressSendPointCloudThread(std::vector<int32_t> point_cloud_data, ros::Pu
         z = -point_cloud_data[5 * i + 2];
         x = point_cloud_data[5 * i + 3];
         intensity = (float)point_cloud_data[5 * i + 4];
-        
+
         // Scale, Clamp
         x_16 = clamp_to_int16(x / divisor);
         y_16 = clamp_to_int16(y / divisor);
         z_16 = clamp_to_int16(z / divisor);
         i_8 = clamp_to_uint8((intensity - 500) / 4500 * 256);
-        
+
         if (deduplicate)
         {
             // Pack 3x int16 into one uint64 for O(1) lookup
             // Casting to uint16_t first ensures bits are preserved correctly for negative numbers
             uint64_t key = ((uint64_t)(uint16_t)x_16 << 32) |
-                        ((uint64_t)(uint16_t)y_16 << 16) |
-                        (uint64_t)(uint16_t)z_16;
+                           ((uint64_t)(uint16_t)y_16 << 16) |
+                           (uint64_t)(uint16_t)z_16;
 
             // Check if this coordinate exists
             auto &existing_intensities = spatial_grid[key];
@@ -150,7 +151,7 @@ void CompressSendPointCloudThread(std::vector<int32_t> point_cloud_data, ros::Pu
 
     if (count_removed > 0)
     {
-        //ROS_INFO_STREAM("Removed " << count_removed << " duplicated points");
+        // ROS_INFO_STREAM("Removed " << count_removed << " duplicated points");
     }
 
     publisher.publish(tpc_msg);
@@ -171,8 +172,9 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
     char *buffer;
     buffer = (char *)malloc(64000);
 
-    int32_t m_pointcloud_size;
-    int32_t *m_pointcloud_data;
+    int32_t m_pointcloud_size = 0;
+    int32_t *m_pointcloud_data = nullptr;
+    const int32_t max_pointcloud_points = 240000; // 400 * 150 * 4
     uint32_t m_timestamp;
     bool m_is_reading_pointcloud = false;
     int points_received = 1;
@@ -181,7 +183,7 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
     std_msgs::Header header;
     header.frame_id = "lidar";
 
-    int32_t divisor = 0; // mm
+    int32_t divisor = 1;
     switch (precision)
     {
     case 1: // cm
@@ -198,6 +200,7 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
     if ((m_socket_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
         perror("Opening socket");
+        free(buffer);
         return;
     }
     // else ROS_INFO("Socket Lidar created");
@@ -210,6 +213,8 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
     if (inet_aton((char *)m_address.c_str(), &m_socket.sin_addr) == 0)
     {
         perror("inet_aton() failed");
+        close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
@@ -217,6 +222,7 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
     {
         perror("Could not bind name to socket");
         close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
@@ -224,13 +230,16 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
     if (0 != setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbufsize, sizeof(rcvbufsize)))
     {
         perror("Error setting size to socket");
+        close(m_socket_descriptor);
+        free(buffer);
         return;
     }
 
     // VERIFY what the kernel actually gave you
     int actual_buf_size = 0;
     socklen_t optlen = sizeof(actual_buf_size);
-    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0) {
+    if (getsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVBUF, &actual_buf_size, &optlen) == 0)
+    {
         // Note: Kernel doubles the requested value for internal bookkeeping, so actual might be 2x rcvbufsize
         if (actual_buf_size < rcvbufsize)
         {
@@ -241,6 +250,7 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
     // 1 second timeout for socket
     struct timeval read_timeout;
     read_timeout.tv_sec = 1;
+    read_timeout.tv_usec = 0;
     setsockopt(m_socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 
     g_listening = true;
@@ -252,8 +262,25 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
 
         if (size_read == 17) // Header
         {
+            if (m_pointcloud_data != nullptr)
+            {
+                free(m_pointcloud_data);
+                m_pointcloud_data = nullptr;
+            }
             memcpy(&m_pointcloud_size, &buffer[1], 4);
+            if (m_pointcloud_size <= 0 || m_pointcloud_size > max_pointcloud_points)
+            {
+                ROS_WARN_STREAM("lidar NET PROBLEM: invalid point cloud size in header: " << m_pointcloud_size);
+                m_is_reading_pointcloud = false;
+                continue;
+            }
             m_pointcloud_data = (int32_t *)malloc(sizeof(int32_t) * (((m_pointcloud_size) * 5) + 1));
+            if (m_pointcloud_data == nullptr)
+            {
+                ROS_ERROR_STREAM("lidar: could not allocate buffer for " << m_pointcloud_size << " points");
+                m_is_reading_pointcloud = false;
+                continue;
+            }
             memcpy(&m_pointcloud_data[0], &m_pointcloud_size, sizeof(int32_t));
             int32_t suma_1, suma_2;
             memcpy(&suma_1, &buffer[5], sizeof(int32_t));
@@ -265,9 +292,16 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
         }
         else if (size_read == 1) // End, send point cloud
         {
+            if (!m_is_reading_pointcloud || m_pointcloud_data == nullptr)
+            {
+                continue;
+            }
             if (points_received != m_pointcloud_size)
             {
                 ROS_WARN_STREAM("lidar NET PROBLEM: points_received != m_pointcloud_size: " << points_received << " != " << m_pointcloud_size);
+                free(m_pointcloud_data);
+                m_pointcloud_data = nullptr;
+                m_is_reading_pointcloud = false;
                 continue;
             }
 
@@ -277,7 +311,8 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
 
             // m_timestamp format: hhmmsszzz
             time_t raw_time = ros::Time::now().toSec();
-            std::tm *time_info = std::localtime(&raw_time);
+            std::tm time_info_buf;
+            std::tm *time_info = localtime_r(&raw_time, &time_info_buf); // std::localtime returns one shared static buffer (not thread-safe)
             time_info->tm_sec = 0;
             time_info->tm_min = 0;
             time_info->tm_hour = 0;
@@ -295,7 +330,7 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
 
             std::thread comp_thread(CompressSendPointCloudThread, point_cloud_data, publisher, precision, divisor, deduplicate, intensity_th, header);
             comp_thread.detach();
-            
+
             free(m_pointcloud_data);
             m_pointcloud_data = nullptr;
             points_received = 0;
@@ -305,6 +340,14 @@ void PointCloudThread(ros::Publisher publisher, uint8_t precision, bool deduplic
         {
             int32_t points = 0;
             memcpy(&points, &buffer[0], 4);
+            if (points <= 0 || 4 + (size_t)points * 5 * sizeof(int32_t) > (size_t)size_read || points_received + points > m_pointcloud_size)
+            {
+                ROS_WARN_STREAM("lidar NET PROBLEM: invalid data packet (points: " << points << ", bytes: " << size_read << "), dropping frame");
+                free(m_pointcloud_data);
+                m_pointcloud_data = nullptr;
+                m_is_reading_pointcloud = false;
+                continue;
+            }
             memcpy(&m_pointcloud_data[pointcloud_index], &buffer[4], (sizeof(int32_t) * (points * 5)));
 
             pointcloud_index += (points * 5);
@@ -337,7 +380,7 @@ namespace l3cam_ros
     public:
         explicit LidarStream() : SensorStream()
         {
-            declareServiceServers("lidar");
+            declareServiceServers("lidar_stream");
             loadParam("lidar_precision", precision_, 1);
             loadParam("lidar_deduplicate", deduplicate_, true);
             loadParam("lidar_deduplicate_intensity_threshold", intensity_th_, 12);
@@ -413,7 +456,7 @@ int main(int argc, char **argv)
         }
     }
 
-    node->publisher_ = node->advertise<l3cam_ros::TinyPointCloud>("PC2_lidar/tiny", 10);
+    node->publisher_ = ros::NodeHandle().advertise<l3cam_ros::TinyPointCloud>("PC2_lidar/tiny", 10);
     std::thread thread(PointCloudThread, node->publisher_, (uint8_t)node->precision_, node->deduplicate_, node->intensity_th_);
     thread.detach();
 

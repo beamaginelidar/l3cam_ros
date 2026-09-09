@@ -142,6 +142,7 @@ namespace l3cam_ros
         int initializeDevice();
         int startDeviceStream();
         void disconnectAll(int code);
+        sensor *sensorFromType(int sensor_type);
 
         l3cam m_devices[1];
         LibL3CamStatus m_status;
@@ -371,6 +372,8 @@ namespace l3cam_ros
         l3cam_ros::SensorDisconnected srv_network_disconnected_;
         ros::ServiceClient client_lidar_stream_disconnected_;
         l3cam_ros::SensorDisconnected srv_pointcloud_stream_disconnected_;
+        ros::ServiceClient client_lidar_detections_stream_disconnected_;
+        l3cam_ros::SensorDisconnected srv_lidar_detections_stream_disconnected_;
         ros::ServiceClient client_lidar_configuration_disconnected_;
         l3cam_ros::SensorDisconnected srv_pointcloud_configuration_disconnected_;
         ros::ServiceClient client_pol_wide_stream_disconnected_;
@@ -390,7 +393,8 @@ namespace l3cam_ros
         ros::ServiceClient client_narrow_configuration_disconnected_;
         l3cam_ros::SensorDisconnected srv_narrow_configuration_disconnected_;
 
-        sensor m_av_sensors[6];
+        static const int MAX_SENSORS = 7; // number of entries in libL3Cam's sensorTypes enum
+        sensor m_av_sensors[MAX_SENSORS];
 
         sensor *m_lidar_sensor = NULL;
         sensor *m_rgb_sensor = NULL;

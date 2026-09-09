@@ -4,6 +4,7 @@
     <arg name="comp" default="false" />
     <arg name="stream" default="true" />
     <arg name="configure" default="true" />
+    <arg name="network_conf" default="true" />
     <arg name="rviz" default="false" />
     <arg name="rqt_reconfigure" default="false" />
 
@@ -55,7 +56,7 @@
 
         <!-- Polarimetric configuration -->
         <arg name="polarimetric_stream_processed_image" default="true" />
-        <arg name="polarimetric_process_type" default="4" /> <!-- see polModes -->
+        <arg name="polarimetric_process_type" default="0" /> <!-- see polModes: 0 no_angle, 1 angle_0, 2 angle_45, 3 angle_90, 4 angle_135, 5 dolp, 6 aolp, 7 raw -->
         <arg name="polarimetric_brightness" default="127" /> <!-- 0 - 255 -->
         <arg name="polarimetric_black_level" default="6.0" /> <!-- 0 - 12.5 -->
         <arg name="polarimetric_auto_gain" default="true" />
@@ -265,6 +266,7 @@
 
         <!-- Start dyanmic reconfigure -->
         <include file="$(find l3cam_ros)/launch/configure_l3cam.launch" if="$(eval arg('configure') and not arg('simulator'))">
+            <arg name="network_conf" value="$(arg network_conf)" />
             <arg name="timeout_secs" value="$(arg timeout_secs)" />
 
             <arg name="pointcloud_color" value="$(arg pointcloud_color)" />

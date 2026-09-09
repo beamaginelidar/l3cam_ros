@@ -85,8 +85,8 @@ namespace l3cam_ros
         int error = L3CAM_OK;
 
         std::string local_address, device_address;
-        param("/l3cam_ros_node/local_address", local_address);
-        param("/l3cam_ros_node/device_address", device_address);
+        loadParam("local_address", local_address, std::string(""));
+        loadParam("device_address", device_address, std::string(""));
 
         if (local_address == "" || device_address == "")
         {
@@ -246,7 +246,7 @@ namespace l3cam_ros
         srv_stop_stream_ = advertiseService("stop_stream", &L3Cam::stopStream, this);
         srv_get_device_temperatures_ = advertiseService("get_device_temperatures", &L3Cam::getDeviceTemperatures, this);
 
-        client_network_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/network_configuration/network_disconnected");
+        client_network_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("network_configuration/network_configuration_disconnected");
 
         if (m_lidar_sensor != NULL && m_lidar_sensor->sensor_available) // if lidar is available
         {
@@ -272,7 +272,7 @@ namespace l3cam_ros
         {
             initializeAlliedWideServices();
         }
-        else if (m_allied_narrow_sensor != NULL && m_allied_narrow_sensor->sensor_available) // if allied narrow is available
+        if (m_allied_narrow_sensor != NULL && m_allied_narrow_sensor->sensor_available) // if allied narrow is available
         {
             initializeAlliedNarrowServices();
         }
@@ -291,8 +291,9 @@ namespace l3cam_ros
         srv_change_autobias_value_ = advertiseService("change_autobias_value", &L3Cam::changeAutobiasValue, this);
         srv_get_autobias_value_ = advertiseService("get_autobias_value", &L3Cam::getAutobiasValue, this);
 
-        client_lidar_stream_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/lidar_stream/lidar_stream_disconnected");
-        client_lidar_configuration_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/lidar_configuration/lidar_configuration_disconnected");
+        client_lidar_stream_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("lidar_stream/lidar_stream_disconnected");
+        client_lidar_detections_stream_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("lidar_detections_stream/lidar_detections_stream_disconnected");
+        client_lidar_configuration_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("lidar_configuration/lidar_configuration_disconnected");
     }
 
     void L3Cam::initializePolarimetricServices()
@@ -307,8 +308,8 @@ namespace l3cam_ros
         srv_change_polarimetric_auto_exposure_time_range_ = advertiseService("change_polarimetric_auto_exposure_time_range", &L3Cam::changePolarimetricCameraAutoExposureTimeRange, this);
         srv_change_polarimetric_exposure_time_ = advertiseService("change_polarimetric_exposure_time", &L3Cam::changePolarimetricCameraExposureTime, this);
 
-        client_pol_wide_stream_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/polarimetric_wide_stream/polarimetric_wide_stream_disconnected");
-        client_pol_configuration_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/polarimetric_configuration/polarimetric_configuration_disconnected");
+        client_pol_wide_stream_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("polarimetric_wide_stream/polarimetric_wide_stream_disconnected");
+        client_pol_configuration_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("polarimetric_configuration/polarimetric_configuration_disconnected");
     }
 
     void L3Cam::initializeRgbServices()
@@ -325,8 +326,8 @@ namespace l3cam_ros
         srv_enable_rgb_auto_exposure_time_ = advertiseService("enable_rgb_auto_exposure_time", &L3Cam::enableRgbCameraAutoExposureTime, this);
         srv_change_rgb_exposure_time_ = advertiseService("change_rgb_exposure_time", &L3Cam::changeRgbCameraExposureTime, this);
 
-        client_rgb_narrow_stream_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/rgb_narrow_stream/rgb_narrow_stream_disconnected");
-        client_rgb_configuration_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/rgb_configuration/rgb_configuration_disconnected");
+        client_rgb_narrow_stream_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("rgb_narrow_stream/rgb_narrow_stream_disconnected");
+        client_rgb_configuration_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("rgb_configuration/rgb_configuration_disconnected");
     }
 
     void L3Cam::initializeThermalServices()
@@ -337,8 +338,8 @@ namespace l3cam_ros
         srv_change_thermal_processing_pipeline_ = advertiseService("change_thermal_processing_pipeline", &L3Cam::changeThermalCameraProcessingPipeline, this);
         srv_enable_thermal_temperature_data_udp_ = advertiseService("enable_thermal_temperature_data_udp", &L3Cam::enableThermalCameraTemperatureDataUdp, this);
 
-        client_thermal_stream_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/thermal_stream/thermal_stream_disconnected");
-        client_thermal_configuration_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/thermal_configuration/thermal_configuration_disconnected");
+        client_thermal_stream_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("thermal_stream/thermal_stream_disconnected");
+        client_thermal_configuration_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("thermal_configuration/thermal_configuration_disconnected");
     }
 
     void L3Cam::initializeAlliedWideServices()
@@ -383,8 +384,8 @@ namespace l3cam_ros
         srv_get_allied_intensity_controller_target_ = advertiseService("get_allied_intensity_controller_target", &L3Cam::getAlliedCameraIntensityControllerTarget, this);
         srv_get_allied_max_driver_buffers_count_ = advertiseService("get_allied_max_driver_buffers_count", &L3Cam::getAlliedCameraMaxDriverBuffersCount, this);
 
-        client_pol_wide_stream_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/polarimetric_wide_stream/polarimetric_wide_stream_disconnected");
-        client_wide_configuration_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/allied_wide_configuration/allied_wide_configuration_disconnected");
+        client_pol_wide_stream_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("polarimetric_wide_stream/polarimetric_wide_stream_disconnected");
+        client_wide_configuration_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("allied_wide_configuration/allied_wide_configuration_disconnected");
     }
 
     void L3Cam::initializeAlliedNarrowServices()
@@ -429,8 +430,8 @@ namespace l3cam_ros
         srv_get_allied_intensity_controller_target_ = advertiseService("get_allied_intensity_controller_target", &L3Cam::getAlliedCameraIntensityControllerTarget, this);
         srv_get_allied_max_driver_buffers_count_ = advertiseService("get_allied_max_driver_buffers_count", &L3Cam::getAlliedCameraMaxDriverBuffersCount, this);
 
-        client_rgb_narrow_stream_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/rgb_narrow_stream/rgb_narrow_stream_disconnected");
-        client_narrow_configuration_disconnected_ = serviceClient<l3cam_ros::SensorDisconnected>("/L3Cam/allied_narrow_configuration/allied_narrow_configuration_disconnected");
+        client_rgb_narrow_stream_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("rgb_narrow_stream/rgb_narrow_stream_disconnected");
+        client_narrow_configuration_disconnected_ = ros::NodeHandle().serviceClient<l3cam_ros::SensorDisconnected>("allied_narrow_configuration/allied_narrow_configuration_disconnected");
     }
 
     inline void L3Cam::printDefaultError(int error, std::string param)
@@ -453,6 +454,7 @@ namespace l3cam_ros
             if (!getParam(full_param_name, param_var))
             {
                 ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                param_var = default_val;
             }
         }
         else
@@ -543,9 +545,10 @@ namespace l3cam_ros
         int error = GET_NETWORK_CONFIGURATION(m_devices[0], &ip_address, &netmask, &gateway);
         if (!error)
         {
-            param("/ip_address", std::string(ip_address));
-            param("/netmask", std::string(netmask));
-            param("/gateway", std::string(gateway));
+            // Publish the device's current network configuration on the parameter server
+            setParam("ip_address", std::string(ip_address));
+            setParam("netmask", std::string(netmask));
+            setParam("gateway", std::string(gateway));
         }
     }
 
@@ -665,13 +668,13 @@ namespace l3cam_ros
     void L3Cam::loadRgbDefaultParams()
     {
         int rgb_brightness;
-        param("/l3cam_ros_nod/rgb_brightness", rgb_brightness, 0);
+        loadParam("rgb_brightness", rgb_brightness, 0);
         printDefaultError(CHANGE_RGB_CAMERA_BRIGHTNESS(m_devices[0], rgb_brightness), "rgb_brightness");
         int rgb_contrast;
-        param("/l3cam_ros_nod/rgb_contrast", rgb_contrast, 10);
+        loadParam("rgb_contrast", rgb_contrast, 10);
         printDefaultError(CHANGE_RGB_CAMERA_CONTRAST(m_devices[0], rgb_contrast), "rgb_contrast");
         int rgb_saturation;
-        param("/l3cam_ros_nod/rgb_saturation", rgb_saturation, 16);
+        loadParam("rgb_saturation", rgb_saturation, 16);
         printDefaultError(CHANGE_RGB_CAMERA_SATURATION(m_devices[0], rgb_saturation), "rgb_saturation");
         int rgb_sharpness;
         loadParam("rgb_sharpness", rgb_sharpness, 16);
@@ -770,7 +773,7 @@ namespace l3cam_ros
             double allied_wide_auto_exposure_time_range_min;
             loadParam("allied_wide_auto_exposure_time_range_min", allied_wide_auto_exposure_time_range_min, 87.596);
             double allied_wide_auto_exposure_time_range_max;
-            loadParam("allied_wide_auto_exposure_time_range_max", allied_wide_auto_exposure_time_range_max, 87.596);
+            loadParam("allied_wide_auto_exposure_time_range_max", allied_wide_auto_exposure_time_range_max, 8999990.0);
             printDefaultError(CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *m_allied_wide_sensor, allied_wide_auto_exposure_time_range_min, allied_wide_auto_exposure_time_range_max), "allied_wide_auto_exposure_time_range");
         }
         else
@@ -869,7 +872,7 @@ namespace l3cam_ros
             double allied_narrow_auto_exposure_time_range_min;
             loadParam("allied_narrow_auto_exposure_time_range_min", allied_narrow_auto_exposure_time_range_min, 87.596);
             double allied_narrow_auto_exposure_time_range_max;
-            loadParam("allied_narrow_auto_exposure_time_range_max", allied_narrow_auto_exposure_time_range_max, 87.596);
+            loadParam("allied_narrow_auto_exposure_time_range_max", allied_narrow_auto_exposure_time_range_max, 8999990.0);
             printDefaultError(CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *m_allied_narrow_sensor, allied_narrow_auto_exposure_time_range_min, allied_narrow_auto_exposure_time_range_max), "allied_narrow_auto_exposure_time_range");
         }
         else
@@ -972,8 +975,14 @@ namespace l3cam_ros
 
     bool L3Cam::initialize(l3cam_ros::Initialize::Request &req, l3cam_ros::Initialize::Response &res)
     {
-        ROS_BMG_UNUSED(res);
-        res.error = INITIALIZE(&req.local_address[0], &req.device_address[0]);
+        if (req.local_address.empty() || req.device_address.empty())
+        {
+            res.error = INITIALIZE(NULL, NULL);
+        }
+        else
+        {
+            res.error = INITIALIZE(&req.local_address[0], &req.device_address[0]);
+        }
         return true;
     }
 
@@ -1034,22 +1043,63 @@ namespace l3cam_ros
     bool L3Cam::getSensorsAvailable(l3cam_ros::GetSensorsAvailable::Request &req, l3cam_ros::GetSensorsAvailable::Response &res)
     {
         ROS_BMG_UNUSED(req);
-        res.error = GET_SENSORS_AVAILABLE(m_devices[0], m_av_sensors, &res.num_sensors);
+        sensor sensors[MAX_SENSORS];
+        res.error = GET_SENSORS_AVAILABLE(m_devices[0], sensors, &res.num_sensors);
+        if (res.error || res.num_sensors < 0)
+        {
+            res.num_sensors = 0;
+        }
+        else if (res.num_sensors > MAX_SENSORS)
+        {
+            res.num_sensors = MAX_SENSORS;
+        }
         res.sensors.resize(res.num_sensors);
         for (int i = 0; i < res.num_sensors; ++i)
         {
-            res.sensors[i].protocol = m_av_sensors[i].protocol;
-            res.sensors[i].sensor_type = m_av_sensors[i].sensor_type;
-            res.sensors[i].sensor_status = m_av_sensors[i].sensor_status;
-            res.sensors[i].image_type = m_av_sensors[i].image_type;
-            res.sensors[i].perception_enabled = m_av_sensors[i].perception_enabled;
-            res.sensors[i].sensor_available = m_av_sensors[i].sensor_available;
+            res.sensors[i].protocol = sensors[i].protocol;
+            res.sensors[i].sensor_type = sensors[i].sensor_type;
+            res.sensors[i].sensor_status = sensors[i].sensor_status;
+            res.sensors[i].image_type = sensors[i].image_type;
+            res.sensors[i].perception_enabled = sensors[i].perception_enabled;
+            res.sensors[i].sensor_available = sensors[i].sensor_available;
         }
         return true;
     }
 
+    sensor *L3Cam::sensorFromType(int sensor_type)
+    {
+        // Returns NULL for unknown types and for sensors this device does not have,
+        // so callers can reject the request instead of dereferencing a NULL pointer.
+        switch (sensor_type)
+        {
+        case (int)sensorTypes::sensor_lidar:
+            return m_lidar_sensor;
+        case (int)sensorTypes::sensor_pol:
+            return m_polarimetric_sensor;
+        case (int)sensorTypes::sensor_econ_rgb:
+            return m_rgb_sensor;
+        case (int)sensorTypes::sensor_thermal:
+            return m_thermal_sensor;
+        case (int)sensorTypes::sensor_allied_wide:
+            return m_allied_wide_sensor;
+        case (int)sensorTypes::sensor_allied_narrow:
+            return m_allied_narrow_sensor;
+        case (int)sensorTypes::sensor_econ_wide:
+            return m_econ_wide_sensor;
+        default:
+            return NULL;
+        }
+    }
+
     bool L3Cam::changeStreamingProtocol(l3cam_ros::ChangeStreamingProtocol::Request &req, l3cam_ros::ChangeStreamingProtocol::Response &res)
     {
+        sensor *sensor_ptr = sensorFromType(req.sensor_type);
+        if (sensor_ptr == NULL)
+        {
+            res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+            return true;
+        }
+
         STOP_STREAM(m_devices[0]);
         m_status = LibL3CamStatus::started_status;
 
@@ -1067,78 +1117,35 @@ namespace l3cam_ros
             break;
         }
 
-        switch (req.sensor_type)
-        {
-        case (int)sensorTypes::sensor_lidar:
-            m_lidar_sensor->protocol = protocol;
-            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_lidar_sensor);
-            break;
-        case (int)sensorTypes::sensor_pol:
-            m_polarimetric_sensor->protocol = protocol;
-            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_polarimetric_sensor);
-            break;
-        case (int)sensorTypes::sensor_econ_rgb:
-            m_rgb_sensor->protocol = protocol;
-            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_rgb_sensor);
-            break;
-        case (int)sensorTypes::sensor_thermal:
-            m_thermal_sensor->protocol = protocol;
-            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_thermal_sensor);
-            break;
-        case (int)sensorTypes::sensor_allied_wide:
-            m_allied_wide_sensor->protocol = protocol;
-            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_allied_wide_sensor);
-            break;
-        case (int)sensorTypes::sensor_allied_narrow:
-            m_allied_narrow_sensor->protocol = protocol;
-            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_allied_narrow_sensor);
-            break;
-        case (int)sensorTypes::sensor_econ_wide:
-            m_econ_wide_sensor->protocol = protocol;
-            res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], m_econ_wide_sensor);
-            break;
-        }
+        sensor_ptr->protocol = protocol;
+        res.error = CHANGE_STREAMING_PROTOCOL(m_devices[0], sensor_ptr);
 
-        START_STREAM(m_devices[0]);
-        m_status = LibL3CamStatus::streaming_status;
+        // Only report "streaming" if the stream actually restarted; the old code set the status unconditionally
+        int start_error = START_STREAM(m_devices[0]);
+        if (!start_error)
+        {
+            m_status = LibL3CamStatus::streaming_status;
+        }
+        else if (!res.error)
+        {
+            res.error = start_error;
+        }
 
         return true;
     }
 
     bool L3Cam::getRtspPipeline(l3cam_ros::GetRtspPipeline::Request &req, l3cam_ros::GetRtspPipeline::Response &res)
     {
-        char *pipeline = NULL;
-        switch (req.sensor_type)
+        sensor *sensor_ptr = sensorFromType(req.sensor_type);
+        if (sensor_ptr == NULL)
         {
-        case (int)sensorTypes::sensor_lidar:
-            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_lidar_sensor, &pipeline);
-            res.pipeline = std::string(pipeline);
-            break;
-        case (int)sensorTypes::sensor_pol:
-            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_polarimetric_sensor, &pipeline);
-            res.pipeline = std::string(pipeline);
-            break;
-        case (int)sensorTypes::sensor_econ_wide:
-            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_econ_wide_sensor, &pipeline);
-            res.pipeline = std::string(pipeline);
-            break;
-        case (int)sensorTypes::sensor_thermal:
-            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_thermal_sensor, &pipeline);
-            res.pipeline = std::string(pipeline);
-            break;
-        case (int)sensorTypes::sensor_allied_wide:
-            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_allied_wide_sensor, &pipeline);
-            res.pipeline = std::string(pipeline);
-            break;
-        case (int)sensorTypes::sensor_allied_narrow:
-            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_allied_narrow_sensor, &pipeline);
-            res.pipeline = std::string(pipeline);
-            break;
-        case (int)sensorTypes::sensor_econ_rgb:
-            res.error = GET_RTSP_PIPELINE(m_devices[0], *m_rgb_sensor, &pipeline);
-            res.pipeline = std::string(pipeline);
-            break;
+            res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+            return true;
         }
+
+        char *pipeline = NULL;
+        res.error = GET_RTSP_PIPELINE(m_devices[0], *sensor_ptr, &pipeline);
+        res.pipeline = (!res.error && pipeline != NULL) ? std::string(pipeline) : "";
 
         return true;
     }
@@ -1150,9 +1157,12 @@ namespace l3cam_ros
         char *netmask = NULL;
         char *gateway = NULL;
         res.error = GET_NETWORK_CONFIGURATION(m_devices[0], &ip_address, &netmask, &gateway);
-        res.ip_address = std::string(ip_address);
-        res.netmask = std::string(netmask);
-        res.gateway = std::string(gateway);
+        if (!res.error)
+        {
+            res.ip_address = std::string(ip_address);
+            res.netmask = std::string(netmask);
+            res.gateway = std::string(gateway);
+        }
         return true;
     }
 
@@ -1193,7 +1203,7 @@ namespace l3cam_ros
     bool L3Cam::stopDevice(l3cam_ros::StopDevice::Request &req, l3cam_ros::StopDevice::Response &res)
     {
         ROS_BMG_UNUSED(req);
-        res.error = STOP_DEVICE(m_devices[0]);
+        res.error = STOP_STREAM(m_devices[0]);
         if (!res.error)
         {
             m_status = LibL3CamStatus::started_status;
@@ -1313,9 +1323,9 @@ namespace l3cam_ros
 
     bool L3Cam::getAutobiasValue(l3cam_ros::GetAutobiasValue::Request &req, l3cam_ros::GetAutobiasValue::Response &res)
     {
-        uint8_t *gain;
-        res.error = GET_AUTOBIAS_VALUE(m_devices[0], req.index, gain);
-        res.gain = *gain;
+        uint8_t gain = 0;
+        res.error = GET_AUTOBIAS_VALUE(m_devices[0], req.index, &gain);
+        res.gain = gain;
         return true;
     }
 
@@ -1480,9 +1490,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_EXPOSURE_TIME_US(m_devices[0], *m_allied_wide_sensor, req.exposure_time);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_EXPOSURE_TIME_US(m_devices[0], *m_allied_narrow_sensor, req.exposure_time);
             break;
         default:
@@ -1496,9 +1516,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = ENABLE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(m_devices[0], *m_allied_wide_sensor, req.enabled);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = ENABLE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(m_devices[0], *m_allied_narrow_sensor, req.enabled);
             break;
         default:
@@ -1512,9 +1542,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *m_allied_wide_sensor, req.auto_exposure_time_range_min, req.auto_exposure_time_range_max);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *m_allied_narrow_sensor, req.auto_exposure_time_range_min, req.auto_exposure_time_range_max);
             break;
         default:
@@ -1528,9 +1568,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_GAIN(m_devices[0], *m_allied_wide_sensor, req.gain);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_GAIN(m_devices[0], *m_allied_narrow_sensor, req.gain);
             break;
         default:
@@ -1544,9 +1594,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = ENABLE_ALLIED_CAMERA_AUTO_GAIN(m_devices[0], *m_allied_wide_sensor, req.enabled);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = ENABLE_ALLIED_CAMERA_AUTO_GAIN(m_devices[0], *m_allied_narrow_sensor, req.enabled);
             break;
         default:
@@ -1560,9 +1620,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(m_devices[0], *m_allied_wide_sensor, (float)req.auto_gain_range_min, (float)req.auto_gain_range_max);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_AUTO_GAIN_RANGE(m_devices[0], *m_allied_narrow_sensor, (float)req.auto_gain_range_min, (float)req.auto_gain_range_max);
             break;
         default:
@@ -1576,9 +1646,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_GAMMA(m_devices[0], *m_allied_wide_sensor, req.gamma);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_GAMMA(m_devices[0], *m_allied_narrow_sensor, req.gamma);
             break;
         default:
@@ -1592,9 +1672,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_SATURATION(m_devices[0], *m_allied_wide_sensor, req.saturation);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_SATURATION(m_devices[0], *m_allied_narrow_sensor, req.saturation);
             break;
         default:
@@ -1608,9 +1698,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_HUE(m_devices[0], *m_allied_wide_sensor, req.hue);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_HUE(m_devices[0], *m_allied_narrow_sensor, req.hue);
             break;
         default:
@@ -1624,9 +1724,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(m_devices[0], *m_allied_wide_sensor, req.intensity_auto_precedence);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(m_devices[0], *m_allied_narrow_sensor, req.intensity_auto_precedence);
             break;
         default:
@@ -1640,9 +1750,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = ENABLE_ALLIED_CAMERA_AUTO_WHITE_BALANCE(m_devices[0], *m_allied_wide_sensor, req.enabled);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = ENABLE_ALLIED_CAMERA_AUTO_WHITE_BALANCE(m_devices[0], *m_allied_narrow_sensor, req.enabled);
             break;
         default:
@@ -1656,9 +1776,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(m_devices[0], *m_allied_wide_sensor, req.white_balance_ratio_selector);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(m_devices[0], *m_allied_narrow_sensor, req.white_balance_ratio_selector);
             break;
         default:
@@ -1672,9 +1802,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO(m_devices[0], *m_allied_wide_sensor, req.balance_ratio);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_BALANCE_RATIO(m_devices[0], *m_allied_narrow_sensor, req.balance_ratio);
             break;
         default:
@@ -1688,9 +1828,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(m_devices[0], *m_allied_wide_sensor, req.white_balance_auto_rate);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(m_devices[0], *m_allied_narrow_sensor, req.white_balance_auto_rate);
             break;
         default:
@@ -1704,9 +1854,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(m_devices[0], *m_allied_wide_sensor, req.white_balance_auto_tolerance);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(m_devices[0], *m_allied_narrow_sensor, req.white_balance_auto_tolerance);
             break;
         default:
@@ -1720,9 +1880,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(m_devices[0], *m_allied_wide_sensor, req.intensity_controller_region);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(m_devices[0], *m_allied_narrow_sensor, req.intensity_controller_region);
             break;
         default:
@@ -1736,9 +1906,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(m_devices[0], *m_allied_wide_sensor, req.intensity_controller_target);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = CHANGE_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(m_devices[0], *m_allied_narrow_sensor, req.intensity_controller_target);
             break;
         default:
@@ -1752,9 +1932,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BLACK_LEVEL(m_devices[0], *m_allied_wide_sensor, &res.black_level);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BLACK_LEVEL(m_devices[0], *m_allied_narrow_sensor, &res.black_level);
             break;
         default:
@@ -1768,9 +1958,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_EXPOSURE_TIME_US(m_devices[0], *m_allied_wide_sensor, &res.exposure_time);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_EXPOSURE_TIME_US(m_devices[0], *m_allied_narrow_sensor, &res.exposure_time);
             break;
         default:
@@ -1785,9 +1985,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(m_devices[0], *m_allied_wide_sensor, &enabled);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_EXPOSURE_TIME(m_devices[0], *m_allied_narrow_sensor, &enabled);
             break;
         default:
@@ -1803,9 +2013,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *m_allied_wide_sensor, &res.auto_exposure_time_range_min, &res.auto_exposure_time_range_max);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_EXPOSURE_TIME_RANGE(m_devices[0], *m_allied_narrow_sensor, &res.auto_exposure_time_range_min, &res.auto_exposure_time_range_max);
             break;
         default:
@@ -1819,9 +2039,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_GAIN(m_devices[0], *m_allied_wide_sensor, &res.gain);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_GAIN(m_devices[0], *m_allied_narrow_sensor, &res.gain);
             break;
         default:
@@ -1836,9 +2066,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_GAIN(m_devices[0], *m_allied_wide_sensor, &enabled);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_GAIN(m_devices[0], *m_allied_narrow_sensor, &enabled);
             break;
         default:
@@ -1854,9 +2094,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_GAIN_RANGE(m_devices[0], *m_allied_wide_sensor, &res.auto_gain_range_min, &res.auto_gain_range_max);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_GAIN_RANGE(m_devices[0], *m_allied_narrow_sensor, &res.auto_gain_range_min, &res.auto_gain_range_max);
             break;
         default:
@@ -1870,9 +2120,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_GAMMA(m_devices[0], *m_allied_wide_sensor, &res.gamma);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_GAMMA(m_devices[0], *m_allied_narrow_sensor, &res.gamma);
             break;
         default:
@@ -1886,9 +2146,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_SATURATION(m_devices[0], *m_allied_wide_sensor, &res.saturation);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_SATURATION(m_devices[0], *m_allied_narrow_sensor, &res.saturation);
             break;
         default:
@@ -1902,9 +2172,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_SHARPNESS(m_devices[0], *m_allied_wide_sensor, &res.sharpness);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_SHARPNESS(m_devices[0], *m_allied_narrow_sensor, &res.sharpness);
             break;
         default:
@@ -1918,9 +2198,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_HUE(m_devices[0], *m_allied_wide_sensor, &res.hue);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_HUE(m_devices[0], *m_allied_narrow_sensor, &res.hue);
             break;
         default:
@@ -1934,9 +2224,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(m_devices[0], *m_allied_wide_sensor, &res.intensity_auto_precedence);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_INTENSITY_AUTO_PRECEDENCE(m_devices[0], *m_allied_narrow_sensor, &res.intensity_auto_precedence);
             break;
         default:
@@ -1951,9 +2251,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_WHITE_BALANCE(m_devices[0], *m_allied_wide_sensor, &enabled);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_AUTO_WHITE_BALANCE(m_devices[0], *m_allied_narrow_sensor, &enabled);
             break;
         default:
@@ -1969,9 +2279,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(m_devices[0], *m_allied_wide_sensor, &res.white_balance_ratio_selector);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BALANCE_RATIO_SELECTOR(m_devices[0], *m_allied_narrow_sensor, &res.white_balance_ratio_selector);
             break;
         default:
@@ -1985,9 +2305,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BALANCE_RATIO(m_devices[0], *m_allied_wide_sensor, &res.balance_ratio);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BALANCE_RATIO(m_devices[0], *m_allied_narrow_sensor, &res.balance_ratio);
             break;
         default:
@@ -2001,9 +2331,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(m_devices[0], *m_allied_wide_sensor, &res.white_balance_auto_rate);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BALANCE_WHITE_AUTO_RATE(m_devices[0], *m_allied_narrow_sensor, &res.white_balance_auto_rate);
             break;
         default:
@@ -2017,9 +2357,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(m_devices[0], *m_allied_wide_sensor, &res.white_balance_auto_tolerance);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_BALANCE_WHITE_AUTO_TOLERANCE(m_devices[0], *m_allied_narrow_sensor, &res.white_balance_auto_tolerance);
             break;
         default:
@@ -2033,10 +2383,20 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
-            res.error = GET_ALLIED_CAMERA_AUTO_MODE_REGION(m_devices[0], *m_allied_wide_sensor, &res.width, &res.height);
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
+            res.error = GET_ALLIED_CAMERA_AUTO_MODE_REGION(m_devices[0], *m_allied_wide_sensor, &res.height, &res.width);
             break;
         case alliedCamerasIds::narrow_camera:
-            res.error = GET_ALLIED_CAMERA_AUTO_MODE_REGION(m_devices[0], *m_allied_narrow_sensor, &res.width, &res.height);
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
+            res.error = GET_ALLIED_CAMERA_AUTO_MODE_REGION(m_devices[0], *m_allied_narrow_sensor, &res.height, &res.width);
             break;
         default:
             res.error = L3CAM_VALUE_OUT_OF_RANGE;
@@ -2049,9 +2409,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(m_devices[0], *m_allied_wide_sensor, &res.intensity_controller_region);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_INTENSITY_CONTROLLER_REGION(m_devices[0], *m_allied_narrow_sensor, &res.intensity_controller_region);
             break;
         default:
@@ -2065,9 +2435,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(m_devices[0], *m_allied_wide_sensor, &res.intensity_controller_target);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_INTENSITY_CONTROLLER_TARGET(m_devices[0], *m_allied_narrow_sensor, &res.intensity_controller_target);
             break;
         default:
@@ -2081,9 +2461,19 @@ namespace l3cam_ros
         switch (req.allied_type)
         {
         case alliedCamerasIds::wide_camera:
+            if (m_allied_wide_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_MAX_DRIVER_BUFFERS_COUNT(m_devices[0], *m_allied_wide_sensor, &res.max_driver_buffers_count);
             break;
         case alliedCamerasIds::narrow_camera:
+            if (m_allied_narrow_sensor == NULL)
+            {
+                res.error = L3CAM_SENSOR_NOT_AVAILABLE;
+                break;
+            }
             res.error = GET_ALLIED_CAMERA_MAX_DRIVER_BUFFERS_COUNT(m_devices[0], *m_allied_narrow_sensor, &res.max_driver_buffers_count);
             break;
         default:
@@ -2109,6 +2499,11 @@ namespace l3cam_ros
         if (!client_lidar_stream_disconnected_.call(srv_pointcloud_stream_disconnected_))
         {
             ROS_ERROR_STREAM(this->getNamespace() << " error: Failed to call service " << client_lidar_stream_disconnected_.getService());
+        }
+        srv_lidar_detections_stream_disconnected_.request.code = code;
+        if (!client_lidar_detections_stream_disconnected_.call(srv_lidar_detections_stream_disconnected_))
+        {
+            ROS_ERROR_STREAM(this->getNamespace() << " error: Failed to call service " << client_lidar_detections_stream_disconnected_.getService());
         }
 
         // Configuration
@@ -2207,6 +2602,10 @@ namespace l3cam_ros
     void L3Cam::errorNotification(const int32_t *error)
     {
         // ROS_INFO_STREAM(this->getNamespace() << " Error notification received");
+        if (node == NULL) // callback is registered in the constructor (before `node` is assigned) and outlives spin()
+        {
+            return;
+        }
         int errort = *error;
 
         switch (errort)

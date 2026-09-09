@@ -50,8 +50,8 @@ namespace l3cam_ros
         explicit NetworkConfiguration() : ros::NodeHandle("~")
         {
             // Create service clients
-            client_get_ = serviceClient<l3cam_ros::GetNetworkConfiguration>("/L3Cam/l3cam_ros_node/get_network_configuration");
-            client_change_ = serviceClient<l3cam_ros::ChangeNetworkConfiguration>("/L3Cam/l3cam_ros_node/change_network_configuration");
+            client_get_ = ros::NodeHandle().serviceClient<l3cam_ros::GetNetworkConfiguration>("l3cam_ros_node/get_network_configuration");
+            client_change_ = ros::NodeHandle().serviceClient<l3cam_ros::ChangeNetworkConfiguration>("l3cam_ros_node/change_network_configuration");
 
             // Create service server
             srv_sensor_disconnected_ = advertiseService("network_configuration_disconnected", &NetworkConfiguration::sensorDisconnectedCallback, this);
@@ -132,6 +132,7 @@ namespace l3cam_ros
                 if (!getParam(full_param_name, param_var))
                 {
                     ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                    param_var = default_val;
                 }
             }
             else

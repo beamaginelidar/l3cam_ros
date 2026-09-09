@@ -31,10 +31,11 @@ namespace l3cam_ros
 {
     SensorStream::SensorStream() : ros::NodeHandle("~")
     {
-        client_get_sensors_ = this->serviceClient<l3cam_ros::GetSensorsAvailable>("/L3Cam/l3cam_ros_node/get_sensors_available");
+        client_get_sensors_ = ros::NodeHandle().serviceClient<l3cam_ros::GetSensorsAvailable>("l3cam_ros_node/get_sensors_available");
 
         loadParam("timeout_secs", timeout_secs_, 60);
         loadParam("simulator", simulator_, false);
+        m_shutdown_requested = false;
     }
 
     void SensorStream::spin()
@@ -49,9 +50,9 @@ namespace l3cam_ros
         ros::shutdown();
     }
 
-    void SensorStream::declareServiceServers(const std::string &sensor)
+    void SensorStream::declareServiceServers(const std::string &stream_name)
     {
-        srv_sensor_disconnected_ = this->advertiseService(sensor + "_stream_disconnected", &SensorStream::sensorDisconnectedCallback, this);
+        srv_sensor_disconnected_ = ros::NodeHandle().advertiseService(stream_name + "/" + stream_name + "_disconnected", &SensorStream::sensorDisconnectedCallback, this);
     }
 
     template <typename T>
@@ -64,6 +65,7 @@ namespace l3cam_ros
             if (!getParam(full_param_name, param_var))
             {
                 ROS_ERROR_STREAM(this->getNamespace() << " error: Could not retreive '" << full_param_name << "' param value");
+                param_var = default_val;
             }
         }
         else

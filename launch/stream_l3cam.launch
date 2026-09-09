@@ -26,7 +26,7 @@
     <arg name="jpeg_rst_interval" default="10" />
 
     <arg name="polarimetric_stream_processed_image" default="true" />
-    <arg name="polarimetric_process_type" default="4" /> <!-- see polModes -->
+    <arg name="polarimetric_process_type" default="0" /> <!-- see polModes: 0 no_angle, 1 angle_0, 2 angle_45, 3 angle_90, 4 angle_135, 5 dolp, 6 aolp, 7 raw -->
 
     <!-- Stream -->
     <node pkg="l3cam_ros" type="lidar_stream" name="lidar_stream" output="screen" unless="$(arg comp)">
